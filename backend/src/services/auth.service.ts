@@ -49,12 +49,12 @@ export class AuthService implements IAuthService {
   async login(data: LoginRequest): Promise<AuthResponse> {
     const user = await this.userRepository.findByEmail(data.email);
     if (!user) {
-      throw new Error("Invalid credentials");
+      throw new Error("Not found email");
     }
 
     const isMatch = await bcrypt.compare(data.password, user.password_hash);
     if (!isMatch) {
-      throw new Error("Invalid credentials");
+      throw new Error("Wrong password");
     }
 
     const tokens = this.tokenService.generateAuthTokens(user);
