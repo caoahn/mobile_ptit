@@ -12,6 +12,7 @@ import { TokenService } from "../services/token.service";
 import { SocketService } from "../services/socket.service";
 import { RecipeService } from "../services/recipe.service";
 import { AIService } from "../services/ai.service";
+import { CloudinaryService } from "../services/cloudinary.service";
 
 // Controllers
 import { UserController } from "../controllers/user.controller";
@@ -19,6 +20,7 @@ import { AuthController } from "../controllers/auth.controller";
 import { HealthController } from "../controllers/health.controller";
 import { RecipeController } from "../controllers/recipe.controller";
 import { UtilController } from "../controllers/util.controller";
+import { UploadController } from "../controllers/upload.controller";
 
 const container = createContainer({
   injectionMode: InjectionMode.CLASSIC,
@@ -37,6 +39,7 @@ container.register({
   socketService: asClass(SocketService).singleton(),
   recipeService: asClass(RecipeService).scoped(),
   aiService: asClass(AIService).scoped(),
+  cloudinaryService: asClass(CloudinaryService).scoped(),
 
   // Controllers
   userController: asClass(UserController).scoped(),
@@ -44,6 +47,7 @@ container.register({
   recipeController: asClass(RecipeController).scoped(),
   healthController: asClass(HealthController).scoped(),
   utilController: asClass(UtilController).scoped(),
+  uploadController: asClass(UploadController).scoped(),
 });
 
 export default container;
