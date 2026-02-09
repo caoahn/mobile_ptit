@@ -8,6 +8,8 @@ import {
   SavedRecipe,
   User,
 } from "../models/index";
+import { Tag, RecipeTag } from "../models/tag.model";
+import { findOrCreateTag } from "../helpers/tag";
 
 import { IRecipeRepository } from "../interfaces/repositories/recipe.repository";
 
@@ -16,9 +18,11 @@ export class RecipeRepository implements IRecipeRepository {
     data: RecipeCreationAttributes,
     ingredients: any[],
     steps: any[],
+    tags?: string[],
   ): Promise<Recipe> {
     const recipe = await Recipe.create(data);
 
+    // Create ingredients
     if (ingredients && ingredients.length > 0) {
       const ingredientData = ingredients.map((ing) => ({
         ...ing,
@@ -27,9 +31,22 @@ export class RecipeRepository implements IRecipeRepository {
       await Ingredient.bulkCreate(ingredientData);
     }
 
+    // Create steps
     if (steps && steps.length > 0) {
       const stepData = steps.map((step) => ({ ...step, recipe_id: recipe.id }));
       await RecipeStep.bulkCreate(stepData);
+    }
+
+    // Create or find tags and create recipe_tags relations
+    if (tags && tags.length > 0) {
+      const tagInstances = await Promise.all(
+        tags.map((tagName) => findOrCreateTag(tagName)),
+      );
+      const recipeTagData = tagInstances.map((tag) => ({
+        recipe_id: recipe.id,
+        tag_id: tag.id,
+      }));
+      await RecipeTag.bulkCreate(recipeTagData);
     }
 
     return this.findById(recipe.id) as Promise<Recipe>;
@@ -57,6 +74,7 @@ export class RecipeRepository implements IRecipeRepository {
         },
         { model: Ingredient, as: "ingredients" },
         { model: RecipeStep, as: "steps" },
+        { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
       ],
       order: [["created_at", "DESC"]],
       distinct: true,
@@ -73,6 +91,7 @@ export class RecipeRepository implements IRecipeRepository {
         },
         { model: Ingredient, as: "ingredients" },
         { model: RecipeStep, as: "steps" },
+        { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
       ],
     });
   }
@@ -105,6 +124,7 @@ export class RecipeRepository implements IRecipeRepository {
           as: "chef",
           attributes: ["id", "username", "avatar_url"],
         },
+        { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
       ],
     });
   }
@@ -112,7 +132,10 @@ export class RecipeRepository implements IRecipeRepository {
   async findByUserId(userId: number): Promise<Recipe[]> {
     return Recipe.findAll({
       where: { user_id: userId },
-      include: [{ model: Ingredient, as: "ingredients" }],
+      include: [
+        { model: Ingredient, as: "ingredients" },
+        { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
+      ],
       order: [["created_at", "DESC"]],
     });
   }
@@ -148,6 +171,7 @@ export class RecipeRepository implements IRecipeRepository {
               as: "chef",
               attributes: ["id", "username", "avatar_url"],
             },
+            { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
           ],
         },
       ],

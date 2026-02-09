@@ -22,4 +22,5 @@ export interface CreateRecipeRequest {
   calories?: number;
   ingredients: CreateIngredientRequest[];
   steps: CreateStepRequest[];
+  tags?: string[]; // Optional array of tag names
 }

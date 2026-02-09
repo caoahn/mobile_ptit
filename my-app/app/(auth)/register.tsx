@@ -1,10 +1,9 @@
-import Button from "@/src/components/ui/Button";
-import Container from "@/src/components/ui/Container";
-import Input from "@/src/components/ui/Input";
+import { Button, Container, Input } from "@/src/shared/components";
 import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,6 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import * as authApi from "@/src/features/auth/services/authService";
+import { useAuthStore } from "@/src/features/auth/store/authStore";
 
 export default function RegisterScreen() {
   const [formData, setFormData] = useState({
@@ -27,12 +28,52 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = async () => {
+    // Validation
+    if (!formData.username.trim() || !formData.email.trim() || !formData.password.trim()) {
+      Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      Alert.alert("Lỗi", "Mật khẩu xác nhận không khớp");
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      Alert.alert("Lỗi", "Mật khẩu phải có ít nhất 8 ký tự");
+      return;
+    }
+
     setIsLoading(true);
-    // TODO: Implement register logic
-    setTimeout(() => {
+    try {
+      await authApi.register({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Registration successful, now login automatically
+      const loginResponse = await authApi.login({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Save to store
+      const { login } = useAuthStore.getState();
+      await login(loginResponse.user, loginResponse.access_token, loginResponse.refresh_token);
+
+      Alert.alert("Thành công", "Đăng ký tài khoản thành công!", [
+        { text: "OK", onPress: () => router.replace("/(tabs)") }
+      ]);
+    } catch (error: any) {
+      console.error("Register error:", error);
+      Alert.alert(
+        "Đăng ký thất bại",
+        error.response?.data?.message || error.message || "Không thể đăng ký. Vui lòng thử lại."
+      );
+    } finally {
       setIsLoading(false);
-      router.replace("/(tabs)");
-    }, 1500);
+    }
   };
 
   return (

@@ -58,7 +58,8 @@ recipeRouter.get("/:id", recipeController.getRecipeDetail);
  * @swagger
  * /recipes:
  *   post:
- *     summary: Create a new recipe
+ *     summary: Create a new recipe post
+ *     description: Create a complete recipe with ingredients, cooking steps, and tags
  *     tags: [Recipes]
  *     security:
  *       - bearerAuth: []
@@ -71,14 +72,112 @@ recipeRouter.get("/:id", recipeController.getRecipeDetail);
  *             required:
  *               - title
  *               - description
+ *               - ingredients
+ *               - steps
  *             properties:
  *               title:
  *                 type: string
+ *                 example: "Phở Bò Hà Nội"
+ *                 description: Tên món ăn
  *               description:
  *                 type: string
+ *                 example: "Món phở bò truyền thống của Hà Nội với nước dùng thơm ngon"
+ *                 description: Mô tả món ăn
+ *               image_url:
+ *                 type: string
+ *                 example: "https://example.com/pho-bo.jpg"
+ *                 description: URL ảnh món ăn
+ *               category:
+ *                 type: string
+ *                 example: "Món chính"
+ *                 description: Danh mục món ăn
+ *               prep_time:
+ *                 type: integer
+ *                 example: 30
+ *                 description: Thời gian chuẩn bị (phút)
+ *               cook_time:
+ *                 type: integer
+ *                 example: 120
+ *                 description: Thời gian nấu (phút)
+ *               servings:
+ *                 type: integer
+ *                 example: 4
+ *                 description: Số khẩu phần
+ *               tips:
+ *                 type: string
+ *                 example: "Nên hầm xương trong 3-4 tiếng để có nước dùng đậm đà"
+ *                 description: Mẹo nấu nướng
+ *               ingredients:
+ *                 type: array
+ *                 description: Danh sách nguyên liệu
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - name
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       example: "Thịt bò"
+ *                     amount:
+ *                       type: string
+ *                       example: "500"
+ *                     unit:
+ *                       type: string
+ *                       example: "gram"
+ *               steps:
+ *                 type: array
+ *                 description: Các bước thực hiện
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - step_number
+ *                     - description
+ *                   properties:
+ *                     step_number:
+ *                       type: integer
+ *                       example: 1
+ *                     title:
+ *                       type: string
+ *                       example: "Chuẩn bị nguyên liệu"
+ *                     description:
+ *                       type: string
+ *                       example: "Rửa sạch thịt bò, thái lát mỏng"
+ *                     image_url:
+ *                       type: string
+ *                       example: "https://example.com/step1.jpg"
+ *               tags:
+ *                 type: array
+ *                 description: Danh sách tên tags (tự động tạo mới nếu chưa có)
+ *                 items:
+ *                   type: string
+ *                 example: ["món việt", "thịt bò", "món nóng"]
  *     responses:
  *       201:
- *         description: Recipe created
+ *         description: Recipe created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Recipe created successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     title:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *       400:
+ *         description: Invalid input data
+ *       401:
+ *         description: Unauthorized - Invalid token
  */
 recipeRouter.post("/", authMiddleware, recipeController.createRecipe);
 

@@ -1,10 +1,10 @@
-import Button from "@/src/components/ui/Button";
-import Input from "@/src/components/ui/Input";
+import { Button, Input } from "@/src/shared/components";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -14,19 +14,40 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as authApi from "@/src/features/auth/services/authService";
+import { useAuthStore } from "@/src/features/auth/store/authStore";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuthStore();
 
   const handleLogin = async () => {
+    // Validation
+    if (!email.trim() || !password.trim()) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
     setIsLoading(true);
-    // Simulation of login
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const response = await authApi.login({ email, password });
+
+      // Save to store
+      await login(response.user, response.access_token, response.refresh_token);
+
+      // Navigate to main app
       router.replace("/(tabs)");
-    }, 1500);
+    } catch (error: any) {
+      console.error("Login error:", error);
+      Alert.alert(
+        "Login Failed",
+        error.response?.data?.message || error.message || "Unable to login. Please check your credentials."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

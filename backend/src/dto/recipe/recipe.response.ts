@@ -12,6 +12,12 @@ export interface RecipeStepResponse {
   image_url?: string;
 }
 
+export interface TagResponse {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 export interface ChefResponse {
   id: number;
   username: string;
@@ -30,6 +36,7 @@ export interface RecipeResponse {
   chef?: ChefResponse;
   ingredients: IngredientResponse[];
   steps: RecipeStepResponse[];
+  tags: TagResponse[];
   created_at: Date;
   updated_at: Date;
   is_liked?: boolean;

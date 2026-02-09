@@ -11,6 +11,7 @@ export class RecipeController {
       // Assuming authMiddleware attaches user to req.user
       const userId = (req as any).user.id;
       const recipeData: CreateRecipeRequest = req.body;
+      console.log("Tags received in controller:", recipeData.tags);
       const recipe = await this.recipeService.createRecipe(userId, recipeData);
       res.status(201).json(recipe);
     } catch (error) {

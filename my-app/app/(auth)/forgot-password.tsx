@@ -1,6 +1,4 @@
-import Button from "@/src/components/ui/Button";
-import Container from "@/src/components/ui/Container";
-import Input from "@/src/components/ui/Input";
+import { Button, Container, Input } from "@/src/shared/components";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";

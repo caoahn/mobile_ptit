@@ -9,6 +9,7 @@ export interface IRecipeRepository {
     recipe: RecipeCreationAttributes,
     ingredients: any[],
     steps: any[],
+    tags?: string[],
   ): Promise<Recipe>;
   findAll(
     page: number,

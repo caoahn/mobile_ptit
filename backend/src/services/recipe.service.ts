@@ -42,6 +42,13 @@ export class RecipeService implements IRecipeService {
             image_url: s.image_url,
           }))
         : [],
+      tags: raw.tags
+        ? raw.tags.map((t: any) => ({
+            id: t.id,
+            name: t.name,
+            slug: t.slug,
+          }))
+        : [],
       created_at: raw.created_at,
       updated_at: raw.updated_at,
       is_liked: false, // Default
@@ -53,15 +60,17 @@ export class RecipeService implements IRecipeService {
     userId: number,
     data: CreateRecipeRequest,
   ): Promise<RecipeResponse> {
-    const { ingredients, steps, ...recipeData } = data;
+    const { ingredients, steps, tags, ...recipeData } = data;
     const newRecipe: RecipeCreationAttributes = {
       ...recipeData,
       user_id: userId,
     };
+
     const created = await this.recipeRepository.create(
       newRecipe,
       ingredients,
       steps,
+      tags,
     );
     return this.toDTO(created);
   }

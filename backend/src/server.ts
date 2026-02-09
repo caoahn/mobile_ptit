@@ -5,9 +5,8 @@ import { connectDB } from "./config/database";
 
 const startServer = async () => {
   await connectDB();
-  app.listen(env.port, () => {
+  app.listen(Number(env.port), "0.0.0.0", () => {
     logger.info(`Server is running in ${env.nodeEnv} mode on port ${env.port}`);
-    logger.info(`Swagger UI available at http://localhost:${env.port}/api`);
   });
 };
 
