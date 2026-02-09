@@ -1,4 +1,5 @@
-import { Button, Container, Input } from "@/src/shared/components";
+import { Button, Input } from "@/src/shared/components";
+import { MaterialIcons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
@@ -11,8 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as authApi from "@/src/features/auth/services/authService";
-import { useAuthStore } from "@/src/features/auth/store/authStore";
 
 export default function RegisterScreen() {
   const [formData, setFormData] = useState({
@@ -30,17 +31,17 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     // Validation
     if (!formData.username.trim() || !formData.email.trim() || !formData.password.trim()) {
-      Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin");
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      Alert.alert("Lỗi", "Mật khẩu xác nhận không khớp");
+      Alert.alert("Error", "Passwords do not match");
       return;
     }
 
     if (formData.password.length < 8) {
-      Alert.alert("Lỗi", "Mật khẩu phải có ít nhất 8 ký tự");
+      Alert.alert("Error", "Password must be at least 8 characters");
       return;
     }
 
@@ -52,24 +53,22 @@ export default function RegisterScreen() {
         password: formData.password,
       });
 
-      // Registration successful, now login automatically
-      const loginResponse = await authApi.login({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      // Save to store
-      const { login } = useAuthStore.getState();
-      await login(loginResponse.user, loginResponse.access_token, loginResponse.refresh_token);
-
-      Alert.alert("Thành công", "Đăng ký tài khoản thành công!", [
-        { text: "OK", onPress: () => router.replace("/(tabs)") }
-      ]);
+      // Registration successful, redirect to login
+      Alert.alert(
+        "Success",
+        "Your account has been created successfully! Please log in.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/(auth)/login")
+          }
+        ]
+      );
     } catch (error: any) {
       console.error("Register error:", error);
       Alert.alert(
-        "Đăng ký thất bại",
-        error.response?.data?.message || error.message || "Không thể đăng ký. Vui lòng thử lại."
+        "Registration Failed",
+        error.response?.data?.message || error.message || "Unable to register. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -77,102 +76,123 @@ export default function RegisterScreen() {
   };
 
   return (
-    <Container safe>
+    <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24 }}>
-          {/* Header */}
-          <View className="mb-8 mt-4">
-            <TouchableOpacity onPress={() => router.back()} className="mb-4">
-              <Text className="text-gray-500 text-lg">←</Text>
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            padding: 24,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header Section */}
+          <View className="mb-8">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="mb-6 w-10 h-10 items-center justify-center"
+            >
+              <MaterialIcons name="arrow-back" size={24} color="#6B7280" />
             </TouchableOpacity>
-            <Text className="text-3xl font-bold text-text mb-2">
-              Tạo Tài Khoản
+
+            <View className="items-center mb-8">
+              <View className="w-20 h-20 bg-primary/10 rounded-3xl items-center justify-center mb-4 shadow-sm rotate-3">
+                <MaterialIcons name="person-add" size={40} color="#29a38f" />
+              </View>
+            </View>
+
+            <Text className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
+              Create Account
             </Text>
-            <Text className="text-gray-500">
-              Đăng ký để bắt đầu trải nghiệm
+            <Text className="text-gray-500 text-base">
+              Sign up to get started with DishGram
             </Text>
           </View>
 
-          {/* Form */}
+          {/* Form Section */}
           <View className="w-full space-y-4">
             <Input
-              label="Tên người dùng"
-              placeholder="NguyenVanA"
+              label="Username"
+              placeholder="johndoe"
               value={formData.username}
               onChangeText={(text) => handleChange("username", text)}
+              autoCapitalize="none"
               autoCorrect={false}
+              containerClassName="mb-4"
             />
 
             <Input
-              label="Email"
-              placeholder="user@example.com"
+              label="Email Address"
+              placeholder="chef@example.com"
               value={formData.email}
               onChangeText={(text) => handleChange("email", text)}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              containerClassName="mb-4"
             />
 
-            <View>
-              <Input
-                label="Mật khẩu"
-                placeholder="••••••••"
-                value={formData.password}
-                onChangeText={(text) => handleChange("password", text)}
-                secureTextEntry
-              />
-              <View className="ml-1 mb-4">
-                <Text className="text-xs text-gray-400">• Ít nhất 8 ký tự</Text>
-                <Text className="text-xs text-gray-400">
-                  • Có chữ hoa và chữ thường
-                </Text>
-                <Text className="text-xs text-gray-400">
-                  • Có số và ký tự đặc biệt
-                </Text>
-              </View>
-            </View>
+            <Input
+              label="Password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChangeText={(text) => handleChange("password", text)}
+              secureTextEntry
+              containerClassName="mb-2"
+            />
 
             <Input
-              label="Xác nhận mật khẩu"
+              label="Confirm Password"
               placeholder="••••••••"
               value={formData.confirmPassword}
               onChangeText={(text) => handleChange("confirmPassword", text)}
               secureTextEntry
+              containerClassName="mb-4"
             />
 
-            <View className="flex-row items-center mb-6">
-              {/* Terms checkbox placeholder */}
-              <Text className="text-gray-600 text-sm">
-                Tôi đồng ý với{" "}
-                <Text className="text-primary font-bold">
-                  Điều khoản dịch vụ
-                </Text>
+            <View className="mb-6">
+              <Text className="text-xs text-gray-400 mb-1">
+                • At least 8 characters
+              </Text>
+              <Text className="text-xs text-gray-400 mb-1">
+                • Mix of uppercase and lowercase letters
+              </Text>
+              <Text className="text-xs text-gray-400">
+                • Include numbers and special characters
               </Text>
             </View>
 
             <Button
-              title="ĐĂNG KÝ"
+              title="Create Account"
               onPress={handleRegister}
               isLoading={isLoading}
-              className="mt-2 shadow-lg shadow-blue-500/30"
+              className="shadow-lg shadow-primary/30 rounded-xl py-4"
             />
+
+            <Text className="text-gray-400 text-xs text-center mt-4">
+              By signing up, you agree to our{" "}
+              <Text className="text-primary font-bold">Terms of Service</Text>
+              {"\n"}and{" "}
+              <Text className="text-primary font-bold">Privacy Policy</Text>
+            </Text>
           </View>
 
-          {/* Footer */}
-          <View className="flex-row justify-center mt-10 mb-8">
-            <Text className="text-gray-600">Đã có tài khoản? </Text>
+          {/* Footer Section */}
+          <View className="flex-row justify-center mt-auto pt-10">
+            <Text className="text-gray-500 font-medium">
+              Already have an account?{" "}
+            </Text>
             <Link href="/(auth)/login" asChild>
               <TouchableOpacity>
-                <Text className="text-primary font-bold">Đăng nhập</Text>
+                <Text className="text-primary font-bold">Sign In</Text>
               </TouchableOpacity>
             </Link>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </Container>
+    </SafeAreaView>
   );
 }
