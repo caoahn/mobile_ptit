@@ -18,8 +18,7 @@ export interface CreateRecipeRequest {
   category: string;
   image_url?: string;
   difficulty: "Easy" | "Medium" | "Hard";
-  cooking_time: number;
-  calories?: number;
+  cook_time: number;
   ingredients: CreateIngredientRequest[];
   steps: CreateStepRequest[];
   tags?: string[]; // Optional array of tag names

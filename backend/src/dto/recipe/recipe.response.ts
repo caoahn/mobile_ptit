@@ -31,14 +31,40 @@ export interface RecipeResponse {
   category: string;
   image_url?: string;
   difficulty: "Easy" | "Medium" | "Hard";
-  cooking_time: number;
-  calories?: number;
+  cook_time: number;
   chef?: ChefResponse;
   ingredients: IngredientResponse[];
   steps: RecipeStepResponse[];
   tags: TagResponse[];
+  likes_count: number;
+  comments_count: number;
   created_at: Date;
   updated_at: Date;
   is_liked?: boolean;
   is_saved?: boolean;
+}
+
+export interface RecipeFeedItemResponse {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  image_url?: string;
+  cook_time: number;
+  chef?: ChefResponse;
+  tags: TagResponse[];
+  likes_count: number;
+  comments_count: number;
+  created_at: Date;
+  is_liked?: boolean;
+  is_saved?: boolean;
+}
+
+export interface CommentResponse {
+  id: number;
+  content: string;
+  user: ChefResponse;
+  parent_comment_id?: number;
+  created_at: Date;
+  replies?: CommentResponse[];
 }

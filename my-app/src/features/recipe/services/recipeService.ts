@@ -2,32 +2,48 @@ import apiClient from "@/src/shared/services/api/client";
 import { ApiResponse } from "@/src/features/auth/types/auth.response";
 import {
   Recipe,
-  RecipeResponse,
+  RecipeDetail,
   CreateRecipeRequest,
+  FeedResponse,
+  Comment,
 } from "../types/recipe.types";
 
-export const getRecipes = async (): Promise<RecipeResponse[]> => {
-  const response =
-    await apiClient.get<ApiResponse<RecipeResponse[]>>("/recipes");
-  return response.data.data;
+export const getFeed = async (
+  page: number = 1,
+  limit: number = 10,
+  category?: string,
+): Promise<FeedResponse> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  if (category) params.append("category", category);
+
+  const response = await apiClient.get<FeedResponse>(
+    `/recipes?${params.toString()}`,
+  );
+  return response.data;
 };
 
-export const getRecipeById = async (id: string): Promise<RecipeResponse> => {
-  const response = await apiClient.get<ApiResponse<RecipeResponse>>(
-    `/recipes/${id}`,
-  );
-  return response.data.data;
+export const getRecipeById = async (id: number): Promise<RecipeDetail> => {
+  const response = await apiClient.get<RecipeDetail>(`/recipes/${id}`);
+  return response.data;
+};
+
+export const getRecipeComments = async (id: number): Promise<Comment[]> => {
+  const response = await apiClient.get<Comment[]>(`/recipes/${id}/comments`);
+  return response.data;
 };
 
 export const createRecipe = async (
   data: CreateRecipeRequest,
 ): Promise<Recipe> => {
-  const response = await apiClient.post<ApiResponse<Recipe>>("/recipes", data);
-  return response.data.data;
+  const response = await apiClient.post<Recipe>("/recipes", data);
+  return response.data;
 };
 
 export const updateRecipe = async (
-  id: string,
+  id: number,
   data: Partial<CreateRecipeRequest>,
 ): Promise<Recipe> => {
   const response = await apiClient.put<ApiResponse<Recipe>>(
@@ -37,22 +53,36 @@ export const updateRecipe = async (
   return response.data.data;
 };
 
-export const deleteRecipe = async (id: string): Promise<void> => {
+export const deleteRecipe = async (id: number): Promise<void> => {
   await apiClient.delete(`/recipes/${id}`);
 };
 
-export const likeRecipe = async (id: string): Promise<void> => {
+export const toggleLike = async (id: number): Promise<{ liked: boolean }> => {
+  const response = await apiClient.post<{ liked: boolean }>(
+    `/recipes/${id}/like`,
+  );
+  return response.data;
+};
+
+export const toggleSave = async (id: number): Promise<{ saved: boolean }> => {
+  const response = await apiClient.post<{ saved: boolean }>(
+    `/recipes/${id}/save`,
+  );
+  return response.data;
+};
+
+export const likeRecipe = async (id: number): Promise<void> => {
   await apiClient.post(`/recipes/${id}/like`);
 };
 
-export const unlikeRecipe = async (id: string): Promise<void> => {
+export const unlikeRecipe = async (id: number): Promise<void> => {
   await apiClient.delete(`/recipes/${id}/like`);
 };
 
-export const saveRecipe = async (id: string): Promise<void> => {
+export const saveRecipe = async (id: number): Promise<void> => {
   await apiClient.post(`/recipes/${id}/save`);
 };
 
-export const unsaveRecipe = async (id: string): Promise<void> => {
+export const unsaveRecipe = async (id: number): Promise<void> => {
   await apiClient.delete(`/recipes/${id}/save`);
 };

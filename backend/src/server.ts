@@ -7,6 +7,9 @@ const startServer = async () => {
   await connectDB();
   app.listen(Number(env.port), "0.0.0.0", () => {
     logger.info(`Server is running in ${env.nodeEnv} mode on port ${env.port}`);
+    logger.info(
+      `Swagger documentation available at http://localhost:${env.port}/api`,
+    );
   });
 };
 

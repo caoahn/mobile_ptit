@@ -56,6 +56,24 @@ recipeRouter.get("/:id", recipeController.getRecipeDetail);
 
 /**
  * @swagger
+ * /recipes/{id}/comments:
+ *   get:
+ *     summary: Get recipe comments
+ *     tags: [Recipes]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of comments with replies
+ */
+recipeRouter.get("/:id/comments", recipeController.getRecipeComments);
+
+/**
+ * @swagger
  * /recipes:
  *   post:
  *     summary: Create a new recipe post

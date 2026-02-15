@@ -1,4 +1,5 @@
 import { Tag } from "../models/tag.model";
+import { Transaction } from "sequelize";
 
 /**
  * Convert string to slug (remove Vietnamese accents, spaces)
@@ -19,11 +20,15 @@ export function formatTagSlug(name: string): string {
  * Find or create tag by name
  * If tag doesn't exist, create new one with auto-generated slug
  */
-export async function findOrCreateTag(name: string): Promise<Tag> {
+export async function findOrCreateTag(
+  name: string,
+  transaction?: Transaction,
+): Promise<Tag> {
   const slug = formatTagSlug(name);
   const [tag] = await Tag.findOrCreate({
     where: { slug },
     defaults: { name, slug },
+    transaction,
   });
   return tag;
 }

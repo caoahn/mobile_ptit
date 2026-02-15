@@ -24,8 +24,14 @@ export class RecipeController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const category = req.query.category as string;
+      const userId = (req as any).user?.id; // Optional auth
 
-      const result = await this.recipeService.getFeed(page, limit, category);
+      const result = await this.recipeService.getFeed(
+        page,
+        limit,
+        category,
+        userId,
+      );
       res.json(result);
     } catch (error) {
       next(error);
@@ -99,6 +105,20 @@ export class RecipeController {
       const userId = (req as any).user.id;
       const result = await this.recipeService.getSavedRecipes(userId);
       res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getRecipeComments = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const recipeId = parseInt(req.params.id);
+      const comments = await this.recipeService.getRecipeComments(recipeId);
+      res.json(comments);
     } catch (error) {
       next(error);
     }

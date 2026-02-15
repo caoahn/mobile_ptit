@@ -1,6 +1,9 @@
-import { RecipeResponse } from "./recipe.response";
+import { RecipeFeedItemResponse } from "./recipe.response";
 
 export interface GetFeedResponse {
-  rows: RecipeResponse[];
-  count: number;
+  recipes: RecipeFeedItemResponse[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
 }

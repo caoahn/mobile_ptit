@@ -7,9 +7,12 @@ import {
   Like,
   SavedRecipe,
   User,
+  Comment,
 } from "../models/index";
 import { Tag, RecipeTag } from "../models/tag.model";
 import { findOrCreateTag } from "../helpers/tag";
+import { sequelize } from "../config/database";
+import { QueryTypes } from "sequelize";
 
 import { IRecipeRepository } from "../interfaces/repositories/recipe.repository";
 
@@ -20,36 +23,53 @@ export class RecipeRepository implements IRecipeRepository {
     steps: any[],
     tags?: string[],
   ): Promise<Recipe> {
-    const recipe = await Recipe.create(data);
+    const transaction = await sequelize.transaction();
 
-    // Create ingredients
-    if (ingredients && ingredients.length > 0) {
-      const ingredientData = ingredients.map((ing) => ({
-        ...ing,
-        recipe_id: recipe.id,
-      }));
-      await Ingredient.bulkCreate(ingredientData);
+    try {
+      // Create recipe
+      const recipe = await Recipe.create(data, { transaction });
+
+      // Create ingredients
+      if (ingredients && ingredients.length > 0) {
+        const ingredientData = ingredients.map((ing) => ({
+          ...ing,
+          recipe_id: recipe.id,
+        }));
+        await Ingredient.bulkCreate(ingredientData, { transaction });
+      }
+
+      // Create steps
+      if (steps && steps.length > 0) {
+        const stepData = steps.map((step) => ({
+          recipe_id: recipe.id,
+          step_number: step.order,
+          description: step.description,
+          image_url: step.image_url,
+        }));
+        await RecipeStep.bulkCreate(stepData, { transaction });
+      }
+
+      // Create or find tags and create recipe_tags relations
+      if (tags && tags.length > 0) {
+        const tagInstances = await Promise.all(
+          tags.map((tagName) => findOrCreateTag(tagName, transaction)),
+        );
+        const recipeTagData = tagInstances.map((tag) => ({
+          recipe_id: recipe.id,
+          tag_id: tag.id,
+        }));
+        await RecipeTag.bulkCreate(recipeTagData, { transaction });
+      }
+
+      // Commit transaction
+      await transaction.commit();
+
+      return this.findById(recipe.id) as Promise<Recipe>;
+    } catch (error) {
+      // Rollback transaction on error
+      await transaction.rollback();
+      throw error;
     }
-
-    // Create steps
-    if (steps && steps.length > 0) {
-      const stepData = steps.map((step) => ({ ...step, recipe_id: recipe.id }));
-      await RecipeStep.bulkCreate(stepData);
-    }
-
-    // Create or find tags and create recipe_tags relations
-    if (tags && tags.length > 0) {
-      const tagInstances = await Promise.all(
-        tags.map((tagName) => findOrCreateTag(tagName)),
-      );
-      const recipeTagData = tagInstances.map((tag) => ({
-        recipe_id: recipe.id,
-        tag_id: tag.id,
-      }));
-      await RecipeTag.bulkCreate(recipeTagData);
-    }
-
-    return this.findById(recipe.id) as Promise<Recipe>;
   }
 
   async findAll(
