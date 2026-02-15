@@ -8,6 +8,7 @@ export const sequelize = new Sequelize(
   env.db.password,
   {
     host: env.db.host,
+    port: env.db.port,
     dialect: "mysql",
     logging: false,
     pool: {
@@ -24,7 +25,7 @@ export const connectDB = async () => {
     await sequelize.authenticate();
     logger.info("Database connected successfully via Sequelize");
     await sequelize.sync({
-      alter: false,
+      alter: true,
     });
     logger.info("Database synchronized");
   } catch (err) {
