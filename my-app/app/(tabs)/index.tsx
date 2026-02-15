@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 import React, { useEffect, useState, useCallback } from "react";
 import {
   FlatList,
@@ -51,6 +51,16 @@ export default function HomeScreen() {
   useEffect(() => {
     loadRecipes(1, true, false, true);
   }, []);
+
+  // Refresh feed when tab is focused (e.g., after creating a recipe)
+  useFocusEffect(
+    useCallback(() => {
+      // Only refresh if we already have data (not first mount)
+      if (recipes.length > 0) {
+        loadRecipes(1, true, false, true);
+      }
+    }, [recipes.length])
+  );
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {

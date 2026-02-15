@@ -110,6 +110,19 @@ export default function CreateScreen() {
     setTags(tags.filter((t) => t !== tag));
   };
 
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setSelectedCategory(null);
+    setDifficulty("Easy");
+    setCookingTime("");
+    setImage(null);
+    setIngredients([{ id: "1", name: "", amount: "", unit: "" }]);
+    setSteps([{ id: "1", description: "", image_url: "" }]);
+    setTags([]);
+    setTagInput("");
+  };
+
   const handlePost = async () => {
     // Validation
     if (!title.trim()) {
@@ -165,7 +178,10 @@ export default function CreateScreen() {
       Alert.alert("Thành công", "Công thức đã được đăng!", [
         {
           text: "OK",
-          onPress: () => router.push("/(tabs)"),
+          onPress: () => {
+            resetForm();
+            router.push("/(tabs)");
+          },
         },
       ]);
     } catch (error: any) {
