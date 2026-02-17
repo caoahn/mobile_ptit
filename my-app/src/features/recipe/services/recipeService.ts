@@ -6,6 +6,7 @@ import {
   CreateRecipeRequest,
   FeedResponse,
   Comment,
+  CommentsResponse,
 } from "../types/recipe.types";
 
 export const getFeed = async (
@@ -30,8 +31,30 @@ export const getRecipeById = async (id: number): Promise<RecipeDetail> => {
   return response.data;
 };
 
-export const getRecipeComments = async (id: number): Promise<Comment[]> => {
-  const response = await apiClient.get<Comment[]>(`/recipes/${id}/comments`);
+export const getRecipeComments = async (
+  id: number,
+  page: number = 1,
+  limit: number = 10,
+): Promise<CommentsResponse> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  const response = await apiClient.get<CommentsResponse>(
+    `/recipes/${id}/comments?${params.toString()}`,
+  );
+  return response.data;
+};
+
+export const createComment = async (
+  recipeId: number,
+  content: string,
+  parent_comment_id?: number,
+): Promise<Comment> => {
+  const response = await apiClient.post<Comment>(
+    `/recipes/${recipeId}/comments`,
+    { content, parent_comment_id },
+  );
   return response.data;
 };
 

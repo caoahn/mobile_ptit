@@ -8,7 +8,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
+import { useAuthStore } from "@/src/features/auth/store/authStore";
 
 const RECIPES = [
   {
@@ -51,6 +53,19 @@ const RECIPES = [
 ];
 
 export default function ProfileScreen() {
+  const { logout } = useAuthStore();
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Logout", style: "destructive", onPress: () => logout() },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
       <StatusBar barStyle="dark-content" />
@@ -125,6 +140,19 @@ export default function ProfileScreen() {
               Following
             </Text>
           </View>
+        </View>
+
+        {/* Logout Button (For Testing) */}
+        <View className="px-6 pb-4">
+          <TouchableOpacity
+            onPress={handleLogout}
+            className="flex-row items-center justify-center gap-2 rounded-lg border-2 border-red-500 bg-red-50 h-11"
+          >
+            <MaterialIcons name="logout" size={18} color="#EF4444" />
+            <Text className="text-sm font-bold tracking-wide text-red-500">
+              Logout (Test)
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Buttons */}

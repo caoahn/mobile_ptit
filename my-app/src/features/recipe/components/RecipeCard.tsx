@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
@@ -16,6 +16,7 @@ interface RecipeCardProps {
 }
 
 export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
+  const router = useRouter();
   const [isLiked, setIsLiked] = useState(recipe.is_liked || false);
   const [isSaved, setIsSaved] = useState(recipe.is_saved || false);
   const [likesCount, setLikesCount] = useState(recipe.likes_count);
@@ -37,6 +38,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
     } catch (error) {
       console.error("Failed to toggle save:", error);
     }
+  };
+
+  const handleOpenComments = () => {
+    router.push(`/recipe/${recipe.id}/comments`);
   };
 
   const formatTime = (minutes: number): string => {
@@ -109,11 +114,11 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
               color={isLiked ? "#EF4444" : "black"}
             />
           </TouchableOpacity>
-          <TouchableOpacity>
-            <MaterialIcons name="mode-comment" size={28} color="#6B7280" />
+          <TouchableOpacity onPress={handleOpenComments}>
+            <MaterialIcons name="chat-bubble-outline" size={28} color="black" />
           </TouchableOpacity>
           <TouchableOpacity>
-            <MaterialIcons name="send" size={28} color="#6B7280" />
+            <MaterialIcons name="share" size={28} color="#6B7280" />
           </TouchableOpacity>
         </View>
         <TouchableOpacity onPress={handleSave}>
@@ -147,7 +152,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           </View>
         )}
         {recipe.comments_count > 0 && (
-          <TouchableOpacity className="mt-2">
+          <TouchableOpacity className="mt-2" onPress={handleOpenComments}>
             <Text className="text-xs text-gray-500">
               View all {recipe.comments_count} comments
             </Text>

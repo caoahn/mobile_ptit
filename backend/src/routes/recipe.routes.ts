@@ -17,7 +17,7 @@ const recipeController =
  *       200:
  *         description: List of recipes
  */
-recipeRouter.get("/", recipeController.getFeed);
+recipeRouter.get("/", authMiddleware, recipeController.getFeed);
 
 /**
  * @swagger
@@ -58,7 +58,7 @@ recipeRouter.get("/:id", recipeController.getRecipeDetail);
  * @swagger
  * /recipes/{id}/comments:
  *   get:
- *     summary: Get recipe comments
+ *     summary: Get recipe comments (paginated)
  *     tags: [Recipes]
  *     parameters:
  *       - in: path
@@ -66,11 +66,61 @@ recipeRouter.get("/:id", recipeController.getRecipeDetail);
  *         required: true
  *         schema:
  *           type: integer
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
  *     responses:
  *       200:
- *         description: List of comments with replies
+ *         description: Paginated list of comments with replies
  */
 recipeRouter.get("/:id/comments", recipeController.getRecipeComments);
+
+/**
+ * @swagger
+ * /recipes/{id}/comments:
+ *   post:
+ *     summary: Create a comment or reply
+ *     tags: [Recipes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - content
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 example: "This recipe looks delicious!"
+ *               parent_comment_id:
+ *                 type: integer
+ *                 example: 1
+ *                 description: Optional - for replying to a comment
+ *     responses:
+ *       201:
+ *         description: Comment created
+ */
+recipeRouter.post(
+  "/:id/comments",
+  authMiddleware,
+  recipeController.createComment,
+);
 
 /**
  * @swagger

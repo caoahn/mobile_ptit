@@ -84,8 +84,6 @@ export default function TabLayout() {
       {/* Hidden screens */}
       <Tabs.Screen name="scanner" options={{ href: null }} />
       <Tabs.Screen name="saved" options={{ href: null }} />
-      <Tabs.Screen name="history" options={{ href: null }} />
-      <Tabs.Screen name="stats" options={{ href: null }} />
     </Tabs>
   );
 }

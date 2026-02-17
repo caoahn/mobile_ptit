@@ -14,6 +14,7 @@ import {
   CommentResponse,
 } from "../dto/recipe/recipe.response";
 import { GetFeedResponse } from "../dto/recipe/feed.response";
+import { GetCommentsResponse } from "../dto/recipe/comments.response";
 import { sequelize } from "../config/database";
 
 export class RecipeService implements IRecipeService {
@@ -238,7 +239,20 @@ export class RecipeService implements IRecipeService {
     return Promise.all(recipes.map((r) => this.toDTO(r, userId)));
   }
 
-  async getRecipeComments(recipeId: number): Promise<CommentResponse[]> {
+  async getRecipeComments(
+    recipeId: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<GetCommentsResponse> {
+    // Get total count of parent comments
+    const total = await Comment.count({
+      where: {
+        recipe_id: recipeId,
+        parent_comment_id: { [Op.is]: null },
+      } as any,
+    });
+
+    // Get paginated parent comments
     const comments = await Comment.findAll({
       where: {
         recipe_id: recipeId,
@@ -252,8 +266,11 @@ export class RecipeService implements IRecipeService {
         },
       ],
       order: [["created_at", "DESC"]],
+      limit,
+      offset: (page - 1) * limit,
     });
 
+    // Get replies for each comment
     const commentsData = await Promise.all(
       comments.map(async (comment: any) => {
         const replies = await Comment.findAll({
@@ -293,6 +310,50 @@ export class RecipeService implements IRecipeService {
       }),
     );
 
-    return commentsData;
+    return {
+      comments: commentsData,
+      total,
+      page,
+      limit,
+      hasMore: page * limit < total,
+    };
+  }
+
+  async createComment(
+    userId: number,
+    recipeId: number,
+    data: { content: string; parent_comment_id?: number },
+  ): Promise<CommentResponse> {
+    const comment = await Comment.create({
+      user_id: userId,
+      recipe_id: recipeId,
+      content: data.content,
+      parent_comment_id: data.parent_comment_id,
+    });
+
+    const commentWithUser = await Comment.findByPk(comment.id, {
+      include: [
+        {
+          model: sequelize.models.User,
+          as: "user",
+          attributes: ["id", "username", "avatar_url"],
+        },
+      ],
+    });
+
+    const raw = commentWithUser?.toJSON() as any;
+
+    return {
+      id: raw.id,
+      content: raw.content,
+      user: {
+        id: raw.user.id,
+        username: raw.user.username,
+        avatar_url: raw.user.avatar_url,
+      },
+      parent_comment_id: raw.parent_comment_id,
+      created_at: raw.created_at,
+      replies: [],
+    };
   }
 }

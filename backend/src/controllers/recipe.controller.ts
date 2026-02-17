@@ -117,8 +117,30 @@ export class RecipeController {
   ) => {
     try {
       const recipeId = parseInt(req.params.id);
-      const comments = await this.recipeService.getRecipeComments(recipeId);
-      res.json(comments);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const result = await this.recipeService.getRecipeComments(
+        recipeId,
+        page,
+        limit,
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  createComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = (req as any).user.id;
+      const recipeId = parseInt(req.params.id);
+      const { content, parent_comment_id } = req.body;
+
+      const comment = await this.recipeService.createComment(userId, recipeId, {
+        content,
+        parent_comment_id,
+      });
+      res.status(201).json(comment);
     } catch (error) {
       next(error);
     }

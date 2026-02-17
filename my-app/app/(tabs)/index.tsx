@@ -76,10 +76,10 @@ export default function HomeScreen() {
   }, []);
 
   const renderFooter = () => {
-    if (!loading) return null;
+    if (!loading || recipes.length === 0) return null;
     return (
       <View className="py-4">
-        <ActivityIndicator size="large" color="#000" />
+        <ActivityIndicator size="large" color="#29a38f" />
       </View>
     );
   };
@@ -88,7 +88,7 @@ export default function HomeScreen() {
     if (loading && page === 1) {
       return (
         <View className="flex-1 items-center justify-center py-20">
-          <ActivityIndicator size="large" color="#000" />
+          <ActivityIndicator size="large" color="#29a38f" />
           <Text className="mt-4 text-gray-500">Đang tải...</Text>
         </View>
       );

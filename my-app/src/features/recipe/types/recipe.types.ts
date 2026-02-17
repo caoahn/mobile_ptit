@@ -66,6 +66,14 @@ export interface Comment {
   replies?: Comment[];
 }
 
+export interface CommentsResponse {
+  comments: Comment[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+}
+
 // Create Recipe types (for API requests)
 export interface CreateIngredientRequest {
   name: string;
