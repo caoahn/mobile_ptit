@@ -12,17 +12,32 @@ import { useEffect } from "react";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/src/features/auth/store/authStore";
 import { View, ActivityIndicator } from "react-native";
+import { authEvents, AUTH_EVENTS } from "@/src/shared/services/api/authEvents";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const { isAuthenticated, isLoading, checkAuth } = useAuthStore();
+  const { isAuthenticated, isLoading, checkAuth, logout } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
 
   // Check auth on mount
   useEffect(() => {
     checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Listen for unauthorized events from API
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+    };
+
+    authEvents.on(AUTH_EVENTS.UNAUTHORIZED, handleUnauthorized);
+
+    return () => {
+      authEvents.off(AUTH_EVENTS.UNAUTHORIZED, handleUnauthorized);
+    };
+  }, [logout]);
 
   // Handle navigation based on auth state
   useEffect(() => {
@@ -37,7 +52,7 @@ export default function RootLayout() {
       // Redirect to home if already authenticated
       router.replace("/(tabs)");
     }
-  }, [isAuthenticated, isLoading, segments]);
+  }, [isAuthenticated, isLoading, segments, router]);
 
   // Show loading screen while checking auth
   if (isLoading) {

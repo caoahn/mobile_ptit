@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import Constants from "expo-constants";
+import { authEvents, AUTH_EVENTS } from "./authEvents";
 
 const API_URL =
   Constants.expoConfig?.extra?.apiUrl ||
@@ -41,30 +42,43 @@ apiClient.interceptors.response.use(
 
       try {
         const refreshToken = await AsyncStorage.getItem("refresh_token");
-        if (refreshToken) {
-          // Call refresh token API
-          const response = await axios.post(`${API_URL}/auth/refresh-token`, {
-            refreshToken,
-          });
-
-          const { access_token, refresh_token } = response.data.data;
-
-          // Save new tokens
-          await AsyncStorage.setItem("access_token", access_token);
-          await AsyncStorage.setItem("refresh_token", refresh_token);
-
-          // Retry original request with new token
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
-          return apiClient(originalRequest);
+        if (!refreshToken) {
+          // No refresh token, emit logout event
+          authEvents.emit(AUTH_EVENTS.UNAUTHORIZED);
+          return Promise.reject(error);
         }
+
+        // Call refresh token API
+        const response = await axios.post(`${API_URL}/auth/refresh-token`, {
+          refreshToken,
+        });
+
+        const { access_token, refresh_token } = response.data.data;
+
+        // Save new tokens
+        await AsyncStorage.setItem("access_token", access_token);
+        await AsyncStorage.setItem("refresh_token", refresh_token);
+
+        // Retry original request with new token
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh failed, clear tokens and redirect to login
+        // Refresh failed, emit logout event
         await AsyncStorage.removeItem("access_token");
         await AsyncStorage.removeItem("refresh_token");
         await AsyncStorage.removeItem("user_profile");
-        // Note: router.replace needs to be called from a component
+        authEvents.emit(AUTH_EVENTS.UNAUTHORIZED);
         return Promise.reject(refreshError);
       }
+    }
+
+    // Handle 403 Forbidden
+    if (error.response?.status === 403) {
+      // Token is invalid or expired
+      await AsyncStorage.removeItem("access_token");
+      await AsyncStorage.removeItem("refresh_token");
+      await AsyncStorage.removeItem("user_profile");
+      authEvents.emit(AUTH_EVENTS.UNAUTHORIZED);
     }
 
     return Promise.reject(error);
