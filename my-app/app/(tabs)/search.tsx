@@ -1,4 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import { router, Href } from "expo-router";
 import React, { useState } from "react";
 import {
   ScrollView,
@@ -53,10 +54,10 @@ export default function SearchScreen() {
               returnKeyType="search"
             />
           </View>
-          <TouchableOpacity className="p-2 border border-gray-200 rounded-lg">
+          <TouchableOpacity className="p-2 border border-gray-200 rounded-lg" onPress={() => router.push('/scanner' as Href)}>
             <MaterialIcons name="camera-alt" size={20} color="#374151" />
           </TouchableOpacity>
-          <TouchableOpacity className="p-2 border border-gray-200 rounded-lg">
+          <TouchableOpacity className="p-2 border border-gray-200 rounded-lg" onPress={() => router.push('/filter' as Href)}>
             <MaterialIcons name="tune" size={20} color="#374151" />
           </TouchableOpacity>
         </View>

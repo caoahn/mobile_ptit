@@ -84,6 +84,9 @@ export default function TabLayout() {
       {/* Hidden screens */}
       <Tabs.Screen name="scanner" options={{ href: null }} />
       <Tabs.Screen name="saved" options={{ href: null }} />
+      <Tabs.Screen name="edit-profile" options={{ href: null }} />
+      <Tabs.Screen name={"filter"} options={{ href: null, presentation: 'modal' }} />
+      <Tabs.Screen name={"filter-results"} options={{ href: null }} />
     </Tabs>
   );
 }

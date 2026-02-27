@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, router, Href } from "expo-router";
 import React from "react";
 import {
   Image,
@@ -142,54 +142,62 @@ export default function DiscoverScreen() {
             contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
           >
             {TRENDING_RECIPES.map((recipe) => (
-              <Link href={`/recipe/${recipe.id}`} asChild key={recipe.id}>
-                <TouchableOpacity
-                  className="h-[320px] w-[260px] flex-col justify-end overflow-hidden rounded-2xl bg-gray-200 shadow-lg"
-                  activeOpacity={0.9}
-                >
-                  <Image
-                    source={{ uri: recipe.image }}
-                    className="absolute inset-0 h-full w-full"
-                    resizeMode="cover"
-                  />
-                  <View className="absolute inset-0 bg-black/30" />
-                  <View className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <TouchableOpacity
+                key={recipe.id}
+                className="h-[320px] w-[260px] flex-col justify-end overflow-hidden rounded-2xl bg-gray-200 shadow-lg"
+                activeOpacity={0.9}
+                onPress={() => router.push(`/recipe/${recipe.id}`)}
+              >
+                <Image
+                  source={{ uri: recipe.image }}
+                  className="absolute inset-0 h-full w-full"
+                  resizeMode="cover"
+                />
+                <View className="absolute inset-0 bg-black/30" />
+                <View className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
-                  <View className="absolute left-4 top-4 flex-row items-center gap-1 rounded-lg bg-white/90 px-2 py-1 backdrop-blur-md">
-                    <MaterialIcons name="star" size={12} color="#F59E0B" />
-                    <Text className="text-[10px] font-bold text-primary">
-                      {recipe.rating}
-                    </Text>
-                  </View>
+                <View className="absolute left-4 top-4 flex-row items-center gap-1 rounded-lg bg-white/90 px-2 py-1 backdrop-blur-md">
+                  <MaterialIcons name="star" size={12} color="#F59E0B" />
+                  <Text className="text-[10px] font-bold text-primary">
+                    {recipe.rating}
+                  </Text>
+                </View>
 
-                  <View className="p-5">
-                    <View className="mb-2 flex-row items-center gap-2">
-                      <View className="h-6 w-6 overflow-hidden rounded-full border border-white/40">
-                        <Image
-                          source={{ uri: recipe.chefImage }}
-                          className="h-full w-full"
-                        />
-                      </View>
-                      <Text className="text-[10px] font-bold uppercase tracking-widest text-white/90">
-                        {recipe.chef}
-                      </Text>
-                    </View>
-                    <Text className="mb-1 text-xl font-bold leading-tight text-white">
-                      {recipe.title}
-                    </Text>
-                    <View className="flex-row items-center gap-1">
-                      <MaterialIcons
-                        name="schedule"
-                        size={14}
-                        color="rgba(255,255,255,0.7)"
+                <View className="p-5">
+                  {/* Chef Info - Clickable */}
+                  <TouchableOpacity 
+                    className="mb-2 flex-row items-center gap-2 self-start"
+                    onPress={(e) => {
+                      e.stopPropagation(); 
+                      router.push(`/user/${recipe.id}` as Href);
+                    }}
+                  >
+                    <View className="h-6 w-6 overflow-hidden rounded-full border border-white/40">
+                      <Image
+                        source={{ uri: recipe.chefImage }}
+                        className="h-full w-full"
                       />
-                      <Text className="text-xs font-medium text-white/70">
-                        {recipe.time} • {recipe.level}
-                      </Text>
                     </View>
+                    <Text className="text-[10px] font-bold uppercase tracking-widest text-white/90">
+                      {recipe.chef}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <Text className="mb-1 text-xl font-bold leading-tight text-white">
+                    {recipe.title}
+                  </Text>
+                  <View className="flex-row items-center gap-1">
+                    <MaterialIcons
+                      name="schedule"
+                      size={14}
+                      color="rgba(255,255,255,0.7)"
+                    />
+                    <Text className="text-xs font-medium text-white/70">
+                      {recipe.time} • {recipe.level}
+                    </Text>
                   </View>
-                </TouchableOpacity>
-              </Link>
+                </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>

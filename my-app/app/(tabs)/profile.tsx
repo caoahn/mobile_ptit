@@ -1,5 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
+import { router, Href } from "expo-router";
 import {
   Image,
   SafeAreaView,
@@ -123,23 +124,29 @@ export default function ProfileScreen() {
             </Text>
           </View>
           <View className="h-8 w-[1px] bg-[#dde4e3] dark:bg-[#3d4a48]" />
-          <View className="flex-1 flex-col items-center">
+          <TouchableOpacity 
+            className="flex-1 flex-col items-center"
+            onPress={() => router.push("/connection?type=followers&username=Alex Culinary" as Href)}
+          >
             <Text className="text-lg font-bold text-[#121716] dark:text-white">
               1.2k
             </Text>
             <Text className="text-[11px] font-medium uppercase tracking-widest text-[#67837f]">
               Followers
             </Text>
-          </View>
+          </TouchableOpacity>
           <View className="h-8 w-[1px] bg-[#dde4e3] dark:bg-[#3d4a48]" />
-          <View className="flex-1 flex-col items-center">
+          <TouchableOpacity 
+            className="flex-1 flex-col items-center"
+            onPress={() => router.push("/connection?type=following&username=Alex Culinary" as Href)}
+          >
             <Text className="text-lg font-bold text-[#121716] dark:text-white">
               850
             </Text>
             <Text className="text-[11px] font-medium uppercase tracking-widest text-[#67837f]">
               Following
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Logout Button (For Testing) */}
@@ -157,7 +164,10 @@ export default function ProfileScreen() {
 
         {/* Buttons */}
         <View className="flex-row gap-3 px-6 py-6">
-          <TouchableOpacity className="flex-1 flex-row items-center justify-center gap-2 rounded-lg bg-primary h-11 shadow-lg shadow-primary/20">
+          <TouchableOpacity
+            onPress={() => router.push("/edit-profile")}
+            className="flex-1 flex-row items-center justify-center gap-2 rounded-lg bg-primary h-11 shadow-lg shadow-primary/20"
+          >
             <MaterialIcons name="edit" size={18} color="white" />
             <Text className="text-sm font-bold tracking-wide text-white">
               Edit Profile
@@ -191,6 +201,14 @@ export default function ProfileScreen() {
                 className="relative aspect-square w-1/3 p-[1px]"
               >
                 <Image source={{ uri: item.image }} className="h-full w-full" />
+                {/* Edit Button Overlay */}
+                <TouchableOpacity 
+                  onPress={() => router.push(`/edit-recipe/${item.id}` as Href)}
+                  className="absolute top-1 right-1 z-20 rounded-full bg-black/50 p-1.5 backdrop-blur-sm"
+                >
+                  <MaterialIcons name="edit" size={14} color="white" />
+                </TouchableOpacity>
+
                 <View className="absolute bottom-1 right-1 z-10 flex-row items-center gap-1">
                   <MaterialIcons name="favorite" size={12} color="white" />
                   <Text className="text-[10px] font-bold text-white">
