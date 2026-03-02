@@ -6,6 +6,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal,
+  StatusBar,
 } from "react-native";
 import { Recipe } from "../types/recipe.types";
 import { toggleLike, toggleSave } from "../services/recipeService";
@@ -20,6 +22,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   const [isLiked, setIsLiked] = useState(recipe.is_liked || false);
   const [isSaved, setIsSaved] = useState(recipe.is_saved || false);
   const [likesCount, setLikesCount] = useState(recipe.likes_count);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const handleLike = async () => {
     try {
@@ -83,26 +86,31 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
       </View>
 
       {/* Post Image */}
-      <View className="relative aspect-[4/5] w-full bg-gray-100">
-        {recipe.image_url ? (
-          <Image
-            source={{ uri: recipe.image_url }}
-            className="h-full w-full"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="h-full w-full items-center justify-center bg-gray-200">
-            <MaterialIcons name="restaurant" size={48} color="#9CA3AF" />
-          </View>
-        )}
-        {recipe.cook_time > 0 && (
-          <View className="absolute right-4 top-4 rounded bg-black/40 px-2 py-1 backdrop-blur-md">
-            <Text className="text-[10px] font-bold text-white">
-              {formatTime(recipe.cook_time)}
-            </Text>
-          </View>
-        )}
-      </View>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => recipe.image_url && setPreviewImage(recipe.image_url)}
+      >
+        <View className="relative aspect-[4/5] w-full bg-gray-100">
+          {recipe.image_url ? (
+            <Image
+              source={{ uri: recipe.image_url }}
+              className="h-full w-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="h-full w-full items-center justify-center bg-gray-200">
+              <MaterialIcons name="restaurant" size={48} color="#9CA3AF" />
+            </View>
+          )}
+          {recipe.cook_time > 0 && (
+            <View className="absolute right-4 top-4 rounded bg-black/40 px-2 py-1 backdrop-blur-md">
+              <Text className="text-[10px] font-bold text-white">
+                {formatTime(recipe.cook_time)}
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
 
       {/* Actions */}
       <View className="flex-row items-center justify-between px-3 pb-2 pt-3">
@@ -166,6 +174,65 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           </TouchableOpacity>
         </Link>
       </View>
+
+      {/* Image Preview Modal */}
+      <Modal
+        visible={previewImage !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewImage(null)}
+      >
+        <View className="flex-1 bg-black">
+          <StatusBar barStyle="light-content" />
+
+          {/* Header */}
+          <View className="absolute top-0 left-0 right-0 z-10 flex-row items-center justify-between px-4 pt-12 pb-4">
+            <View className="absolute inset-0 bg-black/80" />
+            <Text className="text-lg font-bold text-white z-10">{recipe.title}</Text>
+            <TouchableOpacity
+              onPress={() => setPreviewImage(null)}
+              className="bg-white/20 p-2 rounded-full z-10"
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="close" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Image */}
+          <View className="flex-1 items-center justify-center">
+            {previewImage && (
+              <Image
+                source={{ uri: previewImage }}
+                className="w-full h-full"
+                resizeMode="contain"
+              />
+            )}
+          </View>
+
+          {/* Info */}
+          <View className="absolute bottom-0 left-0 right-0 px-4 py-6">
+            <View className="absolute inset-0 bg-black/80" />
+            <View className="flex-row items-center justify-between z-10">
+              <View className="flex-1">
+                <Text className="text-sm text-white/80">Bởi {recipe.chef?.username || "Anonymous"}</Text>
+                {recipe.cook_time > 0 && (
+                  <Text className="text-xs text-white/60 mt-1">
+                    Thời gian: {formatTime(recipe.cook_time)}
+                  </Text>
+                )}
+              </View>
+              <Link href={`/recipe/${recipe.id}`} asChild>
+                <TouchableOpacity
+                  className="bg-primary px-4 py-2 rounded-lg"
+                  onPress={() => setPreviewImage(null)}
+                >
+                  <Text className="text-white font-bold text-xs">Xem công thức</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

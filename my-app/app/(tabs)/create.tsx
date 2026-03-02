@@ -11,10 +11,14 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createRecipe } from "@/src/features/recipe/services/recipeService";
 import { router } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+import { uploadImage } from "@/src/shared/services/uploadService";
 
 // Types
 interface Ingredient {
@@ -46,15 +50,18 @@ export default function CreateScreen() {
   const [difficulty, setDifficulty] = useState<"Easy" | "Medium" | "Hard">("Easy");
   const [cookingTime, setCookingTime] = useState("");
   const [image, setImage] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { id: "1", name: "", amount: "", unit: "" },
   ]);
   const [steps, setSteps] = useState<Step[]>([
     { id: "1", description: "", image_url: "" },
   ]);
+  const [uploadingStepImages, setUploadingStepImages] = useState<{ [key: string]: boolean }>({});
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // Handlers
   const handleAddIngredient = () => {
@@ -117,8 +124,10 @@ export default function CreateScreen() {
     setDifficulty("Easy");
     setCookingTime("");
     setImage(null);
+    setUploadingImage(false);
     setIngredients([{ id: "1", name: "", amount: "", unit: "" }]);
     setSteps([{ id: "1", description: "", image_url: "" }]);
+    setUploadingStepImages({});
     setTags([]);
     setTagInput("");
   };
@@ -195,10 +204,104 @@ export default function CreateScreen() {
     }
   };
 
-  const handlePickImage = () => {
-    // In a real app, use expo-image-picker here
-    Alert.alert("Upload Image", "This would open the image picker in a real device.");
-    setImage("https://lh3.googleusercontent.com/aida-public/AB6AXuDRMfoec0Pm0cAemNw4Af1dDioOhmWH5VjGt5h2enP_u3PO4U7__KwprSHyWhS_52ismBYKl9uQ8k58VZ_AWNIVMSrJGUzDRb1n1rGSOaZKPq4g7iN-C16d14PQlv4ob55568ms9gQuK30p3qJ8R8eytBR-nDNEf17vm8ISwTQeGC-M9hpKEJnetP_zHqO0Pka7Kf4iFBcqKojqa0m2YrqOuhtJo_YNfi0hGeOwZyQBJM3qI-E9xX1yZkWoempEYWbtQciSV5OIkyPV"); // Mock image
+  const handlePickImage = async () => {
+    try {
+      // Request permission
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permissionResult.granted) {
+        Alert.alert("Quyền truy cập", "Vui lòng cấp quyền truy cập thư viện ảnh để tiếp tục.");
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: "images",
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+
+        // Upload image
+        setUploadingImage(true);
+        try {
+          const uploadResult = await uploadImage(imageUri, "recipes");
+          setImage(uploadResult.url);
+        } catch (error: any) {
+          console.error("Upload failed:", error);
+          Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
+        } finally {
+          setUploadingImage(false);
+        }
+      }
+    } catch (error) {
+      console.error("Image picker error:", error);
+      Alert.alert("Lỗi", "Có lỗi xảy ra khi chọn ảnh.");
+    }
+  };
+
+  const handlePickStepImage = async (stepId: string) => {
+    try {
+      // Request permission
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permissionResult.granted) {
+        Alert.alert("Quyền truy cập", "Vui lòng cấp quyền truy cập thư viện ảnh để tiếp tục.");
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: "images",
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+
+        // Upload image
+        setUploadingStepImages(prev => ({ ...prev, [stepId]: true }));
+        try {
+          const uploadResult = await uploadImage(imageUri, "recipe-steps");
+          handleStepChange(stepId, "image_url", uploadResult.url);
+        } catch (error: any) {
+          console.error("Upload failed:", error);
+          Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
+        } finally {
+          setUploadingStepImages(prev => ({ ...prev, [stepId]: false }));
+        }
+      }
+    } catch (error) {
+      console.error("Image picker error:", error);
+      Alert.alert("Lỗi", "Có lỗi xảy ra khi chọn ảnh.");
+    }
+  };
+
+  const handleRemoveImage = () => {
+    Alert.alert(
+      "Xóa ảnh",
+      "Bạn có chắc muốn xóa ảnh này?",
+      [
+        { text: "Hủy", style: "cancel" },
+        { text: "Xóa", style: "destructive", onPress: () => setImage(null) },
+      ]
+    );
+  };
+
+  const handleRemoveStepImage = (stepId: string) => {
+    Alert.alert(
+      "Xóa ảnh",
+      "Bạn có chắc muốn xóa ảnh này?",
+      [
+        { text: "Hủy", style: "cancel" },
+        { text: "Xóa", style: "destructive", onPress: () => handleStepChange(stepId, "image_url", "") },
+      ]
+    );
   };
 
   return (
@@ -230,13 +333,34 @@ export default function CreateScreen() {
             </Text>
             <TouchableOpacity
               onPress={handlePickImage}
+              disabled={uploadingImage}
               className="h-48 w-full items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
             >
-              {image ? (
+              {uploadingImage ? (
+                <View className="items-center">
+                  <ActivityIndicator size="large" color="#29a38f" />
+                  <Text className="mt-2 text-sm font-medium text-gray-400">
+                    Đang tải lên...
+                  </Text>
+                </View>
+              ) : image ? (
                 <View className="h-full w-full overflow-hidden rounded-2xl relative">
                   <Image source={{ uri: image }} className="h-full w-full" resizeMode="cover" />
-                  <View className="absolute top-2 right-2 bg-black/50 p-1 rounded-full">
-                    <MaterialIcons name="edit" size={16} color="white" />
+                  <View className="absolute top-3 right-3 flex-row gap-2">
+                    <TouchableOpacity
+                      onPress={() => setPreviewImage(image)}
+                      className="bg-gray-900/70 p-2 rounded-full"
+                      activeOpacity={0.7}
+                    >
+                      <MaterialIcons name="visibility" size={18} color="white" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={handleRemoveImage}
+                      className="bg-gray-900/70 p-2 rounded-full"
+                      activeOpacity={0.7}
+                    >
+                      <MaterialIcons name="close" size={18} color="white" />
+                    </TouchableOpacity>
                   </View>
                 </View>
               ) : (
@@ -416,6 +540,48 @@ export default function CreateScreen() {
                       multiline
                       className="min-h-[60px] text-sm leading-relaxed text-gray-600 dark:text-gray-300"
                     />
+
+                    {/* Step Image */}
+                    <View className="mt-3">
+                      {uploadingStepImages[step.id] ? (
+                        <View className="h-32 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
+                          <ActivityIndicator size="small" color="#29a38f" />
+                          <Text className="mt-2 text-xs text-gray-400">Đang tải...</Text>
+                        </View>
+                      ) : step.image_url ? (
+                        <View className="relative">
+                          <Image
+                            source={{ uri: step.image_url }}
+                            className="h-32 w-full rounded-xl"
+                            resizeMode="cover"
+                          />
+                          <View className="absolute top-2 right-2 flex-row gap-2">
+                            <TouchableOpacity
+                              onPress={() => setPreviewImage(step.image_url!)}
+                              className="bg-gray-900/70 p-1.5 rounded-full"
+                              activeOpacity={0.7}
+                            >
+                              <MaterialIcons name="visibility" size={14} color="white" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() => handleRemoveStepImage(step.id)}
+                              className="bg-gray-900/70 p-1.5 rounded-full"
+                              activeOpacity={0.7}
+                            >
+                              <MaterialIcons name="close" size={14} color="white" />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          onPress={() => handlePickStepImage(step.id)}
+                          className="h-32 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+                        >
+                          <MaterialIcons name="add-photo-alternate" size={24} color="#9ca3af" />
+                          <Text className="mt-1 text-xs text-gray-400">Thêm ảnh (tùy chọn)</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
                   </View>
                 </View>
               ))}
@@ -473,6 +639,42 @@ export default function CreateScreen() {
 
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Image Preview Modal */}
+      <Modal
+        visible={previewImage !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewImage(null)}
+      >
+        <View className="flex-1 bg-black">
+          <StatusBar barStyle="light-content" />
+
+          {/* Header */}
+          <View className="absolute top-0 left-0 right-0 z-10 flex-row items-center justify-between px-4 pt-12 pb-4">
+            <View className="absolute inset-0 bg-black/80" />
+            <Text className="text-lg font-bold text-white z-10">Xem trước</Text>
+            <TouchableOpacity
+              onPress={() => setPreviewImage(null)}
+              className="bg-white/20 p-2 rounded-full z-10"
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="close" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Image */}
+          <View className="flex-1 items-center justify-center">
+            {previewImage && (
+              <Image
+                source={{ uri: previewImage }}
+                className="w-full h-full"
+                resizeMode="contain"
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

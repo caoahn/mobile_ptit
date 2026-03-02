@@ -52,7 +52,7 @@ recipeRouter.get("/search", recipeController.searchRecipes);
  *       200:
  *         description: Recipe details
  */
-recipeRouter.get("/:id", recipeController.getRecipeDetail);
+recipeRouter.get("/:id", authMiddleware, recipeController.getRecipeDetail);
 
 /**
  * @swagger

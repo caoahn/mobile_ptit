@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
-import { getRecipeById } from "@/src/features/recipe/services/recipeService";
+import { getRecipeById, toggleSave } from "@/src/features/recipe/services/recipeService";
 import { RecipeDetail } from "@/src/features/recipe/types/recipe.types";
 
 export default function RecipeDetailScreen() {
@@ -22,6 +22,8 @@ export default function RecipeDetailScreen() {
   const [showIngredients, setShowIngredients] = useState(false);
   const [cookingMode, setCookingMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [isSaved, setIsSaved] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const loadRecipe = useCallback(async () => {
     try {
@@ -36,12 +38,30 @@ export default function RecipeDetailScreen() {
       setLoading(false);
     }
   }, [id]);
+  console.log(recipe); // Debug log to check the ID value
 
   useEffect(() => {
     if (id) {
       loadRecipe();
     }
   }, [id, loadRecipe]);
+
+  useEffect(() => {
+    if (recipe) {
+      setIsSaved(recipe.is_saved || false);
+    }
+  }, [recipe]);
+
+  const handleSave = async () => {
+    if (!recipe) return;
+
+    try {
+      const result = await toggleSave(recipe.id);
+      setIsSaved(result.saved);
+    } catch (error) {
+      console.error("Failed to toggle save:", error);
+    }
+  };
 
   const formatTime = (minutes: number): string => {
     if (minutes < 60) return `${minutes} phút`;
@@ -106,11 +126,17 @@ export default function RecipeDetailScreen() {
           {/* Hero Image */}
           <View className="relative h-80">
             {recipe.image_url ? (
-              <Image
-                source={{ uri: recipe.image_url }}
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => setPreviewImage(recipe.image_url!)}
                 className="h-full w-full"
-                resizeMode="cover"
-              />
+              >
+                <Image
+                  source={{ uri: recipe.image_url }}
+                  className="h-full w-full"
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
             ) : (
               <View className="h-full w-full items-center justify-center bg-gray-200">
                 <MaterialIcons name="restaurant" size={80} color="#9CA3AF" />
@@ -130,11 +156,12 @@ export default function RecipeDetailScreen() {
 
             {/* Quick actions */}
             <View className="absolute right-4 top-12 flex-row">
-              <TouchableOpacity className="mr-2 h-10 w-10 items-center justify-center rounded-full bg-black/30 backdrop-blur-md">
-                <MaterialIcons name="share" size={22} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity className="h-10 w-10 items-center justify-center rounded-full bg-black/30 backdrop-blur-md">
-                <MaterialIcons name="favorite-border" size={22} color="white" />
+              <TouchableOpacity onPress={handleSave}>
+                <MaterialIcons
+                  name={isSaved ? "bookmark" : "bookmark-border"}
+                  size={28}
+                  color={isSaved ? "black" : "black"}
+                />
               </TouchableOpacity>
             </View>
 
@@ -408,11 +435,16 @@ export default function RecipeDetailScreen() {
             {recipe?.steps?.[currentStep] && (
               <View>
                 {recipe.steps[currentStep].image_url && (
-                  <Image
-                    source={{ uri: recipe.steps[currentStep].image_url }}
-                    className="mb-6 h-64 w-full rounded-2xl"
-                    resizeMode="cover"
-                  />
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={() => setPreviewImage(recipe.steps[currentStep].image_url!)}
+                  >
+                    <Image
+                      source={{ uri: recipe.steps[currentStep].image_url }}
+                      className="mb-6 h-64 w-full rounded-2xl"
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
                 )}
 
                 <View className="mb-4 flex-row items-center">
@@ -467,6 +499,42 @@ export default function RecipeDetailScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Image Preview Modal */}
+      <Modal
+        visible={previewImage !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewImage(null)}
+      >
+        <View className="flex-1 bg-black">
+          <StatusBar barStyle="light-content" />
+
+          {/* Header */}
+          <View className="absolute top-0 left-0 right-0 z-10 flex-row items-center justify-between px-4 pt-12 pb-4">
+            <View className="absolute inset-0 bg-black/80" />
+            <Text className="text-lg font-bold text-white z-10">Xem ảnh</Text>
+            <TouchableOpacity
+              onPress={() => setPreviewImage(null)}
+              className="bg-white/20 p-2 rounded-full z-10"
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="close" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Image */}
+          <View className="flex-1 items-center justify-center">
+            {previewImage && (
+              <Image
+                source={{ uri: previewImage }}
+                className="w-full h-full"
+                resizeMode="contain"
+              />
+            )}
           </View>
         </View>
       </Modal>
