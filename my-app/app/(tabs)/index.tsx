@@ -14,8 +14,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { RecipeCard } from "@/src/features/recipe/components/RecipeCard";
 import { getFeed } from "@/src/features/recipe/services/recipeService";
 import { Recipe } from "@/src/features/recipe/types/recipe.types";
+import { useNotificationStore } from "@/src/features/notification/store/notificationStore";
 
 export default function HomeScreen() {
+  const { unreadCount, fetchUnreadCount } = useNotificationStore();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -50,6 +52,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     loadRecipes(1, true, false, true);
+    fetchUnreadCount();
   }, []);
 
   // Refresh feed when tab is focused (e.g., after creating a recipe)
@@ -132,10 +135,14 @@ export default function HomeScreen() {
               <MaterialIcons name="add-box" size={26} color="black" />
             </TouchableOpacity>
           </Link>
-          <TouchableOpacity className="relative">
-            <MaterialIcons name="notifications" size={26} color="black" />
-            <View className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
-          </TouchableOpacity>
+          <Link href="/(tabs)/notifications" asChild>
+            <TouchableOpacity className="relative">
+              <MaterialIcons name="notifications" size={26} color="black" />
+              {unreadCount > 0 && (
+                <View className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500" />
+              )}
+            </TouchableOpacity>
+          </Link>
         </View>
       </View>
 

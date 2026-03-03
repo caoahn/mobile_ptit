@@ -16,9 +16,13 @@ import {
 import { GetFeedResponse } from "../dto/recipe/feed.response";
 import { GetCommentsResponse } from "../dto/recipe/comments.response";
 import { sequelize } from "../config/database";
+import { INotificationService } from "../interfaces/services/notification.service";
 
 export class RecipeService implements IRecipeService {
-  constructor(private readonly recipeRepository: IRecipeRepository) {}
+  constructor(
+    private readonly recipeRepository: IRecipeRepository,
+    private readonly notificationService: INotificationService,
+  ) {}
 
   private async getRecipeCounts(
     recipeId: number,
@@ -217,6 +221,18 @@ export class RecipeService implements IRecipeService {
   async toggleLike(userId: number, recipeId: number): Promise<boolean> {
     try {
       await this.recipeRepository.likeRecipe(userId, recipeId);
+
+      // TẠO NOTIFICATION KHI LIKE
+      const recipe = await this.recipeRepository.findById(recipeId);
+      if (recipe) {
+        await this.notificationService.createNotification(
+          recipe.user_id, // Người nhận (chủ bài viết)
+          "like",
+          userId, // Người thực hiện (người like)
+          recipeId,
+        );
+      }
+
       return true;
     } catch (e) {
       await this.recipeRepository.unlikeRecipe(userId, recipeId);
@@ -270,20 +286,51 @@ export class RecipeService implements IRecipeService {
       offset: (page - 1) * limit,
     });
 
-    // Get replies for each comment
+    // Helper function to fetch replies recursively (max 3 levels: 0, 1, 2)
+    const fetchReplies = async (
+      parentId: number,
+      currentDepth: number = 0,
+    ): Promise<any[]> => {
+      const maxDepth = 2;
+      if (currentDepth >= maxDepth) {
+        return [];
+      }
+
+      const replies = await Comment.findAll({
+        where: { parent_comment_id: parentId },
+        include: [
+          {
+            model: sequelize.models.User,
+            as: "user",
+            attributes: ["id", "username", "avatar_url"],
+          },
+        ],
+        order: [["created_at", "ASC"]],
+      });
+
+      return Promise.all(
+        replies.map(async (r: any) => {
+          const nestedReplies = await fetchReplies(r.id, currentDepth + 1);
+          return {
+            id: r.id,
+            content: r.content,
+            user: {
+              id: r.user.id,
+              username: r.user.username,
+              avatar_url: r.user.avatar_url,
+            },
+            parent_comment_id: r.parent_comment_id,
+            created_at: r.created_at,
+            replies: nestedReplies,
+          };
+        }),
+      );
+    };
+
+    // Get replies for each parent comment
     const commentsData = await Promise.all(
       comments.map(async (comment: any) => {
-        const replies = await Comment.findAll({
-          where: { parent_comment_id: comment.id },
-          include: [
-            {
-              model: sequelize.models.User,
-              as: "user",
-              attributes: ["id", "username", "avatar_url"],
-            },
-          ],
-          order: [["created_at", "ASC"]],
-        });
+        const replies = await fetchReplies(comment.id, 0);
 
         return {
           id: comment.id,
@@ -295,17 +342,7 @@ export class RecipeService implements IRecipeService {
           },
           parent_comment_id: comment.parent_comment_id,
           created_at: comment.created_at,
-          replies: replies.map((r: any) => ({
-            id: r.id,
-            content: r.content,
-            user: {
-              id: r.user.id,
-              username: r.user.username,
-              avatar_url: r.user.avatar_url,
-            },
-            parent_comment_id: r.parent_comment_id,
-            created_at: r.created_at,
-          })),
+          replies,
         };
       }),
     );
@@ -330,6 +367,41 @@ export class RecipeService implements IRecipeService {
       content: data.content,
       parent_comment_id: data.parent_comment_id,
     });
+
+    // TẠO NOTIFICATION KHI COMMENT
+    const recipe = await this.recipeRepository.findById(recipeId);
+    if (recipe) {
+      // Notification cho chủ bài viết
+      await this.notificationService.createNotification(
+        recipe.user_id, // Người nhận
+        "comment",
+        userId, // Người comment
+        recipeId,
+        comment.id,
+      );
+    }
+
+    // NẾU LÀ REPLY: Tạo notification cho người được reply
+    if (data.parent_comment_id) {
+      const parentComment = await Comment.findByPk(data.parent_comment_id);
+      if (parentComment) {
+        // Chỉ tạo notification nếu người được reply khác với:
+        // - userId (người reply - tránh tự thông báo cho mình)
+        // - recipe.user_id (đã có notification rồi - tránh duplicate)
+        if (
+          parentComment.user_id !== userId &&
+          parentComment.user_id !== recipe?.user_id
+        ) {
+          await this.notificationService.createNotification(
+            parentComment.user_id, // Người nhận (owner của parent comment)
+            "comment",
+            userId, // Người reply
+            recipeId,
+            comment.id,
+          );
+        }
+      }
+    }
 
     const commentWithUser = await Comment.findByPk(comment.id, {
       include: [

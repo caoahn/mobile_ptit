@@ -2,6 +2,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, View } from "react-native";
+import { NotificationBadge } from "@/src/features/notification/components/NotificationBadge";
 
 export default function TabLayout() {
   return (
@@ -82,10 +83,11 @@ export default function TabLayout() {
       />
 
       {/* Hidden screens */}
+      <Tabs.Screen name="notifications" options={{ href: null }} />
       <Tabs.Screen name="scanner" options={{ href: null }} />
       <Tabs.Screen name="saved" options={{ href: null }} />
       <Tabs.Screen name="edit-profile" options={{ href: null }} />
-      <Tabs.Screen name={"filter"} options={{ href: null, presentation: 'modal' }} />
+      <Tabs.Screen name={"filter"} options={{ href: null }} />
       <Tabs.Screen name={"filter-results"} options={{ href: null }} />
     </Tabs>
   );

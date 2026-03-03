@@ -4,6 +4,7 @@ import { createContainer, asClass, InjectionMode, asValue } from "awilix";
 import { UserRepository } from "../repositories/user.repository";
 import { TokenRepository } from "../repositories/token.repository";
 import { RecipeRepository } from "../repositories/recipe.repository";
+import { NotificationRepository } from "../repositories/notification.repository";
 
 // Services
 import { UserService } from "../services/user.service";
@@ -13,6 +14,7 @@ import { SocketService } from "../services/socket.service";
 import { RecipeService } from "../services/recipe.service";
 import { AIService } from "../services/ai.service";
 import { CloudinaryService } from "../services/cloudinary.service";
+import { NotificationService } from "../services/notification.service";
 
 // Controllers
 import { UserController } from "../controllers/user.controller";
@@ -21,6 +23,7 @@ import { HealthController } from "../controllers/health.controller";
 import { RecipeController } from "../controllers/recipe.controller";
 import { UtilController } from "../controllers/util.controller";
 import { UploadController } from "../controllers/upload.controller";
+import { NotificationController } from "../controllers/notification.controller";
 
 const container = createContainer({
   injectionMode: InjectionMode.CLASSIC,
@@ -31,6 +34,7 @@ container.register({
   userRepository: asClass(UserRepository).scoped(),
   tokenRepository: asClass(TokenRepository).scoped(),
   recipeRepository: asClass(RecipeRepository).scoped(),
+  notificationRepository: asClass(NotificationRepository).scoped(),
 
   // Services
   userService: asClass(UserService).scoped(),
@@ -40,6 +44,7 @@ container.register({
   recipeService: asClass(RecipeService).scoped(),
   aiService: asClass(AIService).scoped(),
   cloudinaryService: asClass(CloudinaryService).scoped(),
+  notificationService: asClass(NotificationService).scoped(),
 
   // Controllers
   userController: asClass(UserController).scoped(),
@@ -48,6 +53,7 @@ container.register({
   healthController: asClass(HealthController).scoped(),
   utilController: asClass(UtilController).scoped(),
   uploadController: asClass(UploadController).scoped(),
+  notificationController: asClass(NotificationController).scoped(),
 });
 
 export default container;

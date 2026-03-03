@@ -1,4 +1,4 @@
 export interface ISocketService {
   init(server: any): void;
-  broadcastTranscript(meetingId: string, transcript: any): void;
+  emitToUser(userId: number, event: string, data: any): void;
 }

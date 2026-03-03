@@ -15,21 +15,27 @@ export class SocketService implements ISocketService {
     this.io.on("connection", (socket: Socket) => {
       console.log("User connected:", socket.id);
 
-      socket.on("join_meeting", ({ meeting_id, user_id }) => {
-        socket.join(meeting_id);
-        console.log(`User ${user_id} joined meeting ${meeting_id}`);
-        this.io?.to(meeting_id).emit("user_joined", { user_id });
+      // User join vào room của họ để nhận notifications
+      socket.on("join", ({ userId }: { userId: number }) => {
+        console.log(`User ${userId} joined with socket ${socket.id}`);
+        socket.join(`user_${userId}`);
       });
 
       socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
+        // Socket.IO tự động remove socket khỏi tất cả rooms
       });
     });
   }
 
-  broadcastTranscript(meetingId: string, transcript: any) {
+  /**
+   * Emit notification đến user cụ thể
+   * Socket.IO sẽ gửi đến TẤT CẢ các connections (tabs/devices) của user đó
+   */
+  emitToUser(userId: number, event: string, data: any): void {
     if (this.io) {
-      this.io.to(meetingId).emit("new_transcript", transcript);
+      this.io.to(`user_${userId}`).emit(event, data);
+      console.log(`Emitted ${event} to user ${userId}:`, data);
     }
   }
 }

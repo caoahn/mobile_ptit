@@ -13,10 +13,11 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/src/features/auth/store/authStore";
 import { View, ActivityIndicator } from "react-native";
 import { authEvents, AUTH_EVENTS } from "@/src/shared/services/api/authEvents";
+import { socketClient } from "@/src/shared/services/socket";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const { isAuthenticated, isLoading, checkAuth, logout } = useAuthStore();
+  const { isAuthenticated, isLoading, checkAuth, logout, user } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
 
@@ -38,6 +39,19 @@ export default function RootLayout() {
       authEvents.off(AUTH_EVENTS.UNAUTHORIZED, handleUnauthorized);
     };
   }, [logout]);
+
+  // Connect/disconnect socket based on auth state
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      socketClient.connect(user.id);
+    } else {
+      socketClient.disconnect();
+    }
+
+    return () => {
+      socketClient.disconnect();
+    };
+  }, [isAuthenticated, user?.id]);
 
   // Handle navigation based on auth state
   useEffect(() => {
