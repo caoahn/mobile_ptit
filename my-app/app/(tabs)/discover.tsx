@@ -49,7 +49,7 @@ const TRENDING_RECIPES = [
 
 export default function DiscoverScreen() {
   return (
-    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
+    <SafeAreaView className="flex-1 bg-background-light">
       <StatusBar barStyle="dark-content" />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header */}
@@ -67,24 +67,24 @@ export default function DiscoverScreen() {
               <Text className="text-[10px] font-bold uppercase tracking-widest text-[#67837f]">
                 Welcome back
               </Text>
-              <Text className="font-display text-lg font-bold leading-tight text-[#121716] dark:text-white">
+              <Text className="font-display text-lg font-bold leading-tight text-[#121716]">
                 Chef Alex
               </Text>
             </View>
           </View>
-          <TouchableOpacity className="flex items-center justify-center rounded-full border border-gray-100 bg-white p-2 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <TouchableOpacity className="flex items-center justify-center rounded-full border border-gray-100 bg-white p-2 shadow-sm">
             <MaterialIcons name="notifications-none" size={24} color="gray" />
           </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
         <View className="px-4 py-3">
-          <View className="flex-row items-center rounded-xl bg-white p-3 shadow-sm dark:bg-gray-800">
+          <View className="flex-row items-center rounded-xl bg-white p-3 shadow-sm">
             <MaterialIcons name="search" size={24} color="#67837f" />
             <TextInput
               placeholder="Find recipes or ingredients"
               placeholderTextColor="#67837f"
-              className="ml-2 flex-1 font-medium text-[#121716] dark:text-white"
+              className="ml-2 flex-1 font-medium text-[#121716]"
             />
           </View>
         </View>
@@ -101,7 +101,7 @@ export default function DiscoverScreen() {
                 key={cat.id}
                 className={`flex-row items-center justify-center gap-2 rounded-xl px-4 py-2 ${cat.active
                   ? "bg-primary shadow-sm shadow-primary/20"
-                  : "border border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800"
+                  : "border border-gray-100 bg-white"
                   }`}
               >
                 <MaterialIcons
@@ -112,7 +112,7 @@ export default function DiscoverScreen() {
                 <Text
                   className={`text-xs font-bold uppercase tracking-wider ${cat.active
                     ? "text-white"
-                    : "text-[#121716] dark:text-gray-200"
+                    : "text-[#121716]"
                     }`}
                 >
                   {cat.name}
@@ -124,7 +124,7 @@ export default function DiscoverScreen() {
 
         {/* Section Header */}
         <View className="mt-6 flex-row items-center justify-between px-4">
-          <Text className="text-xl font-extrabold text-[#121716] dark:text-white">
+          <Text className="text-xl font-extrabold text-[#121716]">
             Trending Today
           </Text>
           <TouchableOpacity>
@@ -165,10 +165,10 @@ export default function DiscoverScreen() {
 
                 <View className="p-5">
                   {/* Chef Info - Clickable */}
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     className="mb-2 flex-row items-center gap-2 self-start"
                     onPress={(e) => {
-                      e.stopPropagation(); 
+                      e.stopPropagation();
                       router.push(`/user/${recipe.id}` as Href);
                     }}
                   >

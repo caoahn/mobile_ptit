@@ -21,14 +21,14 @@ const SAVED_ITEMS = [
 
 export default function SavedScreen() {
   return (
-    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
-      <View className="px-4 py-4 border-b border-gray-100 dark:border-gray-800">
-        <Text className="text-xl font-bold text-[#121716] dark:text-white">
+    <SafeAreaView className="flex-1 bg-background-light">
+      <View className="px-4 py-4 border-b border-gray-100">
+        <Text className="text-xl font-bold text-[#121716]">
           Saved Recipes
         </Text>
       </View>
       <ScrollView className="flex-1">
-        <View className="flex-row flex-wrap bg-white dark:bg-background-dark">
+        <View className="flex-row flex-wrap bg-white">
           {SAVED_ITEMS.map((item) => (
             <View
               key={item.id}

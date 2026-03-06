@@ -41,14 +41,14 @@ const KET_QUA_TIM_KIEM = [
 
 export default function FilterResultsScreen() {
   return (
-    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
+    <SafeAreaView className="flex-1 bg-background-light">
       <StatusBar barStyle="dark-content" />
       {/* Header */}
-      <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3 dark:border-gray-800 dark:bg-black">
+      <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="arrow-back-ios" size={24} color="#121716" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900 dark:text-white">
+        <Text className="text-lg font-bold text-gray-900">
           Kết quả lọc
         </Text>
         <TouchableOpacity onPress={() => router.push('/filter' as Href)}>
@@ -62,7 +62,7 @@ export default function FilterResultsScreen() {
         contentContainerStyle={{ padding: 16 }}
       >
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-base font-bold text-gray-900 dark:text-white">
+          <Text className="text-base font-bold text-gray-900">
             Tìm thấy {KET_QUA_TIM_KIEM.length} công thức
           </Text>
           <TouchableOpacity className="flex-row items-center gap-1">
@@ -75,7 +75,7 @@ export default function FilterResultsScreen() {
         {KET_QUA_TIM_KIEM.map((item) => (
           <TouchableOpacity
             key={item.id}
-            className="flex-row mb-4 bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm dark:bg-gray-800 dark:border-gray-700"
+            className="flex-row mb-4 bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm"
           >
             <Image
               source={{ uri: item.image }}
@@ -87,19 +87,19 @@ export default function FilterResultsScreen() {
                 <Text className="text-xs font-bold text-primary uppercase tracking-wider mb-1">
                   {item.author}
                 </Text>
-                <Text className="text-base font-bold text-gray-900 leading-tight dark:text-white" numberOfLines={2}>
+                <Text className="text-base font-bold text-gray-900 leading-tight" numberOfLines={2}>
                   {item.title}
                 </Text>
               </View>
-              
+
               <View className="flex-row items-center justify-between mt-2">
                 <View className="flex-row items-center gap-1">
                   <MaterialIcons name="schedule" size={14} color="#6b7280" />
                   <Text className="text-xs text-gray-500">{item.time}</Text>
                 </View>
-                <View className="flex-row items-center gap-1 bg-red-50 px-2 py-1 rounded-full dark:bg-red-900/30">
+                <View className="flex-row items-center gap-1 bg-red-50 px-2 py-1 rounded-full">
                   <MaterialIcons name="favorite" size={12} color="#ef4444" />
-                  <Text className="text-xs font-bold text-red-500 dark:text-red-400">{item.likes}</Text>
+                  <Text className="text-xs font-bold text-red-500">{item.likes}</Text>
                 </View>
               </View>
             </View>

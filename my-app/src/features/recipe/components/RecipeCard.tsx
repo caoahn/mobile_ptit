@@ -139,7 +139,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
       </View>
 
       {/* Caption */}
-      <View className="border-b border-gray-50 px-3 pb-6 dark:border-gray-900">
+      <View className="border-b border-gray-50 px-3 pb-6">
         <Text className="mb-1 text-xs font-bold">
           {likesCount.toLocaleString()} likes
         </Text>
@@ -152,7 +152,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
             {recipe.tags.map((tag) => (
               <Text
                 key={tag.id}
-                className="text-sm text-blue-600 dark:text-blue-400"
+                className="text-sm text-blue-600"
               >
                 #{tag.name}
               </Text>
@@ -167,7 +167,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           </TouchableOpacity>
         )}
         <Link href={`/recipe/${recipe.id}`} asChild>
-          <TouchableOpacity className="mt-3 w-full rounded-lg border border-gray-100 bg-gray-50 py-2.5 dark:border-gray-800 dark:bg-gray-900">
+          <TouchableOpacity className="mt-3 w-full rounded-lg border border-gray-100 bg-gray-50 py-2.5">
             <Text className="text-center text-xs font-bold uppercase tracking-widest text-primary">
               View Full Recipe
             </Text>

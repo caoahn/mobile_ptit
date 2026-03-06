@@ -110,17 +110,17 @@ export default function ScannerScreen() {
       </View>
 
       {/* Bottom Sheet */}
-      <View className="relative z-30 max-h-[45%] flex-col rounded-t-[32px] bg-background-light shadow-2xl dark:bg-background-dark">
+      <View className="relative z-30 max-h-[45%] flex-col rounded-t-[32px] bg-background-light shadow-2xl">
         <View className="items-center justify-center pt-3 pb-2">
-          <View className="h-1.5 w-12 rounded-full bg-gray-300 dark:bg-gray-700" />
+          <View className="h-1.5 w-12 rounded-full bg-gray-300" />
         </View>
 
-        <View className="flex-row items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-800">
+        <View className="flex-row items-center justify-between border-b border-gray-100 px-6 py-4">
           <View>
-            <Text className="text-xl font-extrabold leading-tight text-[#121716] dark:text-white">
+            <Text className="text-xl font-extrabold leading-tight text-[#121716]">
               Detected Ingredients
             </Text>
-            <Text className="text-sm text-gray-500 dark:text-gray-400">
+            <Text className="text-sm text-gray-500">
               3 items found in your kitchen
             </Text>
           </View>
@@ -139,13 +139,13 @@ export default function ScannerScreen() {
           ].map((item, index) => (
             <View
               key={index}
-              className="flex-row items-center gap-4 rounded-xl px-4 py-3 active:bg-black/5 dark:active:bg-white/5"
+              className="flex-row items-center gap-4 rounded-xl px-4 py-3 active:bg-black/5"
             >
               <View className="h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <MaterialIcons name="check-circle" size={24} color="#29a38f" />
               </View>
               <View className="flex-1">
-                <Text className="text-base font-bold text-[#121716] dark:text-white">
+                <Text className="text-base font-bold text-[#121716]">
                   {item.name}
                 </Text>
                 <Text className="text-xs text-gray-500">{item.count}</Text>

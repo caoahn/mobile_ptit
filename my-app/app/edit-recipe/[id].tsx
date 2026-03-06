@@ -41,7 +41,7 @@ const DIFFICULTY_LABELS = {
 export default function EditRecipeScreen() {
   const { id } = useLocalSearchParams();
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // State
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -189,22 +189,22 @@ export default function EditRecipeScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-background-light dark:bg-background-dark">
+      <SafeAreaView className="flex-1 items-center justify-center bg-background-light">
         <ActivityIndicator size="large" color="#29a38f" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
+    <SafeAreaView className="flex-1 bg-background-light">
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
-      <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3 dark:border-gray-800 dark:bg-black">
+      <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
         <TouchableOpacity onPress={() => router.back()}>
           <Text className="text-base font-medium text-gray-500">Hủy</Text>
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900 dark:text-white">
+        <Text className="text-xl font-bold text-gray-900">
           Sửa công thức
         </Text>
         <TouchableOpacity onPress={handleUpdate} disabled={isSubmitting}>
@@ -227,7 +227,7 @@ export default function EditRecipeScreen() {
             </Text>
             <TouchableOpacity
               onPress={handlePickImage}
-              className="h-48 w-full items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+              className="h-48 w-full items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50"
             >
               {image ? (
                 <View className="h-full w-full overflow-hidden rounded-2xl relative">
@@ -254,29 +254,29 @@ export default function EditRecipeScreen() {
             </Text>
 
             <View className="mb-4">
-              <Text className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Tên món ăn *</Text>
+              <Text className="mb-1 text-xs font-medium text-gray-700">Tên món ăn *</Text>
               <TextInput
                 value={title}
                 onChangeText={setTitle}
                 placeholder="VD: Phở bò Hà Nội"
-                className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary"
               />
             </View>
 
             <View className="mb-4">
-              <Text className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Mô tả *</Text>
+              <Text className="mb-1 text-xs font-medium text-gray-700">Mô tả *</Text>
               <TextInput
                 value={description}
                 onChangeText={setDescription}
                 placeholder="Mô tả ngắn gọn về món ăn"
                 multiline
                 numberOfLines={3}
-                className="min-h-[80px] rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="min-h-[80px] rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary"
               />
             </View>
 
             <View className="mb-5">
-              <Text className="mb-2 text-xs font-medium text-gray-700 dark:text-gray-300">Danh mục *</Text>
+              <Text className="mb-2 text-xs font-medium text-gray-700">Danh mục *</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
                 {CATEGORIES.map((cat, index) => (
                   <TouchableOpacity
@@ -284,10 +284,10 @@ export default function EditRecipeScreen() {
                     onPress={() => setSelectedCategory(cat)}
                     className={`rounded-full px-4 py-2 border ${index > 0 ? 'ml-2' : ''} ${selectedCategory === cat
                       ? "bg-primary border-primary"
-                      : "bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                      : "bg-white border-gray-200"
                       }`}
                   >
-                    <Text className={`text-xs font-bold ${selectedCategory === cat ? "text-white" : "text-gray-600 dark:text-gray-300"}`}>
+                    <Text className={`text-xs font-bold ${selectedCategory === cat ? "text-white" : "text-gray-600"}`}>
                       {cat}
                     </Text>
                   </TouchableOpacity>
@@ -296,7 +296,7 @@ export default function EditRecipeScreen() {
             </View>
 
             <View className="mb-5">
-              <Text className="mb-2 text-xs font-medium text-gray-700 dark:text-gray-300">Độ khó *</Text>
+              <Text className="mb-2 text-xs font-medium text-gray-700">Độ khó *</Text>
               <View className="flex-row">
                 {DIFFICULTIES.map((diff, index) => (
                   <TouchableOpacity
@@ -304,10 +304,10 @@ export default function EditRecipeScreen() {
                     onPress={() => setDifficulty(diff)}
                     className={`flex-1 rounded-xl border py-3 ${index > 0 ? 'ml-2' : ''} ${difficulty === diff
                       ? "bg-primary border-primary"
-                      : "bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                      : "bg-white border-gray-200"
                       }`}
                   >
-                    <Text className={`text-center text-sm font-bold ${difficulty === diff ? "text-white" : "text-gray-600 dark:text-gray-300"}`}>
+                    <Text className={`text-center text-sm font-bold ${difficulty === diff ? "text-white" : "text-gray-600"}`}>
                       {DIFFICULTY_LABELS[diff]}
                     </Text>
                   </TouchableOpacity>
@@ -316,13 +316,13 @@ export default function EditRecipeScreen() {
             </View>
 
             <View>
-              <Text className="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Thời gian nấu (phút) *</Text>
+              <Text className="mb-1 text-xs font-medium text-gray-700">Thời gian nấu (phút) *</Text>
               <TextInput
                 value={cookingTime}
                 onChangeText={setCookingTime}
                 placeholder="60"
                 keyboardType="number-pad"
-                className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary"
               />
             </View>
           </View>
@@ -336,15 +336,15 @@ export default function EditRecipeScreen() {
               <Text className="text-[10px] text-gray-400">{ingredients.length} món</Text>
             </View>
 
-            <View className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-800">
+            <View className="rounded-2xl border border-gray-200 bg-white p-4">
               {ingredients.map((item, index) => (
-                <View key={item.id} className={`flex-row ${index !== 0 ? "mt-4 border-t border-gray-100 pt-4 dark:border-gray-700" : ""}`}>
+                <View key={item.id} className={`flex-row ${index !== 0 ? "mt-4 border-t border-gray-100 pt-4" : ""}`}>
                   <View className="mr-2 flex-1">
                     <TextInput
                       placeholder="Tên nguyên liệu"
                       value={item.name}
                       onChangeText={(v) => handleIngredientChange(item.id, "name", v)}
-                      className="rounded-lg bg-gray-50 px-3 py-2 text-sm font-medium focus:bg-white focus:ring-1 focus:ring-primary dark:bg-gray-900 dark:text-white"
+                      className="rounded-lg bg-gray-50 px-3 py-2 text-sm font-medium focus:bg-white focus:ring-1 focus:ring-primary"
                     />
                   </View>
                   <View className="mr-2 w-20">
@@ -352,7 +352,7 @@ export default function EditRecipeScreen() {
                       placeholder="SL"
                       value={item.amount}
                       onChangeText={(v) => handleIngredientChange(item.id, "amount", v)}
-                      className="rounded-lg bg-gray-50 px-3 py-2 text-sm font-medium focus:bg-white focus:ring-1 focus:ring-primary dark:bg-gray-900 dark:text-white"
+                      className="rounded-lg bg-gray-50 px-3 py-2 text-sm font-medium focus:bg-white focus:ring-1 focus:ring-primary"
                     />
                   </View>
                   <View className="mr-2 w-20">
@@ -360,7 +360,7 @@ export default function EditRecipeScreen() {
                       placeholder="ĐVT"
                       value={item.unit}
                       onChangeText={(v) => handleIngredientChange(item.id, "unit", v)}
-                      className="rounded-lg bg-gray-50 px-3 py-2 text-sm font-medium focus:bg-white focus:ring-1 focus:ring-primary dark:bg-gray-900 dark:text-white"
+                      className="rounded-lg bg-gray-50 px-3 py-2 text-sm font-medium focus:bg-white focus:ring-1 focus:ring-primary"
                     />
                   </View>
                   {ingredients.length > 1 && (
@@ -371,7 +371,7 @@ export default function EditRecipeScreen() {
                 </View>
               ))}
 
-              <TouchableOpacity onPress={handleAddIngredient} className="mt-4 flex-row items-center justify-center rounded-xl bg-gray-50 py-3 dark:bg-gray-700">
+              <TouchableOpacity onPress={handleAddIngredient} className="mt-4 flex-row items-center justify-center rounded-xl bg-gray-50 py-3">
                 <MaterialIcons name="add" size={20} color="#29a38f" />
                 <Text className="ml-2 text-sm font-bold text-primary">Thêm nguyên liệu</Text>
               </TouchableOpacity>
@@ -391,15 +391,15 @@ export default function EditRecipeScreen() {
               {steps.map((step, index) => (
                 <View
                   key={step.id}
-                  className={`relative rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-800 ${index < steps.length - 1 ? 'mb-3' : ''}`}
+                  className={`relative rounded-2xl border border-gray-200 bg-white p-4 ${index < steps.length - 1 ? 'mb-3' : ''}`}
                 >
-                  <View className="absolute -left-3 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-primary ring-4 ring-gray-50 dark:ring-black">
+                  <View className="absolute -left-3 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-primary ring-4 ring-gray-50">
                     <Text className="text-xs font-bold text-white">{index + 1}</Text>
                   </View>
 
                   <View className="ml-2">
                     <View className="mb-2 flex-row justify-between">
-                      <Text className="font-bold text-gray-900 dark:text-white">Bước {index + 1}</Text>
+                      <Text className="font-bold text-gray-900">Bước {index + 1}</Text>
                       {steps.length > 1 && (
                         <TouchableOpacity onPress={() => handleRemoveStep(step.id)}>
                           <MaterialIcons name="delete-outline" size={20} color="#ef4444" />
@@ -411,7 +411,7 @@ export default function EditRecipeScreen() {
                       value={step.description}
                       onChangeText={(v) => handleStepChange(step.id, "description", v)}
                       multiline
-                      className="min-h-[60px] text-sm leading-relaxed text-gray-600 dark:text-gray-300"
+                      className="min-h-[60px] text-sm leading-relaxed text-gray-600"
                     />
                   </View>
                 </View>
@@ -429,11 +429,11 @@ export default function EditRecipeScreen() {
             <Text className="mb-2 text-sm font-bold uppercase tracking-wider text-gray-500">
               Tags (Tùy chọn)
             </Text>
-            <View className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-800">
+            <View className="rounded-2xl border border-gray-200 bg-white p-4">
               <View className="flex-row flex-wrap mb-3">
                 {tags.map((tag) => (
-                  <View key={tag} className="mb-2 mr-2 flex-row items-center rounded-full bg-blue-50 px-3 py-1 dark:bg-blue-900/30">
-                    <Text className="text-xs font-medium text-blue-600 dark:text-blue-400">#{tag}</Text>
+                  <View key={tag} className="mb-2 mr-2 flex-row items-center rounded-full bg-blue-50 px-3 py-1">
+                    <Text className="text-xs font-medium text-blue-600">#{tag}</Text>
                     <TouchableOpacity onPress={() => handleRemoveTag(tag)} className="ml-1">
                       <MaterialIcons name="close" size={14} color="#2563eb" />
                     </TouchableOpacity>
@@ -446,7 +446,7 @@ export default function EditRecipeScreen() {
                   value={tagInput}
                   onChangeText={setTagInput}
                   onSubmitEditing={handleAddTag}
-                  className="flex-1 rounded-lg bg-gray-50 px-3 py-2 text-sm font-medium dark:bg-gray-900 dark:text-white"
+                  className="flex-1 rounded-lg bg-gray-50 px-3 py-2 text-sm font-medium"
                 />
                 <TouchableOpacity onPress={handleAddTag} className="ml-2 items-center justify-center rounded-lg bg-primary px-4">
                   <MaterialIcons name="add" size={20} color="white" />
@@ -470,7 +470,7 @@ export default function EditRecipeScreen() {
 
           {/* Delete Button */}
           <TouchableOpacity
-            className={`mb-24 flex-row items-center justify-center rounded-2xl py-4 border border-red-500 bg-white dark:bg-black`}
+            className={`mb-24 flex-row items-center justify-center rounded-2xl py-4 border border-red-500 bg-white`}
             activeOpacity={0.8}
             onPress={handleDelete}
             disabled={isDeleting}

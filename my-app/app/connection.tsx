@@ -53,35 +53,33 @@ export default function ConnectionScreen() {
   const [users, setUsers] = useState(MOCK_USERS);
 
   const toggleFollow = (id: string) => {
-    setUsers(users.map(user => 
+    setUsers(users.map(user =>
       user.id === id ? { ...user, isFollowing: !user.isFollowing } : user
     ));
   };
 
   const renderItem = ({ item }: { item: typeof MOCK_USERS[0] }) => (
-    <View className="flex-row items-center justify-between py-3 px-4 bg-white dark:bg-black">
-      <TouchableOpacity 
+    <View className="flex-row items-center justify-between py-3 px-4 bg-white">
+      <TouchableOpacity
         className="flex-row items-center flex-1 gap-3"
         onPress={() => router.push(`/user/${item.id}` as any)}
       >
         <Image source={{ uri: item.avatar }} className="h-12 w-12 rounded-full bg-gray-200" />
         <View>
-          <Text className="font-bold text-base text-gray-900 dark:text-white">{item.name}</Text>
+          <Text className="font-bold text-base text-gray-900">{item.name}</Text>
           <Text className="text-sm text-gray-500">@{item.username}</Text>
         </View>
       </TouchableOpacity>
-      
+
       <TouchableOpacity
         onPress={() => toggleFollow(item.id)}
-        className={`px-4 py-1.5 rounded-md border min-w-[100px] items-center ${
-          item.isFollowing
-            ? "bg-gray-100 border-gray-300 dark:bg-gray-800 dark:border-gray-700"
-            : "bg-primary border-primary"
-        }`}
+        className={`px-4 py-1.5 rounded-md border min-w-[100px] items-center ${item.isFollowing
+          ? "bg-gray-100 border-gray-300"
+          : "bg-primary border-primary"
+          }`}
       >
-        <Text className={`font-semibold text-sm ${
-          item.isFollowing ? "text-gray-900 dark:text-white" : "text-white"
-        }`}>
+        <Text className={`font-semibold text-sm ${item.isFollowing ? "text-gray-900" : "text-white"
+          }`}>
           {item.isFollowing ? "Đang follow" : "Follow"}
         </Text>
       </TouchableOpacity>
@@ -89,42 +87,38 @@ export default function ConnectionScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-black">
+    <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" />
-      
+
       {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+      <View className="flex-row items-center px-4 py-3 border-b border-gray-100">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <MaterialIcons name="arrow-back" size={24} color="#121716" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900 dark:text-white">
+        <Text className="text-lg font-bold text-gray-900">
           {username || "Người dùng"}
         </Text>
       </View>
 
       {/* Tabs */}
-      <View className="flex-row border-b border-gray-100 dark:border-gray-800">
-        <TouchableOpacity 
+      <View className="flex-row border-b border-gray-100">
+        <TouchableOpacity
           onPress={() => setActiveTab("following")}
-          className={`flex-1 py-3 items-center border-b-2 ${
-            activeTab === "following" ? "border-black dark:border-white" : "border-transparent"
-          }`}
+          className={`flex-1 py-3 items-center border-b-2 ${activeTab === "following" ? "border-black" : "border-transparent"
+            }`}
         >
-          <Text className={`font-semibold ${
-            activeTab === "following" ? "text-black dark:text-white" : "text-gray-500"
-          }`}>
+          <Text className={`font-semibold ${activeTab === "following" ? "text-black" : "text-gray-500"
+            }`}>
             Đang follow
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => setActiveTab("followers")}
-          className={`flex-1 py-3 items-center border-b-2 ${
-            activeTab === "followers" ? "border-black dark:border-white" : "border-transparent"
-          }`}
+          className={`flex-1 py-3 items-center border-b-2 ${activeTab === "followers" ? "border-black" : "border-transparent"
+            }`}
         >
-          <Text className={`font-semibold ${
-            activeTab === "followers" ? "text-black dark:text-white" : "text-gray-500"
-          }`}>
+          <Text className={`font-semibold ${activeTab === "followers" ? "text-black" : "text-gray-500"
+            }`}>
             Follower
           </Text>
         </TouchableOpacity>
@@ -132,13 +126,13 @@ export default function ConnectionScreen() {
 
       {/* Search */}
       <View className="px-4 py-2 mt-2">
-        <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
+        <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
           <MaterialIcons name="search" size={20} color="gray" />
-          <TextInput 
-            placeholder="Tìm kiếm" 
+          <TextInput
+            placeholder="Tìm kiếm"
             value={searchQuery}
             onChangeText={setSearchQuery}
-            className="flex-1 ml-2 text-base text-gray-900 dark:text-white"
+            className="flex-1 ml-2 text-base text-gray-900"
             placeholderTextColor="gray"
           />
         </View>

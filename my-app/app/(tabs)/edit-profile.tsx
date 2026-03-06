@@ -40,15 +40,15 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
+    <SafeAreaView className="flex-1 bg-background-light">
       <StatusBar barStyle="dark-content" />
-      
+
       {/* Header */}
-      <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3 dark:border-gray-800 dark:bg-black">
+      <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
         <TouchableOpacity onPress={() => router.back()}>
           <Text className="text-base font-medium text-gray-500">Cancel</Text>
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900 dark:text-white">
+        <Text className="text-lg font-bold text-gray-900">
           Edit Profile
         </Text>
         <TouchableOpacity onPress={handleSave} disabled={isLoading}>
@@ -66,13 +66,13 @@ export default function EditProfileScreen() {
           {/* Avatar Section */}
           <View className="items-center py-8">
             <TouchableOpacity onPress={handlePickImage} className="relative">
-              <View className="h-28 w-28 rounded-full border-4 border-white shadow-sm dark:border-gray-800">
+              <View className="h-28 w-28 rounded-full border-4 border-white shadow-sm">
                 <Image
                   source={{ uri: image }}
                   className="h-full w-full rounded-full"
                 />
               </View>
-              <View className="absolute bottom-0 right-0 rounded-full bg-primary p-2 border-2 border-white dark:border-black">
+              <View className="absolute bottom-0 right-0 rounded-full bg-primary p-2 border-2 border-white">
                 <MaterialIcons name="camera-alt" size={16} color="white" />
               </View>
             </TouchableOpacity>
@@ -93,7 +93,7 @@ export default function EditProfileScreen() {
               <TextInput
                 value={name}
                 onChangeText={setName}
-                className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
                 placeholder="Your Name"
               />
             </View>
@@ -106,7 +106,7 @@ export default function EditProfileScreen() {
               <TextInput
                 value={username}
                 onChangeText={setUsername}
-                className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
                 placeholder="Username"
                 autoCapitalize="none"
               />
@@ -122,7 +122,7 @@ export default function EditProfileScreen() {
                 onChangeText={setBio}
                 multiline
                 numberOfLines={4}
-                className="min-h-[100px] rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                className="min-h-[100px] rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
                 placeholder="Write something about yourself..."
                 textAlignVertical="top"
               />
@@ -130,10 +130,10 @@ export default function EditProfileScreen() {
 
             {/* Private Information Section */}
             <View className="mt-4">
-              <Text className="mb-4 text-lg font-bold text-gray-900 dark:text-white">
+              <Text className="mb-4 text-lg font-bold text-gray-900">
                 Private Information
               </Text>
-              
+
               <View className="space-y-4">
                 <View>
                   <Text className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">
@@ -142,7 +142,7 @@ export default function EditProfileScreen() {
                   <TextInput
                     value="alex@example.com"
                     editable={false}
-                    className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-base font-medium text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
+                    className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-base font-medium text-gray-500"
                   />
                 </View>
 
@@ -152,14 +152,14 @@ export default function EditProfileScreen() {
                   </Text>
                   <TextInput
                     placeholder="+1 234 567 890"
-                    className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
                     keyboardType="phone-pad"
                   />
                 </View>
               </View>
             </View>
           </View>
-          
+
           <View className="h-20" />
         </ScrollView>
       </KeyboardAvoidingView>

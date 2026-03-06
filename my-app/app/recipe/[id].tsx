@@ -94,7 +94,7 @@ export default function RecipeDetailScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-background-light dark:bg-background-dark">
+      <View className="flex-1 items-center justify-center bg-background-light">
         <ActivityIndicator size="large" color="#29a38f" />
         <Text className="mt-4 text-gray-500">Đang tải...</Text>
       </View>
@@ -103,7 +103,7 @@ export default function RecipeDetailScreen() {
 
   if (error || !recipe) {
     return (
-      <View className="flex-1 items-center justify-center bg-background-light dark:bg-background-dark">
+      <View className="flex-1 items-center justify-center bg-background-light">
         <MaterialIcons name="error-outline" size={48} color="#EF4444" />
         <Text className="mt-4 text-center text-gray-500">{error}</Text>
         <TouchableOpacity
@@ -120,7 +120,7 @@ export default function RecipeDetailScreen() {
     <>
       {/* Main Recipe Overview */}
       {!cookingMode && (
-        <View className="flex-1 bg-white dark:bg-background-dark">
+        <View className="flex-1 bg-white">
           <StatusBar barStyle="light-content" />
 
           {/* Hero Image */}
@@ -183,25 +183,25 @@ export default function RecipeDetailScreen() {
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             {/* Stats Cards */}
             <View className="flex-row p-4">
-              <View className="mr-3 flex-1 items-center rounded-2xl bg-gray-50 p-4 dark:bg-gray-900">
+              <View className="mr-3 flex-1 items-center rounded-2xl bg-gray-50 p-4">
                 <MaterialIcons name="schedule" size={24} color="#29a38f" />
-                <Text className="mt-2 text-sm font-bold text-gray-900 dark:text-white">
+                <Text className="mt-2 text-sm font-bold text-gray-900">
                   {formatTime(recipe.cook_time)}
                 </Text>
                 <Text className="text-xs text-gray-500">Thời gian</Text>
               </View>
 
-              {/* <View className="mr-3 flex-1 items-center rounded-2xl bg-gray-50 p-4 dark:bg-gray-900">
+              {/* <View className="mr-3 flex-1 items-center rounded-2xl bg-gray-50 p-4">
                 <MaterialIcons name="local-fire-department" size={24} color="#EF4444" />
-                <Text className="mt-2 text-sm font-bold text-gray-900 dark:text-white">
+                <Text className="mt-2 text-sm font-bold text-gray-900">
                   {recipe.difficulty || "Dễ"}
                 </Text>
                 <Text className="text-xs text-gray-500">Độ khó</Text>
               </View> */}
 
-              <View className="flex-1 items-center rounded-2xl bg-gray-50 p-4 dark:bg-gray-900">
+              <View className="flex-1 items-center rounded-2xl bg-gray-50 p-4">
                 <MaterialIcons name="favorite" size={24} color="#EF4444" />
-                <Text className="mt-2 text-sm font-bold text-gray-900 dark:text-white">
+                <Text className="mt-2 text-sm font-bold text-gray-900">
                   {recipe.likes_count}
                 </Text>
                 <Text className="text-xs text-gray-500">Yêu thích</Text>
@@ -211,7 +211,7 @@ export default function RecipeDetailScreen() {
             {/* Description */}
             {recipe.description && (
               <View className="px-4 pb-4">
-                <Text className="text-base leading-relaxed text-gray-700 dark:text-gray-300">
+                <Text className="text-base leading-relaxed text-gray-700">
                   {recipe.description}
                 </Text>
               </View>
@@ -221,8 +221,8 @@ export default function RecipeDetailScreen() {
             {recipe.tags && recipe.tags.length > 0 && (
               <View className="flex-row flex-wrap px-4 pb-4">
                 {recipe.tags.map((tag) => (
-                  <View key={tag.id} className="mb-2 mr-2 rounded-full bg-blue-50 px-3 py-1 dark:bg-blue-900/30">
-                    <Text className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                  <View key={tag.id} className="mb-2 mr-2 rounded-full bg-blue-50 px-3 py-1">
+                    <Text className="text-xs font-medium text-blue-600">
                       #{tag.name}
                     </Text>
                   </View>
@@ -233,7 +233,7 @@ export default function RecipeDetailScreen() {
             {/* Ingredients Preview */}
             <View className="p-4">
               <View className="mb-3 flex-row items-center justify-between">
-                <Text className="text-xl font-bold text-gray-900 dark:text-white">
+                <Text className="text-xl font-bold text-gray-900">
                   Nguyên liệu
                 </Text>
                 <Text className="text-sm text-gray-500">
@@ -245,13 +245,13 @@ export default function RecipeDetailScreen() {
                 {recipe.ingredients?.slice(0, 3).map((ingredient) => (
                   <View
                     key={ingredient.id}
-                    className="mb-2 flex-row items-center rounded-xl bg-gray-50 p-3 dark:bg-gray-900"
+                    className="mb-2 flex-row items-center rounded-xl bg-gray-50 p-3"
                   >
                     <View className="mr-3 h-2 w-2 rounded-full bg-primary" />
-                    <Text className="flex-1 text-sm text-gray-900 dark:text-white">
+                    <Text className="flex-1 text-sm text-gray-900">
                       {ingredient.name}
                     </Text>
-                    <Text className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    <Text className="text-sm font-medium text-gray-600">
                       {ingredient.amount} {ingredient.unit}
                     </Text>
                   </View>
@@ -260,7 +260,7 @@ export default function RecipeDetailScreen() {
                 {recipe.ingredients && recipe.ingredients.length > 3 && (
                   <TouchableOpacity
                     onPress={() => setShowIngredients(true)}
-                    className="mt-2 items-center rounded-xl border-2 border-dashed border-gray-300 p-3 dark:border-gray-700"
+                    className="mt-2 items-center rounded-xl border-2 border-dashed border-gray-300 p-3"
                   >
                     <Text className="text-sm font-bold text-primary">
                       + {recipe.ingredients.length - 3} nguyên liệu khác
@@ -273,7 +273,7 @@ export default function RecipeDetailScreen() {
             {/* Steps Preview */}
             <View className="p-4 pb-32">
               <View className="mb-3 flex-row items-center justify-between">
-                <Text className="text-xl font-bold text-gray-900 dark:text-white">
+                <Text className="text-xl font-bold text-gray-900">
                   Các bước thực hiện
                 </Text>
                 <Text className="text-sm text-gray-500">
@@ -282,23 +282,23 @@ export default function RecipeDetailScreen() {
               </View>
 
               {recipe.steps?.slice(0, 2).map((step, index) => (
-                <View key={step.id} className="mb-3 rounded-2xl bg-gray-50 p-4 dark:bg-gray-900">
+                <View key={step.id} className="mb-3 rounded-2xl bg-gray-50 p-4">
                   <View className="mb-2 flex-row items-center">
                     <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-primary">
                       <Text className="text-sm font-bold text-white">{index + 1}</Text>
                     </View>
-                    <Text className="flex-1 text-base font-bold text-gray-900 dark:text-white">
+                    <Text className="flex-1 text-base font-bold text-gray-900">
                       Bước {index + 1}
                     </Text>
                   </View>
-                  <Text className="ml-11 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                  <Text className="ml-11 text-sm leading-relaxed text-gray-700">
                     {step.description}
                   </Text>
                 </View>
               ))}
 
               {recipe.steps && recipe.steps.length > 2 && (
-                <View className="items-center rounded-xl border-2 border-dashed border-gray-300 p-4 dark:border-gray-700">
+                <View className="items-center rounded-xl border-2 border-dashed border-gray-300 p-4">
                   <Text className="text-sm text-gray-500">
                     Còn {recipe.steps.length - 2} bước nữa
                   </Text>
@@ -311,11 +311,11 @@ export default function RecipeDetailScreen() {
           </ScrollView>
 
           {/* Fixed Bottom CTAs */}
-          <View className="absolute bottom-0 left-0 right-0 border-t border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+          <View className="absolute bottom-0 left-0 right-0 border-t border-gray-100 bg-white p-4">
             <View className="flex-row">
               <TouchableOpacity
                 onPress={() => setShowIngredients(true)}
-                className="mr-3 flex-1 flex-row items-center justify-center rounded-xl border-2 border-primary bg-white py-4 dark:bg-gray-900"
+                className="mr-3 flex-1 flex-row items-center justify-center rounded-xl border-2 border-primary bg-white py-4"
               >
                 <MaterialIcons name="list-alt" size={24} color="#29a38f" />
                 <Text className="ml-2 font-bold text-primary">Xem nguyên liệu</Text>
@@ -340,9 +340,9 @@ export default function RecipeDetailScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowIngredients(false)}
       >
-        <View className="flex-1 bg-white dark:bg-background-dark">
-          <View className="flex-row items-center justify-between border-b border-gray-100 p-4 dark:border-gray-800">
-            <Text className="text-xl font-bold text-gray-900 dark:text-white">
+        <View className="flex-1 bg-white">
+          <View className="flex-row items-center justify-between border-b border-gray-100 p-4">
+            <Text className="text-xl font-bold text-gray-900">
               Nguyên liệu cần chuẩn bị
             </Text>
             <TouchableOpacity onPress={() => setShowIngredients(false)}>
@@ -355,13 +355,13 @@ export default function RecipeDetailScreen() {
               {recipe?.ingredients?.map((ingredient, index) => (
                 <View
                   key={ingredient.id}
-                  className="mb-3 flex-row items-center rounded-2xl bg-gray-50 p-4 dark:bg-gray-900"
+                  className="mb-3 flex-row items-center rounded-2xl bg-gray-50 p-4"
                 >
                   <View className="mr-4 h-6 w-6 items-center justify-center rounded-full bg-primary/10">
                     <Text className="text-sm font-bold text-primary">{index + 1}</Text>
                   </View>
                   <View className="flex-1">
-                    <Text className="text-base font-bold text-gray-900 dark:text-white">
+                    <Text className="text-base font-bold text-gray-900">
                       {ingredient.name}
                     </Text>
                     <Text className="mt-1 text-sm text-gray-500">
@@ -373,7 +373,7 @@ export default function RecipeDetailScreen() {
             </View>
           </ScrollView>
 
-          <View className="border-t border-gray-100 p-4 dark:border-gray-800">
+          <View className="border-t border-gray-100 p-4">
             <TouchableOpacity
               onPress={() => {
                 setShowIngredients(false);
@@ -394,33 +394,33 @@ export default function RecipeDetailScreen() {
         animationType="slide"
         presentationStyle="fullScreen"
       >
-        <View className="flex-1 bg-white dark:bg-background-dark">
+        <View className="flex-1 bg-white">
           <StatusBar barStyle="dark-content" />
 
           {/* Header */}
-          <View className="border-b border-gray-100 p-4 pt-12 dark:border-gray-800">
+          <View className="border-b border-gray-100 p-4 pt-12">
             <View className="flex-row items-center justify-between">
               <TouchableOpacity
                 onPress={() => setCookingMode(false)}
-                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800"
+                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100"
               >
                 <MaterialIcons name="close" size={24} color="#6B7280" />
               </TouchableOpacity>
 
-              <Text className="text-base font-bold text-gray-900 dark:text-white">
+              <Text className="text-base font-bold text-gray-900">
                 Bước {currentStep + 1}/{recipe?.steps?.length || 0}
               </Text>
 
               <TouchableOpacity
                 onPress={() => setShowIngredients(true)}
-                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800"
+                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100"
               >
                 <MaterialIcons name="list-alt" size={24} color="#29a38f" />
               </TouchableOpacity>
             </View>
 
             {/* Progress bar */}
-            <View className="mt-4 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+            <View className="mt-4 h-2 overflow-hidden rounded-full bg-gray-100">
               <View
                 className="h-full bg-primary"
                 style={{
@@ -453,12 +453,12 @@ export default function RecipeDetailScreen() {
                       {currentStep + 1}
                     </Text>
                   </View>
-                  <Text className="flex-1 text-2xl font-bold text-gray-900 dark:text-white">
+                  <Text className="flex-1 text-2xl font-bold text-gray-900">
                     Bước {currentStep + 1}
                   </Text>
                 </View>
 
-                <Text className="text-lg leading-loose text-gray-700 dark:text-gray-300">
+                <Text className="text-lg leading-loose text-gray-700">
                   {recipe.steps[currentStep].description}
                 </Text>
               </View>
@@ -466,15 +466,15 @@ export default function RecipeDetailScreen() {
           </ScrollView>
 
           {/* Navigation Buttons */}
-          <View className="border-t border-gray-100 p-4 dark:border-gray-800">
+          <View className="border-t border-gray-100 p-4">
             <View className="flex-row">
               {currentStep > 0 && (
                 <TouchableOpacity
                   onPress={handlePrevStep}
-                  className="mr-3 flex-1 flex-row items-center justify-center rounded-xl border-2 border-gray-200 bg-white py-4 dark:border-gray-700 dark:bg-gray-900"
+                  className="mr-3 flex-1 flex-row items-center justify-center rounded-xl border-2 border-gray-200 bg-white py-4"
                 >
                   <MaterialIcons name="arrow-back" size={24} color="#6B7280" />
-                  <Text className="ml-2 font-bold text-gray-700 dark:text-gray-300">
+                  <Text className="ml-2 font-bold text-gray-700">
                     Quay lại
                   </Text>
                 </TouchableOpacity>

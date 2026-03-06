@@ -68,17 +68,17 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
+    <SafeAreaView className="flex-1 bg-background-light">
       <StatusBar barStyle="dark-content" />
       {/* Header */}
-      <View className="flex-row items-center justify-between border-b border-white/10 bg-background-light/80 px-4 py-3 backdrop-blur-md dark:bg-background-dark/80">
+      <View className="flex-row items-center justify-between border-b border-white/10 bg-background-light/80 px-4 py-3 backdrop-blur-md">
         <TouchableOpacity>
           <MaterialIcons name="arrow-back-ios" size={24} color="#67837f" />
         </TouchableOpacity>
-        <Text className="text-sm font-bold uppercase tracking-tight text-[#121716] dark:text-white">
+        <Text className="text-sm font-bold uppercase tracking-tight text-[#121716]">
           @alex_culinary
         </Text>
-        <TouchableOpacity className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/5">
+        <TouchableOpacity className="rounded-full p-2 hover:bg-black/5">
           <MaterialIcons name="settings" size={24} color="#67837f" />
         </TouchableOpacity>
       </View>
@@ -87,7 +87,7 @@ export default function ProfileScreen() {
         {/* Profile Info */}
         <View className="flex-col items-center px-6 pb-4 pt-8 text-center">
           <View className="mb-6 relative">
-            <View className="h-28 w-28 rounded-full border-[3px] border-primary bg-white p-1 dark:bg-background-dark">
+            <View className="h-28 w-28 rounded-full border-[3px] border-primary bg-white p-1">
               <Image
                 source={{
                   uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuBoIibnJOshuOXx_XIIyvpIZfazYbPiGJKnX-pGVdE4_BLd2PmG5AODJU5KrXQ054lvmJG3aJlynInH9V5dzRHH4xX25WouqEPxdyIMI2s3DzNt_beI4Vs7ZXbsBpBvMXfE3_XqBBki9gLBjM7r4vxK1k7CNRabLL_S1-42RcljeP1oUag_6PBMqhO38exWhW2myTQxZ83QZ1xOXwzp2RjH0-u4cC6FaJzwef1NKbHgpkyipADOaIMXCGcCRm9OUj-HcDM4hac_HfB5",
@@ -95,17 +95,17 @@ export default function ProfileScreen() {
                 className="h-full w-full rounded-full"
               />
             </View>
-            <View className="absolute bottom-0 right-0 items-center justify-center rounded-full border-2 border-background-light bg-primary p-1 dark:border-background-dark">
+            <View className="absolute bottom-0 right-0 items-center justify-center rounded-full border-2 border-background-light bg-primary p-1">
               <MaterialIcons name="auto-awesome" size={14} color="white" />
             </View>
           </View>
-          <Text className="mb-1 text-2xl font-extrabold tracking-tight text-[#121716] dark:text-white">
+          <Text className="mb-1 text-2xl font-extrabold tracking-tight text-[#121716]">
             Alex Culinary
           </Text>
-          <Text className="mb-1 text-sm font-light text-[#67837f] dark:text-[#a0b2af]">
+          <Text className="mb-1 text-sm font-light text-[#67837f] ]">
             Exploring plant-based fusion with AI
           </Text>
-          <View className="mt-2 flex-row items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 dark:bg-primary/20">
+          <View className="mt-2 flex-row items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1">
             <MaterialIcons name="verified" size={16} color="#29a38f" />
             <Text className="text-[11px] font-bold uppercase tracking-wider text-primary">
               AI Power User
@@ -116,31 +116,31 @@ export default function ProfileScreen() {
         {/* Stars */}
         <View className="relative flex-row items-center justify-between px-6 py-4">
           <View className="flex-1 flex-col items-center">
-            <Text className="text-lg font-bold text-[#121716] dark:text-white">
+            <Text className="text-lg font-bold text-[#121716]">
               42
             </Text>
             <Text className="text-[11px] font-medium uppercase tracking-widest text-[#67837f]">
               Recipes
             </Text>
           </View>
-          <View className="h-8 w-[1px] bg-[#dde4e3] dark:bg-[#3d4a48]" />
-          <TouchableOpacity 
+          <View className="h-8 w-[1px] bg-[#dde4e3] ]" />
+          <TouchableOpacity
             className="flex-1 flex-col items-center"
             onPress={() => router.push("/connection?type=followers&username=Alex Culinary" as Href)}
           >
-            <Text className="text-lg font-bold text-[#121716] dark:text-white">
+            <Text className="text-lg font-bold text-[#121716]">
               1.2k
             </Text>
             <Text className="text-[11px] font-medium uppercase tracking-widest text-[#67837f]">
               Followers
             </Text>
           </TouchableOpacity>
-          <View className="h-8 w-[1px] bg-[#dde4e3] dark:bg-[#3d4a48]" />
-          <TouchableOpacity 
+          <View className="h-8 w-[1px] bg-[#dde4e3] ]" />
+          <TouchableOpacity
             className="flex-1 flex-col items-center"
             onPress={() => router.push("/connection?type=following&username=Alex Culinary" as Href)}
           >
-            <Text className="text-lg font-bold text-[#121716] dark:text-white">
+            <Text className="text-lg font-bold text-[#121716]">
               850
             </Text>
             <Text className="text-[11px] font-medium uppercase tracking-widest text-[#67837f]">
@@ -173,28 +173,28 @@ export default function ProfileScreen() {
               Edit Profile
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity className="h-11 w-12 items-center justify-center rounded-lg border border-[#dde4e3] dark:border-[#3d4a48]">
+          <TouchableOpacity className="h-11 w-12 items-center justify-center rounded-lg border border-[#dde4e3] ]">
             <MaterialIcons name="share" size={20} color={"#121716"} />
           </TouchableOpacity>
         </View>
 
         {/* Tabs */}
         <View className="mt-2">
-          <View className="flex-row border-b border-[#dde4e3] px-6 dark:border-[#3d4a48]">
+          <View className="flex-row border-b border-[#dde4e3] px-6 ]">
             <TouchableOpacity className="flex-1 border-b-2 border-primary py-4">
-              <Text className="text-center text-sm font-bold tracking-tight text-[#121716] dark:text-white">
+              <Text className="text-center text-sm font-bold tracking-tight text-[#121716]">
                 My Recipes
               </Text>
             </TouchableOpacity>
             <TouchableOpacity className="flex-1 py-4">
-              <Text className="text-center text-sm font-medium tracking-tight text-[#67837f] dark:text-[#a0b2af]">
+              <Text className="text-center text-sm font-medium tracking-tight text-[#67837f] ]">
                 Collections
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Grid */}
-          <View className="mt-1 flex-row flex-wrap bg-white dark:bg-background-dark">
+          <View className="mt-1 flex-row flex-wrap bg-white">
             {RECIPES.map((item) => (
               <View
                 key={item.id}
@@ -202,7 +202,7 @@ export default function ProfileScreen() {
               >
                 <Image source={{ uri: item.image }} className="h-full w-full" />
                 {/* Edit Button Overlay */}
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => router.push(`/edit-recipe/${item.id}` as Href)}
                   className="absolute top-1 right-1 z-20 rounded-full bg-black/50 p-1.5 backdrop-blur-sm"
                 >

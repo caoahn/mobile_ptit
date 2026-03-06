@@ -41,14 +41,14 @@ export default function FilterScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
+    <SafeAreaView className="flex-1 bg-background-light">
       <StatusBar barStyle="dark-content" />
       {/* Header */}
-      <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3 dark:border-gray-800 dark:bg-black">
+      <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
         <TouchableOpacity onPress={() => router.back()}>
           <MaterialIcons name="close" size={24} color="#121716" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900 dark:text-white">
+        <Text className="text-lg font-bold text-gray-900">
           Bộ lọc
         </Text>
         <TouchableOpacity onPress={handleReset}>
@@ -59,7 +59,7 @@ export default function FilterScreen() {
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }}>
         {/* Category Section */}
         <View className="mb-6">
-          <Text className="text-base font-bold text-gray-900 mb-3 dark:text-white">
+          <Text className="text-base font-bold text-gray-900 mb-3">
             Danh mục
           </Text>
           <View className="flex-row flex-wrap gap-2">
@@ -67,18 +67,16 @@ export default function FilterScreen() {
               <TouchableOpacity
                 key={cat}
                 onPress={() => toggleCategory(cat)}
-                className={`rounded-full px-4 py-2 border ${
-                  selectedCategories.includes(cat)
-                    ? "bg-primary border-primary"
-                    : "bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
-                }`}
+                className={`rounded-full px-4 py-2 border ${selectedCategories.includes(cat)
+                  ? "bg-primary border-primary"
+                  : "bg-white border-gray-200"
+                  }`}
               >
                 <Text
-                  className={`font-medium ${
-                    selectedCategories.includes(cat)
-                      ? "text-white"
-                      : "text-gray-700 dark:text-gray-300"
-                  }`}
+                  className={`font-medium ${selectedCategories.includes(cat)
+                    ? "text-white"
+                    : "text-gray-700"
+                    }`}
                 >
                   {cat}
                 </Text>
@@ -89,7 +87,7 @@ export default function FilterScreen() {
 
         {/* Cooking Time Section */}
         <View className="mb-6">
-          <Text className="text-base font-bold text-gray-900 mb-3 dark:text-white">
+          <Text className="text-base font-bold text-gray-900 mb-3">
             Thời gian nấu
           </Text>
           <View className="flex-row flex-wrap gap-2">
@@ -97,18 +95,16 @@ export default function FilterScreen() {
               <TouchableOpacity
                 key={time}
                 onPress={() => setSelectedTime(time)}
-                className={`rounded-full px-4 py-2 border ${
-                  selectedTime === time
-                    ? "bg-primary border-primary"
-                    : "bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
-                }`}
+                className={`rounded-full px-4 py-2 border ${selectedTime === time
+                  ? "bg-primary border-primary"
+                  : "bg-white border-gray-200"
+                  }`}
               >
                 <Text
-                  className={`font-medium ${
-                    selectedTime === time
-                      ? "text-white"
-                      : "text-gray-700 dark:text-gray-300"
-                  }`}
+                  className={`font-medium ${selectedTime === time
+                    ? "text-white"
+                    : "text-gray-700"
+                    }`}
                 >
                   {time}
                 </Text>
@@ -119,7 +115,7 @@ export default function FilterScreen() {
 
         {/* Difficulty Section */}
         <View className="mb-6">
-          <Text className="text-base font-bold text-gray-900 mb-3 dark:text-white">
+          <Text className="text-base font-bold text-gray-900 mb-3">
             Độ khó
           </Text>
           <View className="flex-row flex-wrap gap-2">
@@ -127,18 +123,16 @@ export default function FilterScreen() {
               <TouchableOpacity
                 key={diff}
                 onPress={() => setSelectedDifficulty(diff)}
-                className={`rounded-full px-4 py-2 border ${
-                  selectedDifficulty === diff
-                    ? "bg-primary border-primary"
-                    : "bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
-                }`}
+                className={`rounded-full px-4 py-2 border ${selectedDifficulty === diff
+                  ? "bg-primary border-primary"
+                  : "bg-white border-gray-200"
+                  }`}
               >
                 <Text
-                  className={`font-medium ${
-                    selectedDifficulty === diff
-                      ? "text-white"
-                      : "text-gray-700 dark:text-gray-300"
-                  }`}
+                  className={`font-medium ${selectedDifficulty === diff
+                    ? "text-white"
+                    : "text-gray-700"
+                    }`}
                 >
                   {diff}
                 </Text>
@@ -149,7 +143,7 @@ export default function FilterScreen() {
 
         {/* Rating Section */}
         <View className="mb-6">
-          <Text className="text-base font-bold text-gray-900 mb-3 dark:text-white">
+          <Text className="text-base font-bold text-gray-900 mb-3">
             Đánh giá
           </Text>
           <View className="flex-row items-center">
@@ -163,7 +157,7 @@ export default function FilterScreen() {
               </TouchableOpacity>
             ))}
             {rating > 0 && (
-              <Text className="ml-2 text-gray-600 dark:text-gray-400">
+              <Text className="ml-2 text-gray-600">
                 từ {rating} sao trở lên
               </Text>
             )}
@@ -172,7 +166,7 @@ export default function FilterScreen() {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View className="border-t border-gray-100 px-6 py-4 bg-white dark:border-gray-800 dark:bg-black">
+      <View className="border-t border-gray-100 px-6 py-4 bg-white">
         <TouchableOpacity
           onPress={handleShowResults}
           className="w-full rounded-xl bg-primary py-4 shadow-lg shadow-primary/20"
