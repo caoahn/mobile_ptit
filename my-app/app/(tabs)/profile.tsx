@@ -9,9 +9,9 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Alert,
 } from "react-native";
 import { useAuthStore } from "@/src/features/auth/store/authStore";
+import { useDialogStore } from "@/src/shared/stores/useDialogStore";
 
 const RECIPES = [
   {
@@ -55,16 +55,16 @@ const RECIPES = [
 
 export default function ProfileScreen() {
   const { logout } = useAuthStore();
+  const showDialog = useDialogStore((state) => state.showDialog);
 
   const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Logout", style: "destructive", onPress: () => logout() },
-      ]
-    );
+    showDialog({
+      title: "Logout",
+      message: "Are you sure you want to logout?",
+      confirmText: "Logout",
+      cancelText: "Cancel",
+      onConfirm: () => logout()
+    });
   };
 
   return (

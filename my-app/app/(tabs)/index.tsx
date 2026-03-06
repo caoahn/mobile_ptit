@@ -130,7 +130,7 @@ export default function HomeScreen() {
           DishGram
         </Text>
         <View className="flex-row items-center gap-4">
-          <Link href="/create" asChild>
+          <Link href="/(tabs)/create" asChild>
             <TouchableOpacity>
               <MaterialIcons name="add-box" size={26} color="black" />
             </TouchableOpacity>

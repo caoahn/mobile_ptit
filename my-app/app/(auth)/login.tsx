@@ -4,7 +4,6 @@ import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as authApi from "@/src/features/auth/services/authService";
 import { useAuthStore } from "@/src/features/auth/store/authStore";
@@ -26,7 +26,11 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     // Validation
     if (!email.trim() || !password.trim()) {
-      Alert.alert("Error", "Please fill in all fields");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please fill in all fields",
+      });
       return;
     }
 
@@ -41,10 +45,11 @@ export default function LoginScreen() {
       router.replace("/(tabs)");
     } catch (error: any) {
       console.error("Login error:", error);
-      Alert.alert(
-        "Login Failed",
-        error.response?.data?.message || error.message || "Unable to login. Please check your credentials."
-      );
+      Toast.show({
+        type: "error",
+        text1: "Login Failed",
+        text2: error.response?.data?.message || error.message || "Unable to login. Please check your credentials.",
+      });
     } finally {
       setIsLoading(false);
     }

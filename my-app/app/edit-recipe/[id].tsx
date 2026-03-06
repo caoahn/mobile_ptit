@@ -2,7 +2,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -14,6 +13,8 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
+import Toast from "react-native-toast-message";
+import { useDialogStore } from "@/src/shared/stores/useDialogStore";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Types
@@ -41,6 +42,7 @@ const DIFFICULTY_LABELS = {
 export default function EditRecipeScreen() {
   const { id } = useLocalSearchParams();
   const [isLoading, setIsLoading] = useState(true);
+  const showDialog = useDialogStore((state) => state.showDialog);
 
   // State
   const [title, setTitle] = useState("");
@@ -140,7 +142,7 @@ export default function EditRecipeScreen() {
   const handleUpdate = async () => {
     // Validation
     if (!title.trim()) {
-      Alert.alert("Lỗi", "Vui lòng nhập tên món ăn");
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng nhập tên món ăn" });
       return;
     }
     // ... other validations same as create
@@ -150,41 +152,35 @@ export default function EditRecipeScreen() {
       // Simulate API call
       setTimeout(() => {
         setIsSubmitting(false);
-        Alert.alert("Thành công", "Công thức đã được cập nhật!", [
-          {
-            text: "OK",
-            onPress: () => router.back(),
-          },
-        ]);
+        Toast.show({ type: "success", text1: "Thành công", text2: "Công thức đã được cập nhật!" });
+        setTimeout(() => router.back(), 1500);
       }, 1000);
     } catch (error) {
       setIsSubmitting(false);
-      Alert.alert("Lỗi", "Không thể cập nhật công thức.");
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Không thể cập nhật công thức." });
     }
   };
 
   const handleDelete = () => {
-    Alert.alert("Xác nhận", "Bạn có chắc chắn muốn xóa công thức này không? Hành động này không thể hoàn tác.", [
-      { text: "Hủy", style: "cancel" },
-      {
-        text: "Xóa",
-        style: "destructive",
-        onPress: () => {
-          setIsDeleting(true);
-          // Simulate API call
-          setTimeout(() => {
-            setIsDeleting(false);
-            Alert.alert("Đã xóa", "Công thức đã bị xóa thành công.", [
-              { text: "OK", onPress: () => router.back() }
-            ]);
-          }, 1000);
-        }
+    showDialog({
+      title: "Xác nhận",
+      message: "Bạn có chắc chắn muốn xóa công thức này không? Hành động này không thể hoàn tác.",
+      confirmText: "Xóa",
+      cancelText: "Hủy",
+      onConfirm: () => {
+        setIsDeleting(true);
+        // Simulate API call
+        setTimeout(() => {
+          setIsDeleting(false);
+          Toast.show({ type: "success", text1: "Đã xóa", text2: "Công thức đã bị xóa thành công." });
+          setTimeout(() => router.back(), 1500);
+        }, 1000);
       }
-    ]);
+    });
   };
 
   const handlePickImage = () => {
-    Alert.alert("Upload Image", "This would open the image picker in a real device.");
+    Toast.show({ type: "info", text1: "Upload Image", text2: "This would open the image picker in a real device." });
   };
 
   if (isLoading) {

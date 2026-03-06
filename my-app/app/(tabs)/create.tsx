@@ -1,7 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -14,6 +13,8 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
+import Toast from "react-native-toast-message";
+import { useDialogStore } from "@/src/shared/stores/useDialogStore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createRecipe } from "@/src/features/recipe/services/recipeService";
 import { router } from "expo-router";
@@ -62,6 +63,7 @@ export default function CreateScreen() {
   const [tagInput, setTagInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const showDialog = useDialogStore((state) => state.showDialog);
 
   // Handlers
   const handleAddIngredient = () => {
@@ -135,27 +137,27 @@ export default function CreateScreen() {
   const handlePost = async () => {
     // Validation
     if (!title.trim()) {
-      Alert.alert("Lỗi", "Vui lòng nhập tên món ăn");
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng nhập tên món ăn" });
       return;
     }
     if (!description.trim()) {
-      Alert.alert("Lỗi", "Vui lòng nhập mô tả");
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng nhập mô tả" });
       return;
     }
     if (!selectedCategory) {
-      Alert.alert("Lỗi", "Vui lòng chọn danh mục");
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng chọn danh mục" });
       return;
     }
     if (!cookingTime || isNaN(Number(cookingTime)) || Number(cookingTime) <= 0) {
-      Alert.alert("Lỗi", "Vui lòng nhập thời gian nấu hợp lệ (phút)");
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng nhập thời gian nấu hợp lệ (phút)" });
       return;
     }
     if (ingredients.some(i => !i.name.trim() || !i.amount.trim())) {
-      Alert.alert("Lỗi", "Vui lòng điền đầy đủ thông tin nguyên liệu");
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng điền đầy đủ thông tin nguyên liệu" });
       return;
     }
     if (steps.some(s => !s.description.trim())) {
-      Alert.alert("Lỗi", "Vui lòng điền đầy đủ mô tả các bước");
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng điền đầy đủ mô tả các bước" });
       return;
     }
 
@@ -184,21 +186,18 @@ export default function CreateScreen() {
       console.log("Submitting recipe data:", recipeData);
 
       await createRecipe(recipeData);
-      Alert.alert("Thành công", "Công thức đã được đăng!", [
-        {
-          text: "OK",
-          onPress: () => {
-            resetForm();
-            router.push("/(tabs)");
-          },
-        },
-      ]);
+      Toast.show({ type: "success", text1: "Thành công", text2: "Công thức đã được đăng!" });
+      setTimeout(() => {
+        resetForm();
+        router.push("/(tabs)");
+      }, 1500);
     } catch (error: any) {
       console.error("Failed to create recipe:", error);
-      Alert.alert(
-        "Lỗi",
-        error.response?.data?.message || "Không thể đăng công thức. Vui lòng thử lại."
-      );
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: error.response?.data?.message || "Không thể đăng công thức. Vui lòng thử lại."
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -210,7 +209,7 @@ export default function CreateScreen() {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permissionResult.granted) {
-        Alert.alert("Quyền truy cập", "Vui lòng cấp quyền truy cập thư viện ảnh để tiếp tục.");
+        Toast.show({ type: "info", text1: "Quyền truy cập", text2: "Vui lòng cấp quyền truy cập thư viện ảnh để tiếp tục." });
         return;
       }
 
@@ -232,14 +231,14 @@ export default function CreateScreen() {
           setImage(uploadResult.url);
         } catch (error: any) {
           console.error("Upload failed:", error);
-          Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
+          Toast.show({ type: "error", text1: "Lỗi", text2: "Không thể tải ảnh lên. Vui lòng thử lại." });
         } finally {
           setUploadingImage(false);
         }
       }
     } catch (error) {
       console.error("Image picker error:", error);
-      Alert.alert("Lỗi", "Có lỗi xảy ra khi chọn ảnh.");
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Có lỗi xảy ra khi chọn ảnh." });
     }
   };
 
@@ -249,7 +248,7 @@ export default function CreateScreen() {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permissionResult.granted) {
-        Alert.alert("Quyền truy cập", "Vui lòng cấp quyền truy cập thư viện ảnh để tiếp tục.");
+        Toast.show({ type: "info", text1: "Quyền truy cập", text2: "Vui lòng cấp quyền truy cập thư viện ảnh để tiếp tục." });
         return;
       }
 
@@ -271,37 +270,35 @@ export default function CreateScreen() {
           handleStepChange(stepId, "image_url", uploadResult.url);
         } catch (error: any) {
           console.error("Upload failed:", error);
-          Alert.alert("Lỗi", "Không thể tải ảnh lên. Vui lòng thử lại.");
+          Toast.show({ type: "error", text1: "Lỗi", text2: "Không thể tải ảnh lên. Vui lòng thử lại." });
         } finally {
           setUploadingStepImages(prev => ({ ...prev, [stepId]: false }));
         }
       }
     } catch (error) {
       console.error("Image picker error:", error);
-      Alert.alert("Lỗi", "Có lỗi xảy ra khi chọn ảnh.");
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Có lỗi xảy ra khi chọn ảnh." });
     }
   };
 
   const handleRemoveImage = () => {
-    Alert.alert(
-      "Xóa ảnh",
-      "Bạn có chắc muốn xóa ảnh này?",
-      [
-        { text: "Hủy", style: "cancel" },
-        { text: "Xóa", style: "destructive", onPress: () => setImage(null) },
-      ]
-    );
+    showDialog({
+      title: "Xóa ảnh",
+      message: "Bạn có chắc muốn xóa ảnh này?",
+      confirmText: "Xóa",
+      cancelText: "Hủy",
+      onConfirm: () => setImage(null)
+    });
   };
 
   const handleRemoveStepImage = (stepId: string) => {
-    Alert.alert(
-      "Xóa ảnh",
-      "Bạn có chắc muốn xóa ảnh này?",
-      [
-        { text: "Hủy", style: "cancel" },
-        { text: "Xóa", style: "destructive", onPress: () => handleStepChange(stepId, "image_url", "") },
-      ]
-    );
+    showDialog({
+      title: "Xóa ảnh",
+      message: "Bạn có chắc muốn xóa ảnh này?",
+      confirmText: "Xóa",
+      cancelText: "Hủy",
+      onConfirm: () => handleStepChange(stepId, "image_url", "")
+    });
   };
 
   return (

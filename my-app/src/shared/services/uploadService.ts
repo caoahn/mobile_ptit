@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import apiClient from "./api/client";
 
 export interface UploadResult {
@@ -33,18 +34,25 @@ export const uploadImage = async (
 ): Promise<UploadResult> => {
   const formData = new FormData();
 
-  // Get file extension from URI
-  const uriParts = uri.split(".");
-  const fileType = uriParts[uriParts.length - 1];
+  if (Platform.OS === "web") {
+    const res = await fetch(uri);
+    const blob = await res.blob();
+    formData.append("image", blob, "photo.jpg");
+  } else {
+    // Get file extension from URI
+    const uriParts = uri.split(".");
+    const fileType = uriParts[uriParts.length - 1] || "jpeg";
 
-  // Create file object for upload
-  const file: any = {
-    uri,
-    type: `image/${fileType}`,
-    name: `photo.${fileType}`,
-  };
+    // Create file object for upload
+    const file: any = {
+      uri,
+      type: `image/${fileType}`,
+      name: `photo.${fileType}`,
+    };
 
-  formData.append("image", file);
+    formData.append("image", file);
+  }
+
   formData.append("folder", folder);
 
   const response = await apiClient.post<UploadResponse>(
@@ -73,18 +81,30 @@ export const uploadMultipleImages = async (
 ): Promise<UploadResult[]> => {
   const formData = new FormData();
 
-  uris.forEach((uri, index) => {
-    const uriParts = uri.split(".");
-    const fileType = uriParts[uriParts.length - 1];
+  if (Platform.OS === "web") {
+    const blobs = await Promise.all(
+      uris.map(async (uri) => {
+        const res = await fetch(uri);
+        return res.blob();
+      }),
+    );
+    blobs.forEach((blob, index) => {
+      formData.append("images", blob, `photo_${index}.jpg`);
+    });
+  } else {
+    uris.forEach((uri, index) => {
+      const uriParts = uri.split(".");
+      const fileType = uriParts[uriParts.length - 1] || "jpeg";
 
-    const file: any = {
-      uri,
-      type: `image/${fileType}`,
-      name: `photo_${index}.${fileType}`,
-    };
+      const file: any = {
+        uri,
+        type: `image/${fileType}`,
+        name: `photo_${index}.${fileType}`,
+      };
 
-    formData.append("images", file);
-  });
+      formData.append("images", file);
+    });
+  }
 
   formData.append("folder", folder);
 

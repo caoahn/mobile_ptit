@@ -14,6 +14,10 @@ import { useAuthStore } from "@/src/features/auth/store/authStore";
 import { View, ActivityIndicator } from "react-native";
 import { authEvents, AUTH_EVENTS } from "@/src/shared/services/api/authEvents";
 import { socketClient } from "@/src/shared/services/socket";
+import { PaperProvider } from "react-native-paper";
+import Toast from "react-native-toast-message";
+import { GlobalDialog } from "@/src/components/common/GlobalDialog";
+import { toastConfig } from "@/src/components/common/toastConfig";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -78,17 +82,21 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DefaultTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="create"
-          options={{ presentation: "fullScreenModal" }}
-        />
-        <Stack.Screen name="recipe/[id]" />
-        <Stack.Screen name="(auth)" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <PaperProvider>
+      <ThemeProvider value={colorScheme === "dark" ? DefaultTheme : DefaultTheme}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="create"
+            options={{ presentation: "fullScreenModal" }}
+          />
+          <Stack.Screen name="recipe/[id]" />
+          <Stack.Screen name="(auth)" />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+      <GlobalDialog />
+      <Toast config={toastConfig} />
+    </PaperProvider>
   );
 }

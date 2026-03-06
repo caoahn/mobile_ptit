@@ -4,7 +4,6 @@ import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as authApi from "@/src/features/auth/services/authService";
 
@@ -31,17 +31,17 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     // Validation
     if (!formData.username.trim() || !formData.email.trim() || !formData.password.trim()) {
-      Alert.alert("Error", "Please fill in all fields");
+      Toast.show({ type: "error", text1: "Error", text2: "Please fill in all fields" });
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
+      Toast.show({ type: "error", text1: "Error", text2: "Passwords do not match" });
       return;
     }
 
     if (formData.password.length < 8) {
-      Alert.alert("Error", "Password must be at least 8 characters");
+      Toast.show({ type: "error", text1: "Error", text2: "Password must be at least 8 characters" });
       return;
     }
 
@@ -54,22 +54,21 @@ export default function RegisterScreen() {
       });
 
       // Registration successful, redirect to login
-      Alert.alert(
-        "Success",
-        "Your account has been created successfully! Please log in.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.replace("/(auth)/login")
-          }
-        ]
-      );
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "Your account has been created successfully! Please log in.",
+      });
+      setTimeout(() => {
+        router.replace("/(auth)/login");
+      }, 2000);
     } catch (error: any) {
       console.error("Register error:", error);
-      Alert.alert(
-        "Registration Failed",
-        error.response?.data?.message || error.message || "Unable to register. Please try again."
-      );
+      Toast.show({
+        type: "error",
+        text1: "Registration Failed",
+        text2: error.response?.data?.message || error.message || "Unable to register. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }

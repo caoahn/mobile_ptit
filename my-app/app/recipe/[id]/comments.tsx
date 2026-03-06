@@ -11,8 +11,8 @@ import {
   Platform,
   ActivityIndicator,
   Image,
-  Alert,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Comment, RecipeDetail } from "@/src/features/recipe/types/recipe.types";
 import {
@@ -94,7 +94,7 @@ export default function CommentsScreen() {
       setPage(1);
     } catch (error) {
       console.error("Failed to load data:", error);
-      Alert.alert("Lỗi", "Không thể tải dữ liệu");
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Không thể tải dữ liệu" });
     } finally {
       setLoading(false);
     }
@@ -146,7 +146,7 @@ export default function CommentsScreen() {
       setReplyingTo(null);
     } catch (error: any) {
       console.error("Failed to create comment:", error);
-      Alert.alert("Lỗi", error?.response?.data?.message || "Không thể đăng bình luận");
+      Toast.show({ type: "error", text1: "Lỗi", text2: error?.response?.data?.message || "Không thể đăng bình luận" });
     } finally {
       setSubmitting(false);
     }

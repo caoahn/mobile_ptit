@@ -2,7 +2,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditProfileScreen() {
@@ -29,14 +29,13 @@ export default function EditProfileScreen() {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      Alert.alert("Success", "Profile updated successfully", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      Toast.show({ type: "success", text1: "Success", text2: "Profile updated successfully" });
+      setTimeout(() => router.back(), 1500);
     }, 1000);
   };
 
   const handlePickImage = () => {
-    Alert.alert("Change Avatar", "This would open image picker in a real device.");
+    Toast.show({ type: "info", text1: "Change Avatar", text2: "This would open image picker in a real device." });
   };
 
   return (
