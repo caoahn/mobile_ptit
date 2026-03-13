@@ -1,0 +1,67 @@
+# Development docker-compose with hot reload
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: yolo-redis-dev
+    ports:
+      - "6379:6379"
+    command: redis-server
+    networks:
+      - yolo-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yolo-api-dev
+    ports:
+      - "8000:8000"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MODEL_PATH=/app/models/best.pt
+      - DEBUG=True
+      - LOG_LEVEL=DEBUG
+      - YOLO_CONFIG_DIR=/tmp/Ultralytics
+    volumes:
+      - .:/app # Mount entire directory for hot reload
+      - ./models:/app/models:ro
+    depends_on:
+      - redis
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - yolo-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yolo-worker-dev
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MODEL_PATH=/app/models/best.pt
+      - LOG_LEVEL=DEBUG
+      - YOLO_CONFIG_DIR=/tmp/Ultralytics
+    volumes:
+      - .:/app
+      - ./models:/app/models:ro
+      - hf-cache:/root/.cache/huggingface # Cache HuggingFace models, tránh tải lại mỗi lần restart
+    depends_on:
+      - redis
+    command: python worker.py
+    networks:
+      - yolo-network
+
+volumes:
+  hf-cache:
+    # Persistent volume cho HuggingFace model cache
+    driver: local
+
+networks:
+  yolo-network:
+    driver: bridge

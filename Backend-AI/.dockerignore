@@ -1,0 +1,86 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyc
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs (will be mounted as volumes)
+logs/
+*.log
+
+# Uploads & Temp (will be mounted as volumes)
+uploads/
+temp/
+
+# Models (will be mounted as volumes - QUAN TRỌNG!)
+models/
+*.pt
+*.onnx
+*.engine
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Tests
+tests/
+test*.py
+.pytest_cache/
+.coverage
+htmlcov/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Docker
+docker-compose*.yml
+.dockerignore
+Dockerfile*
+
+# Scripts
+start.ps1
+start.sh
+*.ps1
+*.sh
+
+# Redis dump
+dump.rdb
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Example files
+.env.example
+
+# Large data files
+*.csv
+*.json
+*.zip
+*.tar.gz

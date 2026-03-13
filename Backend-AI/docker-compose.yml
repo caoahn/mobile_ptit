@@ -1,0 +1,98 @@
+services:
+  # Redis service
+  redis:
+    image: redis:7-alpine
+    container_name: yolo-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - yolo-network
+
+  # FastAPI application
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yolo-api
+    ports:
+      - "8000:8000"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MODEL_PATH=/app/models/best.pt
+      - CONFIDENCE_THRESHOLD=0.25
+      - IOU_THRESHOLD=0.45
+      - MAX_WORKERS=2
+      - JOB_TIMEOUT=180
+      - TEMP_DIR=/app/temp
+      - LOGS_DIR=/app/logs
+      - LOG_LEVEL=INFO
+      - YOLO_CONFIG_DIR=/tmp/Ultralytics
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+      - ./temp:/app/temp
+      - ./uploads:/app/uploads
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: uvicorn app:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    networks:
+      - yolo-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # RQ Worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MODEL_PATH=/app/models/best.pt
+      - CONFIDENCE_THRESHOLD=0.25
+      - IOU_THRESHOLD=0.45
+      - REDIS_JOB_TIMEOUT=300
+      - TEMP_DIR=/app/temp
+      - LOGS_DIR=/app/logs
+      - LOG_LEVEL=INFO
+      - YOLO_CONFIG_DIR=/tmp/Ultralytics
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+      - ./temp:/app/temp
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: python worker.py
+    restart: unless-stopped
+    networks:
+      - yolo-network
+    deploy:
+      replicas: 2 # Run 2 workers for parallel processing
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  yolo-network:
+    driver: bridge
