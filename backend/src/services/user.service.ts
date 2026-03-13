@@ -62,4 +62,12 @@ export class UserService implements IUserService {
     const users = await this.userRepository.getFollowing(userId);
     return users.map((u) => this.toDTO(u));
   }
+
+  async searchUsers(
+    query: string,
+    limit: number = 10,
+  ): Promise<UserProfileResponse[]> {
+    const users = await this.userRepository.searchByUsername(query, limit);
+    return users.map((u) => this.toDTO(u));
+  }
 }

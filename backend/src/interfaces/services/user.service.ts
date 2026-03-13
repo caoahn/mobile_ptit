@@ -11,4 +11,5 @@ export interface IUserService {
   unfollowUser(followerId: number, followingId: number): Promise<void>;
   getFollowers(userId: number): Promise<UserProfileResponse[]>;
   getFollowing(userId: number): Promise<UserProfileResponse[]>;
+  searchUsers(query: string, limit?: number): Promise<UserProfileResponse[]>;
 }

@@ -11,6 +11,8 @@ const recipeController =
 
 router.use(authMiddleware);
 
+router.get("/search", userController.searchUsers);
+
 /**
  * @swagger
  * /users/profile:

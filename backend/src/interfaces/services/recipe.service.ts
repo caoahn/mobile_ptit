@@ -19,7 +19,12 @@ export interface IRecipeService {
     userId?: number,
   ): Promise<GetFeedResponse>;
   getRecipeDetail(id: number, userId?: number): Promise<RecipeResponse | null>;
-  searchRecipes(query: string, userId?: number): Promise<RecipeResponse[]>;
+  searchRecipes(
+    query: string,
+    page?: number,
+    limit?: number,
+    userId?: number,
+  ): Promise<GetFeedResponse>;
   getUserRecipes(
     userId: number,
     requestUserId?: number,

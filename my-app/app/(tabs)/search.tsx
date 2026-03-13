@@ -10,8 +10,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { RecipeSearchResults } from "@/src/features/recipe/components/RecipeSearchResults";
+import { UserSearchResults } from "@/src/features/auth/components/UserSearchResults";
 
-// Filter Chips
 const RECENT_SEARCHES = [
   { id: 1, label: "Phở bò" },
   { id: 2, label: "Bánh flan" },
@@ -20,68 +21,80 @@ const RECENT_SEARCHES = [
 ];
 
 const POPULAR_SEARCH_CATEGORIES = [
-  { id: 1, label: "Món Việt", color: "bg-orange-50" },
-  { id: 2, label: "Món Âu", color: "bg-blue-50" },
-  { id: 3, label: "Bánh ngọt", color: "bg-pink-50" },
-  { id: 4, label: "Món chay", color: "bg-green-50" },
-  { id: 5, label: "Salad", color: "bg-green-50" },
-  { id: 6, label: "Pasta", color: "bg-yellow-50" },
+  { id: 1, label: "Món Việt" },
+  { id: 2, label: "Món Âu" },
+  { id: 3, label: "Bánh ngọt" },
+  { id: 4, label: "Món chay" },
+  { id: 5, label: "Salad" },
+  { id: 6, label: "Pasta" },
 ];
 
 export default function SearchScreen() {
-  const [searchMode, setSearchMode] = useState<"text" | "ingredients">("text");
+  const [searchMode, setSearchMode] = useState<"recipes" | "users">("recipes");
   const [searchQuery, setSearchQuery] = useState("");
+  const [submittedQuery, setSubmittedQuery] = useState("");
 
-  const handleSearch = (text: string) => {
-    setSearchQuery(text);
-  };
+  const handleSearch = () => setSubmittedQuery(searchQuery.trim());
+
+  const placeholder =
+    searchMode === "recipes"
+      ? "Tìm theo tên hoặc nguyên liệu..."
+      : "Tìm theo tên người dùng...";
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" />
 
-      {/* Header Search Area */}
-      <View className="px-4 py-2 border-b border-gray-100 pb-4">
-        <View className="flex-row items-center gap-2 mb-4">
-          <View className="flex-1 flex-row items-center bg-gray-100 rounded-lg px-3 py-2.5">
-            <MaterialIcons name="search" size={20} color="#9ca3af" />
+      {/* Header */}
+      <View className="px-4 pt-2 pb-4 border-b border-gray-100">
+        {/* Search input row */}
+        <View className="flex-row items-center gap-2 mb-3">
+          <View className="flex-1 flex-row items-center bg-gray-100 rounded-xl px-3 py-2.5">
+            <TouchableOpacity onPress={handleSearch} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <MaterialIcons name="search" size={20} color="#9ca3af" />
+            </TouchableOpacity>
             <TextInput
               className="flex-1 ml-2 text-base text-gray-800"
-              placeholder="Tìm kiếm công thức, nguyên liệu..."
+              placeholder={placeholder}
               placeholderTextColor="#9ca3af"
               value={searchQuery}
-              onChangeText={handleSearch}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearch}
               returnKeyType="search"
+              autoCorrect={false}
             />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => { setSearchQuery(""); setSubmittedQuery(""); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <MaterialIcons name="close" size={18} color="#9ca3af" />
+              </TouchableOpacity>
+            )}
           </View>
-          <TouchableOpacity className="p-2 border border-gray-200 rounded-lg" onPress={() => router.push('/scanner' as Href)}>
-            <MaterialIcons name="camera-alt" size={20} color="#374151" />
-          </TouchableOpacity>
-          <TouchableOpacity className="p-2 border border-gray-200 rounded-lg" onPress={() => router.push('/filter' as Href)}>
+          <TouchableOpacity
+            className="p-2.5 border border-gray-200 rounded-xl"
+            onPress={() => router.push("/filter" as Href)}
+          >
             <MaterialIcons name="tune" size={20} color="#374151" />
           </TouchableOpacity>
         </View>
 
-        {/* Search Mode Toggle */}
+        {/* Mode toggle */}
         <View className="flex-row bg-gray-100 rounded-full p-1">
           <TouchableOpacity
-            onPress={() => setSearchMode("text")}
-            className={`flex-1 py-1.5 rounded-full items-center ${searchMode === "text" ? "bg-white shadow-sm" : ""}`}
+            onPress={() => setSearchMode("recipes")}
+            className="flex-1 py-2 rounded-full items-center justify-center"
+            style={searchMode === "recipes" ? { backgroundColor: "white", elevation: 2, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } } : undefined}
           >
-            <Text
-              className={`font-semibold ${searchMode === "text" ? "text-gray-900" : "text-gray-500"}`}
-            >
-              Tìm theo text
+            <Text className={`text-xs font-bold ${searchMode === "recipes" ? "text-gray-900" : "text-gray-400"}`}>
+              Công thức
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setSearchMode("ingredients")}
-            className={`flex-1 py-1.5 rounded-full items-center ${searchMode === "ingredients" ? "bg-white shadow-sm" : ""}`}
+            onPress={() => setSearchMode("users")}
+            className="flex-1 py-2 rounded-full items-center justify-center"
+            style={searchMode === "users" ? { backgroundColor: "white", elevation: 2, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } } : undefined}
           >
-            <Text
-              className={`font-semibold ${searchMode === "ingredients" ? "text-gray-900" : "text-gray-500"}`}
-            >
-              Tìm theo nguyên liệu
+            <Text className={`text-xs font-bold ${searchMode === "users" ? "text-gray-900" : "text-gray-400"}`}>
+              Người dùng
             </Text>
           </TouchableOpacity>
         </View>
@@ -91,60 +104,61 @@ export default function SearchScreen() {
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16 }}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Recent Searches */}
-        <View className="mb-8">
-          <Text className="text-base font-bold text-gray-900 mb-3">
-            Tìm kiếm gần đây
-          </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {RECENT_SEARCHES.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                className="flex-row items-center bg-white border border-gray-200 rounded-full px-4 py-2"
-              >
-                <MaterialIcons name="history" size={16} color="#6b7280" />
-                <Text className="ml-2 text-gray-700 font-medium">
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Popular Searches */}
-        <View>
-          <Text className="text-base font-bold text-gray-900 mb-3">
-            Tìm kiếm phổ biến
-          </Text>
-          <View className="flex-row flex-wrap justify-between">
-            {POPULAR_SEARCH_CATEGORIES.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                className="w-[48%] py-4 mb-3 border border-gray-100 rounded-xl items-center justify-center bg-white shadow-sm"
-              >
-                <Text className="font-semibold text-gray-800">
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Results Placeholder (if query exists) */}
-        {searchQuery.length > 0 && (
-          <View className="mt-8">
-            <Text className="text-base font-bold text-gray-900 mb-3">
-              Kết quả cho &quot;{searchQuery}&quot;
-            </Text>
-            <View className="h-40 bg-gray-50 rounded-xl items-center justify-center border border-gray-100 border-dashed">
-              <Text className="text-gray-400">
-                Danh sách bài viết sẽ hiển thị ở đây
+        {/* Empty state — no query yet */}
+        {submittedQuery.length === 0 ? (
+          <>
+            <View className="mb-7">
+              <Text className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">
+                Tìm kiếm gần đây
               </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {RECENT_SEARCHES.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    className="flex-row items-center bg-white border border-gray-200 rounded-full px-4 py-2"
+                    onPress={() => { setSearchQuery(item.label); setSubmittedQuery(item.label); }}
+                  >
+                    <MaterialIcons name="history" size={15} color="#9ca3af" />
+                    <Text className="ml-1.5 text-sm text-gray-600 font-medium">{item.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          </View>
+
+            <View>
+              <Text className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">
+                Khám phá
+              </Text>
+              <View className="flex-row flex-wrap justify-between">
+                {POPULAR_SEARCH_CATEGORIES.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    className="w-[48%] py-5 mb-3 border border-gray-100 rounded-2xl items-center justify-center bg-white"
+                    style={{ shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}
+                    onPress={() => {
+                      setSearchMode("recipes");
+                      setSearchQuery(item.label);
+                      setSubmittedQuery(item.label);
+                    }}
+                  >
+                    <Text className="font-semibold text-gray-700">{item.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </>
+        ) : (
+          /* Search results — delegate to sub-components */
+          searchMode === "recipes" ? (
+            <RecipeSearchResults query={submittedQuery} />
+          ) : (
+            <UserSearchResults query={submittedQuery} />
+          )
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
+

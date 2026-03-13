@@ -13,4 +13,5 @@ export interface IUserRepository {
   unfollowUser(followerId: number, followingId: number): Promise<void>;
   getFollowers(userId: number): Promise<User[]>;
   getFollowing(userId: number): Promise<User[]>;
+  searchByUsername(query: string, limit?: number): Promise<User[]>;
 }

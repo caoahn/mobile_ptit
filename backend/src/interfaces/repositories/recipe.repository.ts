@@ -19,7 +19,11 @@ export interface IRecipeRepository {
   findById(id: number): Promise<Recipe | null>;
   update(id: number, data: Partial<RecipeAttributes>): Promise<Recipe | null>;
   delete(id: number): Promise<void>;
-  search(query: string): Promise<Recipe[]>;
+  search(
+    query: string,
+    page?: number,
+    limit?: number,
+  ): Promise<{ rows: Recipe[]; count: number }>;
   findByUserId(userId: number): Promise<Recipe[]>;
   likeRecipe(userId: number, recipeId: number): Promise<void>;
   unlikeRecipe(userId: number, recipeId: number): Promise<void>;

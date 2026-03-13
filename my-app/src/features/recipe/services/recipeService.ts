@@ -109,3 +109,19 @@ export const saveRecipe = async (id: number): Promise<void> => {
 export const unsaveRecipe = async (id: number): Promise<void> => {
   await apiClient.delete(`/recipes/${id}/save`);
 };
+
+export const searchRecipes = async (
+  query: string,
+  page: number = 1,
+  limit: number = 10,
+): Promise<FeedResponse> => {
+  const params = new URLSearchParams({
+    q: query,
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  const response = await apiClient.get<FeedResponse>(
+    `/recipes/search?${params.toString()}`,
+  );
+  return response.data;
+};

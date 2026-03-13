@@ -56,7 +56,16 @@ export class RecipeController {
   searchRecipes = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = (req.query.q as string) || "";
-      const result = await this.recipeService.searchRecipes(query);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const userId = (req as any).user?.id;
+
+      const result = await this.recipeService.searchRecipes(
+        query,
+        page,
+        limit,
+        userId,
+      );
       res.json(result);
     } catch (error) {
       next(error);

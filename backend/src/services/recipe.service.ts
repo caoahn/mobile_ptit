@@ -204,10 +204,27 @@ export class RecipeService implements IRecipeService {
 
   async searchRecipes(
     query: string,
+    page: number = 1,
+    limit: number = 10,
     userId?: number,
-  ): Promise<RecipeResponse[]> {
-    const recipes = await this.recipeRepository.search(query);
-    return Promise.all(recipes.map((r) => this.toDTO(r, userId)));
+  ): Promise<GetFeedResponse> {
+    const { rows, count } = await this.recipeRepository.search(
+      query,
+      page,
+      limit,
+    );
+
+    const recipes = await Promise.all(
+      rows.map((r) => this.toFeedItemDTO(r, userId)),
+    );
+
+    return {
+      recipes,
+      total: count,
+      page,
+      limit,
+      hasMore: page * limit < count,
+    };
   }
 
   async getUserRecipes(

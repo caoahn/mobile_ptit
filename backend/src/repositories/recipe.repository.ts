@@ -128,24 +128,51 @@ export class RecipeRepository implements IRecipeRepository {
     await Recipe.destroy({ where: { id } });
   }
 
-  async search(query: string): Promise<Recipe[]> {
-    // Need Op from sequelize
+  async search(
+    query: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ rows: Recipe[]; count: number }> {
     const { Op } = require("sequelize");
-    return Recipe.findAll({
-      where: {
-        [Op.or]: [
-          { title: { [Op.like]: `%${query}%` } },
-          { description: { [Op.like]: `%${query}%` } },
-        ],
-      },
+    const likeQuery = `%${query}%`;
+
+    // Tìm các recipe_id có nguyên liệu khớp với query
+    const ingredientMatches = await Ingredient.findAll({
+      where: { name: { [Op.like]: likeQuery } },
+      attributes: ["recipe_id"],
+      group: ["recipe_id"],
+    });
+    const ingredientRecipeIds = ingredientMatches.map(
+      (i: any) => i.recipe_id as number,
+    );
+
+    // WHERE: tên công thức OR mô tả OR có nguyên liệu khớp
+    const whereClause: any = {
+      [Op.or]: [
+        { title: { [Op.like]: likeQuery } },
+        { description: { [Op.like]: likeQuery } },
+        ...(ingredientRecipeIds.length > 0
+          ? [{ id: { [Op.in]: ingredientRecipeIds } }]
+          : []),
+      ],
+    };
+
+    return Recipe.findAndCountAll({
+      where: whereClause,
+      limit,
+      offset: (page - 1) * limit,
       include: [
         {
           model: User,
           as: "chef",
           attributes: ["id", "username", "avatar_url"],
         },
+        { model: Ingredient, as: "ingredients" },
+        { model: RecipeStep, as: "steps" },
         { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
       ],
+      order: [["created_at", "DESC"]],
+      distinct: true,
     });
   }
 

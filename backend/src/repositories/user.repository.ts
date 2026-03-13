@@ -54,4 +54,13 @@ export class UserRepository implements IUserRepository {
     });
     return follows.map((f: any) => f.following_user);
   }
+
+  async searchByUsername(query: string, limit: number = 10): Promise<User[]> {
+    const { Op } = require("sequelize");
+    return User.findAll({
+      where: { username: { [Op.like]: `%${query}%` } },
+      attributes: ["id", "username", "full_name", "avatar_url"],
+      limit,
+    });
+  }
 }

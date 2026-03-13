@@ -72,4 +72,15 @@ export class UserController {
       next(error);
     }
   };
+
+  searchUsers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = (req.query.q as string) || "";
+      const limit = parseInt(req.query.limit as string) || 10;
+      const users = await this.userService.searchUsers(query, limit);
+      sendSuccess(res, users);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

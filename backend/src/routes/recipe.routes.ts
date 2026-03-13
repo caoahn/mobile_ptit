@@ -23,16 +23,31 @@ recipeRouter.get("/", authMiddleware, recipeController.getFeed);
  * @swagger
  * /recipes/search:
  *   get:
- *     summary: Search recipes
+ *     summary: Search recipes by name or ingredient
+ *     description: Search for recipes matching the query against recipe title, description, or ingredient names
  *     tags: [Recipes]
  *     parameters:
  *       - in: query
- *         name: query
+ *         name: q
+ *         required: true
  *         schema:
  *           type: string
+ *         description: Search keyword (recipe name or ingredient name)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of results per page
  *     responses:
  *       200:
- *         description: Search results
+ *         description: Paginated search results
  */
 recipeRouter.get("/search", recipeController.searchRecipes);
 

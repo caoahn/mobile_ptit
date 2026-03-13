@@ -1,15 +1,9 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import "../global.css";
 import { useEffect } from "react";
 
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/src/features/auth/store/authStore";
 import { View, ActivityIndicator } from "react-native";
 import { authEvents, AUTH_EVENTS } from "@/src/shared/services/api/authEvents";
@@ -20,7 +14,6 @@ import { GlobalDialog } from "@/src/components/common/GlobalDialog";
 import { toastConfig } from "@/src/components/common/toastConfig";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const { isAuthenticated, isLoading, checkAuth, logout, user } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
@@ -83,18 +76,16 @@ export default function RootLayout() {
 
   return (
     <PaperProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DefaultTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="create"
-            options={{ presentation: "fullScreenModal" }}
-          />
-          <Stack.Screen name="recipe/[id]" />
-          <Stack.Screen name="(auth)" />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="create"
+          options={{ presentation: "fullScreenModal" }}
+        />
+        <Stack.Screen name="recipe/[id]" />
+        <Stack.Screen name="(auth)" />
+      </Stack>
+      <StatusBar style="auto" />
       <GlobalDialog />
       <Toast config={toastConfig} />
     </PaperProvider>
