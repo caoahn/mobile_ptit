@@ -234,7 +234,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
     <View className="flex-col">
       {/* Post Header */}
       <View className="flex-row items-center justify-between px-3 py-3">
-        <View className="flex-row items-center gap-3">
+        <TouchableOpacity 
+          className="flex-row items-center gap-3"
+          onPress={() => recipe.chef?.id && router.push(`/user/${recipe.chef.id}` as any)}
+        >
           <View className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
             {recipe.chef?.avatar_url ? (
               <Image
@@ -255,7 +258,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
             </Text>
             <Text className="text-[10px] text-gray-500">{recipe.category}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity>
           <MaterialIcons name="more-horiz" size={24} color="black" />
         </TouchableOpacity>

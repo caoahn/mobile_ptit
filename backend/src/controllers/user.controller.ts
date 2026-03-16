@@ -8,9 +8,16 @@ export class UserController {
 
   getProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const paramId = req.params.id;
       // @ts-ignore
-      const userId = (req.user as any).id;
-      const user = await this.userService.getProfile(userId);
+      const loggedInUserId = (req.user as any)?.id;
+      const targetUserId = paramId ? parseInt(paramId, 10) : loggedInUserId;
+
+      if (!targetUserId) {
+        return sendError(res, 400, "User ID is required");
+      }
+
+      const user = await this.userService.getProfile(targetUserId);
       if (!user) {
         return sendError(res, 404, "User not found");
       }

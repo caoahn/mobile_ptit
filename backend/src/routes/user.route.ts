@@ -30,6 +30,26 @@ router.get("/profile", userController.getProfile);
 
 /**
  * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Get user profile by ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: User profile
+ */
+router.get("/:id", userController.getProfile);
+
+/**
+ * @swagger
  * /users/profile:
  *   put:
  *     summary: Update user profile
