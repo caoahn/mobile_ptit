@@ -114,10 +114,18 @@ export default function PublicProfileScreen() {
         <View className="flex-col items-center px-6 pb-4 pt-8 text-center">
           <View className="mb-6 relative">
             <View className="h-28 w-28 rounded-full border-[3px] border-primary bg-white p-1">
-              <Image
-                source={{ uri: profile.avatar_url || `https://ui-avatars.com/api/?name=${profile.username || 'User'}&background=29a38f&color=fff&size=150` }}
-                className="h-full w-full rounded-full"
-              />
+              {profile.avatar_url ? (
+                <Image
+                  source={{ uri: profile.avatar_url }}
+                  className="h-full w-full rounded-full"
+                />
+              ) : (
+                <View className="h-full w-full items-center justify-center rounded-full bg-gray-200">
+                  <Text className="text-4xl font-bold text-gray-500">
+                    {profile.username?.[0]?.toUpperCase() || "U"}
+                  </Text>
+                </View>
+              )}
             </View>
             {profile.is_verified && (
               <View className="absolute bottom-0 right-0 items-center justify-center rounded-full border-2 border-background-light bg-primary p-1">
@@ -190,9 +198,6 @@ export default function PublicProfileScreen() {
             <Text className={`text-sm font-bold tracking-wide ${isFollowing ? "text-[#121716]" : "text-white"}`}>
               {isFollowing ? "Following" : "Follow"}
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity className="h-11 w-12 items-center justify-center rounded-lg border border-[#dde4e3] ]">
-            <MaterialIcons name="mail-outline" size={20} color={"#121716"} />
           </TouchableOpacity>
         </View>
 

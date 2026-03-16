@@ -98,7 +98,7 @@ export default function RegisterScreen() {
             </TouchableOpacity>
 
             <View className="items-center mb-8">
-              <View className="w-20 h-20 bg-primary/10 rounded-3xl items-center justify-center mb-4 shadow-sm rotate-3">
+              <View className="w-24 h-24 bg-primary/10 rounded-3xl items-center justify-center mb-4 shadow-sm">
                 <MaterialIcons name="person-add" size={40} color="#29a38f" />
               </View>
             </View>

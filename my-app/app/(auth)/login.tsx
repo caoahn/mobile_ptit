@@ -72,7 +72,7 @@ export default function LoginScreen() {
         >
           {/* Header Section */}
           <View className="items-center mb-12">
-            <View className="w-24 h-24 bg-primary/10 rounded-3xl items-center justify-center mb-6 shadow-sm rotate-3">
+            <View className="w-24 h-24 bg-primary/10 rounded-3xl items-center justify-center mb-6 shadow-sm">
               <MaterialIcons name="restaurant-menu" size={48} color="#29a38f" />
             </View>
             <Text className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">

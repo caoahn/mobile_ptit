@@ -34,7 +34,6 @@ export default function ConnectionScreen() {
         const res = await apiClient.get(endpoint);
         const fetchedUsers = res.data?.data || res.data || [];
         
-        // Thêm trạng thái is_following (nếu ở tab following thì chắc chắn là đang follow)
         setUsers(fetchedUsers.map((u: any) => ({
           ...u,
           is_following: !!u.is_following
@@ -83,7 +82,15 @@ export default function ConnectionScreen() {
             }
           }}
         >
-          <Image source={{ uri: item.avatar_url || `https://ui-avatars.com/api/?name=${item.username || 'User'}&background=29a38f&color=fff` }} className="h-12 w-12 rounded-full bg-gray-200" />
+          {item.avatar_url ? (
+            <Image source={{ uri: item.avatar_url }} className="h-12 w-12 rounded-full bg-gray-200" />
+          ) : (
+            <View className="h-12 w-12 rounded-full bg-gray-200 items-center justify-center">
+              <Text className="text-lg font-bold text-gray-500">
+                {item.username?.[0]?.toUpperCase() || "U"}
+              </Text>
+            </View>
+          )}
           <View>
             <Text className="font-bold text-base text-gray-900">
               {item.full_name || item.username} {isMe && <Text className="text-gray-500 font-normal">(Bạn)</Text>}
@@ -128,16 +135,6 @@ export default function ConnectionScreen() {
       {/* Tabs */}
       <View className="flex-row border-b border-gray-100">
         <TouchableOpacity
-          onPress={() => setActiveTab("following")}
-          className={`flex-1 py-3 items-center border-b-2 ${activeTab === "following" ? "border-black" : "border-transparent"
-            }`}
-        >
-          <Text className={`font-semibold ${activeTab === "following" ? "text-black" : "text-gray-500"
-            }`}>
-            Đang follow
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
           onPress={() => setActiveTab("followers")}
           className={`flex-1 py-3 items-center border-b-2 ${activeTab === "followers" ? "border-black" : "border-transparent"
             }`}
@@ -145,6 +142,16 @@ export default function ConnectionScreen() {
           <Text className={`font-semibold ${activeTab === "followers" ? "text-black" : "text-gray-500"
             }`}>
             Follower
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setActiveTab("following")}
+          className={`flex-1 py-3 items-center border-b-2 ${activeTab === "following" ? "border-black" : "border-transparent"
+            }`}
+        >
+          <Text className={`font-semibold ${activeTab === "following" ? "text-black" : "text-gray-500"
+            }`}>
+            Đang follow
           </Text>
         </TouchableOpacity>
       </View>
@@ -160,6 +167,11 @@ export default function ConnectionScreen() {
             className="flex-1 ml-2 text-base text-gray-900"
             placeholderTextColor="gray"
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <MaterialIcons name="close" size={20} color="gray" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
