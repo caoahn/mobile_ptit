@@ -152,23 +152,29 @@ export default function PublicProfileScreen() {
             </Text>
           </View>
           <View className="h-8 w-[1px] bg-[#dde4e3] ]" />
-          <View className="flex-1 flex-col items-center">
+          <TouchableOpacity 
+            className="flex-1 flex-col items-center"
+            onPress={() => router.push(`/connection?type=followers&username=${profile.full_name || profile.username}&userId=${id}` as any)}
+          >
             <Text className="text-lg font-bold text-[#121716]">
               {profile.followers_count || 0}
             </Text>
             <Text className="text-[11px] font-medium uppercase tracking-widest text-[#67837f]">
               Followers
             </Text>
-          </View>
+          </TouchableOpacity>
           <View className="h-8 w-[1px] bg-[#dde4e3] ]" />
-          <View className="flex-1 flex-col items-center">
+          <TouchableOpacity 
+            className="flex-1 flex-col items-center"
+            onPress={() => router.push(`/connection?type=following&username=${profile.full_name || profile.username}&userId=${id}` as any)}
+          >
             <Text className="text-lg font-bold text-[#121716]">
               {profile.following_count || 0}
             </Text>
             <Text className="text-[11px] font-medium uppercase tracking-widest text-[#67837f]">
               Following
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Buttons */}

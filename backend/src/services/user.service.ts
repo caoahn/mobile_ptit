@@ -75,14 +75,32 @@ export class UserService implements IUserService {
     });
   }
 
-  async getFollowers(userId: number): Promise<UserProfileResponse[]> {
+  async getFollowers(userId: number, currentUserId?: number): Promise<UserProfileResponse[]> {
     const users = await this.userRepository.getFollowers(userId);
-    return users.map((u) => this.toDTO(u));
+    const dtos = users.map((u) => this.toDTO(u));
+
+    if (currentUserId) {
+      const follows = await Follow.findAll({ where: { follower_id: currentUserId } });
+      const followingIds = new Set(follows.map((f) => f.following_id));
+      dtos.forEach((dto) => {
+        (dto as any).is_following = followingIds.has(dto.id);
+      });
+    }
+    return dtos;
   }
 
-  async getFollowing(userId: number): Promise<UserProfileResponse[]> {
+  async getFollowing(userId: number, currentUserId?: number): Promise<UserProfileResponse[]> {
     const users = await this.userRepository.getFollowing(userId);
-    return users.map((u) => this.toDTO(u));
+    const dtos = users.map((u) => this.toDTO(u));
+
+    if (currentUserId) {
+      const follows = await Follow.findAll({ where: { follower_id: currentUserId } });
+      const followingIds = new Set(follows.map((f) => f.following_id));
+      dtos.forEach((dto) => {
+        (dto as any).is_following = followingIds.has(dto.id);
+      });
+    }
+    return dtos;
   }
 
   async searchUsers(

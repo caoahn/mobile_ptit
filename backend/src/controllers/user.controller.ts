@@ -62,7 +62,8 @@ export class UserController {
   getFollowers = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = parseInt(req.params.id);
-      const followers = await this.userService.getFollowers(userId);
+      const loggedInUserId = (req as any).user?.id;
+      const followers = await this.userService.getFollowers(userId, loggedInUserId);
       sendSuccess(res, followers);
     } catch (error) {
       next(error);
@@ -72,7 +73,8 @@ export class UserController {
   getFollowing = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = parseInt(req.params.id);
-      const following = await this.userService.getFollowing(userId);
+      const loggedInUserId = (req as any).user?.id;
+      const following = await this.userService.getFollowing(userId, loggedInUserId);
       sendSuccess(res, following);
     } catch (error) {
       next(error);

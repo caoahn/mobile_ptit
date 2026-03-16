@@ -9,7 +9,7 @@ export interface IUserService {
   ): Promise<UserProfileResponse | null>;
   followUser(followerId: number, followingId: number): Promise<void>;
   unfollowUser(followerId: number, followingId: number): Promise<void>;
-  getFollowers(userId: number): Promise<UserProfileResponse[]>;
-  getFollowing(userId: number): Promise<UserProfileResponse[]>;
+  getFollowers(userId: number, currentUserId?: number): Promise<UserProfileResponse[]>;
+  getFollowing(userId: number, currentUserId?: number): Promise<UserProfileResponse[]>;
   searchUsers(query: string, limit?: number): Promise<UserProfileResponse[]>;
 }
