@@ -74,6 +74,20 @@ export interface CommentsResponse {
   hasMore: boolean;
 }
 
+export interface RecipeLikeUser {
+  id: number;
+  username: string;
+  full_name?: string;
+  avatar_url?: string;
+  is_following: boolean;
+  is_current_user: boolean;
+}
+
+export interface RecipeLikesResponse {
+  users: RecipeLikeUser[];
+  total: number;
+}
+
 // Create Recipe types (for API requests)
 export interface CreateIngredientRequest {
   name: string;

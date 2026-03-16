@@ -7,6 +7,7 @@ import {
   FeedResponse,
   Comment,
   CommentsResponse,
+  RecipeLikesResponse,
 } from "../types/recipe.types";
 
 export const getFeed = async (
@@ -42,6 +43,15 @@ export const getRecipeComments = async (
   });
   const response = await apiClient.get<CommentsResponse>(
     `/recipes/${id}/comments?${params.toString()}`,
+  );
+  return response.data;
+};
+
+export const getRecipeLikes = async (
+  id: number,
+): Promise<RecipeLikesResponse> => {
+  const response = await apiClient.get<RecipeLikesResponse>(
+    `/recipes/${id}/likes`,
   );
   return response.data;
 };

@@ -71,6 +71,26 @@ recipeRouter.get("/:id", authMiddleware, recipeController.getRecipeDetail);
 
 /**
  * @swagger
+ * /recipes/{id}/likes:
+ *   get:
+ *     summary: Get users who liked a recipe
+ *     tags: [Recipes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of users who liked the recipe
+ */
+recipeRouter.get("/:id/likes", authMiddleware, recipeController.getRecipeLikes);
+
+/**
+ * @swagger
  * /recipes/{id}/comments:
  *   get:
  *     summary: Get recipe comments (paginated)

@@ -6,6 +6,7 @@ import {
 } from "../../dto/recipe/recipe.response";
 import { GetFeedResponse } from "../../dto/recipe/feed.response";
 import { GetCommentsResponse } from "../../dto/recipe/comments.response";
+import { GetRecipeLikesResponse } from "../../dto/recipe/likes.response";
 
 export interface IRecipeService {
   createRecipe(
@@ -32,6 +33,10 @@ export interface IRecipeService {
   toggleLike(userId: number, recipeId: number): Promise<boolean>;
   toggleSave(userId: number, recipeId: number): Promise<boolean>;
   getSavedRecipes(userId: number): Promise<RecipeResponse[]>;
+  getRecipeLikes(
+    recipeId: number,
+    requestUserId?: number,
+  ): Promise<GetRecipeLikesResponse>;
   getRecipeComments(
     recipeId: number,
     page: number,

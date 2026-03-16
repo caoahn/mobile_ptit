@@ -138,6 +138,17 @@ export class RecipeController {
     }
   };
 
+  getRecipeLikes = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const recipeId = parseInt(req.params.id);
+      const userId = (req as any).user?.id;
+      const result = await this.recipeService.getRecipeLikes(recipeId, userId);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   createComment = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = (req as any).user.id;

@@ -1,4 +1,5 @@
 import apiClient from "@/src/shared/services/api/client";
+import { ApiResponse } from "../types/auth.response";
 import { UserProfileResponse } from "../types/user.response";
 
 interface SearchUsersResponse {
@@ -15,4 +16,12 @@ export const searchUsers = async (
     `/users/search?${params.toString()}`,
   );
   return response.data.data;
+};
+
+export const followUser = async (userId: number): Promise<void> => {
+  await apiClient.post<ApiResponse<null>>(`/users/${userId}/follow`);
+};
+
+export const unfollowUser = async (userId: number): Promise<void> => {
+  await apiClient.delete<ApiResponse<null>>(`/users/${userId}/follow`);
 };

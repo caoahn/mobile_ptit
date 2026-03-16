@@ -2,15 +2,21 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
+  Animated,
+  Easing,
+  FlatList,
   Image,
+  Modal,
+  StatusBar,
   Text,
   TouchableOpacity,
   View,
-  Modal,
-  StatusBar,
 } from "react-native";
-import { Recipe } from "../types/recipe.types";
-import { toggleLike, toggleSave } from "../services/recipeService";
+import Toast from "react-native-toast-message";
+import { Recipe, RecipeLikeUser } from "../types/recipe.types";
+import { followUser, unfollowUser } from "../../auth/services/userService";
+import { getRecipeLikes, toggleLike, toggleSave } from "../services/recipeService";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -23,12 +29,96 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   const [isSaved, setIsSaved] = useState(recipe.is_saved || false);
   const [likesCount, setLikesCount] = useState(recipe.likes_count);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [likesModalVisible, setLikesModalVisible] = useState(false);
+  const [likesModalMounted, setLikesModalMounted] = useState(false);
+  const [likedUsers, setLikedUsers] = useState<RecipeLikeUser[]>([]);
+  const [loadingLikes, setLoadingLikes] = useState(false);
+  const [followLoadingUserId, setFollowLoadingUserId] = useState<number | null>(null);
+  const backdropOpacity = React.useRef(new Animated.Value(0)).current;
+  const sheetTranslateY = React.useRef(new Animated.Value(36)).current;
+  const sheetOpacity = React.useRef(new Animated.Value(0.96)).current;
+
+  const animateLikesModal = (visible: boolean) => {
+    if (visible) {
+      setLikesModalMounted(true);
+      backdropOpacity.setValue(0);
+      sheetTranslateY.setValue(36);
+      sheetOpacity.setValue(0.96);
+
+      Animated.parallel([
+        Animated.timing(backdropOpacity, {
+          toValue: 1,
+          duration: 180,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(sheetTranslateY, {
+          toValue: 0,
+          duration: 240,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(sheetOpacity, {
+          toValue: 1,
+          duration: 220,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
+      return;
+    }
+
+    Animated.parallel([
+      Animated.timing(backdropOpacity, {
+        toValue: 0,
+        duration: 140,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(sheetTranslateY, {
+        toValue: 24,
+        duration: 160,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(sheetOpacity, {
+        toValue: 0.98,
+        duration: 140,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start(({ finished }) => {
+      if (finished) {
+        setLikesModalMounted(false);
+      }
+    });
+  };
+
+  const loadRecipeLikes = async () => {
+    try {
+      setLoadingLikes(true);
+      const response = await getRecipeLikes(recipe.id);
+      setLikedUsers(response.users);
+    } catch (error) {
+      console.error("Failed to load recipe likes:", error);
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Không thể tải danh sách người đã thích",
+      });
+    } finally {
+      setLoadingLikes(false);
+    }
+  };
 
   const handleLike = async () => {
     try {
       const result = await toggleLike(recipe.id);
       setIsLiked(result.liked);
       setLikesCount((prev) => (result.liked ? prev + 1 : prev - 1));
+      if (likesModalVisible) {
+        await loadRecipeLikes();
+      }
     } catch (error) {
       console.error("Failed to toggle like:", error);
     }
@@ -47,11 +137,97 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
     router.push(`/recipe/${recipe.id}/comments`);
   };
 
+  const handleOpenLikes = async () => {
+    setLikesModalVisible(true);
+    animateLikesModal(true);
+    await loadRecipeLikes();
+  };
+
+  const handleCloseLikesModal = () => {
+    setLikesModalVisible(false);
+    animateLikesModal(false);
+  };
+
+  const handleToggleFollow = async (likedUser: RecipeLikeUser) => {
+    if (likedUser.is_current_user || followLoadingUserId === likedUser.id) {
+      return;
+    }
+
+    try {
+      setFollowLoadingUserId(likedUser.id);
+
+      if (likedUser.is_following) {
+        await unfollowUser(likedUser.id);
+      } else {
+        await followUser(likedUser.id);
+      }
+
+      setLikedUsers((prev) =>
+        prev.map((user) =>
+          user.id === likedUser.id
+            ? { ...user, is_following: !user.is_following }
+            : user,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to toggle follow:", error);
+      Toast.show({
+        type: "error",
+        text1: "Lỗi",
+        text2: "Không thể cập nhật theo dõi",
+      });
+    } finally {
+      setFollowLoadingUserId(null);
+    }
+  };
+
   const formatTime = (minutes: number): string => {
     if (minutes < 60) return `${minutes} MINS`;
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return mins > 0 ? `${hours}H ${mins}M` : `${hours}H`;
+  };
+
+  const renderLikedUser = ({ item }: { item: RecipeLikeUser }) => {
+    const isFollowLoading = followLoadingUserId === item.id;
+
+    return (
+      <View className="flex-row items-center justify-between px-4 py-3">
+        <View className="flex-row flex-1 items-center gap-3">
+          <View className="h-11 w-11 overflow-hidden rounded-full bg-gray-200">
+            {item.avatar_url ? (
+              <Image source={{ uri: item.avatar_url }} className="h-full w-full" />
+            ) : (
+              <View className="h-full w-full items-center justify-center bg-gray-300">
+                <Text className="text-sm font-bold text-gray-600">
+                  {item.username?.[0]?.toUpperCase() || "?"}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View className="flex-1">
+            <Text className="text-sm font-semibold text-gray-900">{item.username}</Text>
+          </View>
+        </View>
+
+        {!item.is_current_user && (
+          <TouchableOpacity
+            onPress={() => handleToggleFollow(item)}
+            disabled={isFollowLoading}
+            className={`min-w-[96px] items-center rounded-full px-4 py-2 ${item.is_following ? "border border-gray-200 bg-white" : "bg-blue-500"}`}
+          >
+            {isFollowLoading ? (
+              <ActivityIndicator size="small" color={item.is_following ? "#4B5563" : "white"} />
+            ) : (
+              <Text className={`text-xs font-semibold ${item.is_following ? "text-gray-700" : "text-white"}`}>
+                {item.is_following ? "Đang theo dõi" : "Theo dõi"}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
+    );
   };
 
   return (
@@ -140,9 +316,15 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
 
       {/* Caption */}
       <View className="border-b border-gray-50 px-3 pb-6">
-        <Text className="mb-1 text-xs font-bold">
-          {likesCount.toLocaleString()} likes
-        </Text>
+        <TouchableOpacity
+          className="mb-1 self-start"
+          onPress={handleOpenLikes}
+          disabled={likesCount === 0}
+        >
+          <Text className={`text-xs font-bold ${likesCount > 0 ? "text-gray-900" : "text-gray-400"}`}>
+            {likesCount.toLocaleString()} likes
+          </Text>
+        </TouchableOpacity>
         <Text className="text-sm leading-relaxed">
           <Text className="mr-2 font-bold">{recipe.title}</Text>{" "}
           <Text numberOfLines={2}>{recipe.description}</Text>
@@ -231,6 +413,77 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
               </Link>
             </View>
           </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={likesModalMounted}
+        transparent={true}
+        animationType="none"
+        onRequestClose={handleCloseLikesModal}
+      >
+        <View className="flex-1 justify-end">
+          <Animated.View
+            pointerEvents="none"
+            className="absolute inset-0 bg-black/35"
+            style={{ opacity: backdropOpacity }}
+          />
+
+          <TouchableOpacity
+            activeOpacity={1}
+            className="flex-1"
+            onPress={handleCloseLikesModal}
+          />
+
+          <Animated.View
+            className="max-h-[78%] rounded-t-[28px] bg-white pb-6"
+            style={{
+              opacity: sheetOpacity,
+              transform: [{ translateY: sheetTranslateY }],
+            }}
+          >
+            <View className="items-center pt-3">
+              <View className="h-1.5 w-12 rounded-full bg-gray-300" />
+            </View>
+
+            <View className="flex-row items-center justify-between border-b border-gray-100 px-4 pb-3 pt-4">
+              <View>
+                <Text className="text-base font-bold text-gray-900">Lượt thích</Text>
+                <Text className="mt-0.5 text-xs text-gray-500">{likesCount.toLocaleString()} người đã thích công thức này</Text>
+              </View>
+              <TouchableOpacity
+                onPress={handleCloseLikesModal}
+                className="rounded-full bg-gray-100 p-2"
+              >
+                <MaterialIcons name="close" size={18} color="#374151" />
+              </TouchableOpacity>
+            </View>
+
+            {loadingLikes ? (
+              <View className="items-center justify-center py-10">
+                <ActivityIndicator size="small" color="#2563EB" />
+                <Text className="mt-3 text-sm text-gray-500">Đang tải danh sách người thích</Text>
+              </View>
+            ) : likedUsers.length > 0 ? (
+              <FlatList
+                data={likedUsers}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={renderLikedUser}
+                ItemSeparatorComponent={() => <View className="ml-[72px] h-px bg-gray-100" />}
+                showsVerticalScrollIndicator={false}
+              />
+            ) : (
+              <View className="items-center justify-center px-6 py-12">
+                <View className="mb-3 rounded-full bg-gray-100 p-4">
+                  <MaterialIcons name="favorite-border" size={24} color="#9CA3AF" />
+                </View>
+                <Text className="text-sm font-semibold text-gray-900">Chưa có lượt thích</Text>
+                <Text className="mt-1 text-center text-xs leading-5 text-gray-500">
+                  Khi có người thả tim công thức này, danh sách sẽ xuất hiện ở đây.
+                </Text>
+              </View>
+            )}
+          </Animated.View>
         </View>
       </Modal>
     </View>

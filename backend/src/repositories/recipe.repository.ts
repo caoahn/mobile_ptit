@@ -195,6 +195,20 @@ export class RecipeRepository implements IRecipeRepository {
     await Like.destroy({ where: { user_id: userId, recipe_id: recipeId } });
   }
 
+  async getRecipeLikes(recipeId: number): Promise<Like[]> {
+    return Like.findAll({
+      where: { recipe_id: recipeId },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "username", "full_name", "avatar_url"],
+        },
+      ],
+      order: [["created_at", "DESC"]],
+    });
+  }
+
   async saveRecipe(userId: number, recipeId: number): Promise<void> {
     await SavedRecipe.create({ user_id: userId, recipe_id: recipeId });
   }

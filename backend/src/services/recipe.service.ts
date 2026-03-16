@@ -4,6 +4,7 @@ import {
   RecipeCreationAttributes,
   Like,
   Comment,
+  Follow,
 } from "../models/index";
 import { IRecipeService } from "../interfaces/services/recipe.service";
 import { CreateRecipeRequest } from "../dto/recipe/create-recipe.request";
@@ -15,6 +16,10 @@ import {
 } from "../dto/recipe/recipe.response";
 import { GetFeedResponse } from "../dto/recipe/feed.response";
 import { GetCommentsResponse } from "../dto/recipe/comments.response";
+import {
+  GetRecipeLikesResponse,
+  RecipeLikeUserResponse,
+} from "../dto/recipe/likes.response";
 import { sequelize } from "../config/database";
 import { INotificationService } from "../interfaces/services/notification.service";
 
@@ -270,6 +275,50 @@ export class RecipeService implements IRecipeService {
   async getSavedRecipes(userId: number): Promise<RecipeResponse[]> {
     const recipes = await this.recipeRepository.getSavedRecipes(userId);
     return Promise.all(recipes.map((r) => this.toDTO(r, userId)));
+  }
+
+  async getRecipeLikes(
+    recipeId: number,
+    requestUserId?: number,
+  ): Promise<GetRecipeLikesResponse> {
+    const likes = await this.recipeRepository.getRecipeLikes(recipeId);
+    const rawLikes = likes.map((like) => like.toJSON() as any);
+    const likerIds = rawLikes
+      .map((like) => like.user?.id)
+      .filter((id): id is number => typeof id === "number");
+
+    let followingIds = new Set<number>();
+    if (requestUserId && likerIds.length > 0) {
+      const follows = await Follow.findAll({
+        where: {
+          follower_id: requestUserId,
+          following_id: { [Op.in]: likerIds },
+        },
+        attributes: ["following_id"],
+      });
+
+      followingIds = new Set(follows.map((follow) => follow.following_id));
+    }
+
+    const users: RecipeLikeUserResponse[] = rawLikes
+      .filter((like) => like.user)
+      .map((like) => {
+        const user = like.user;
+
+        return {
+          id: user.id,
+          username: user.username,
+          full_name: user.full_name,
+          avatar_url: user.avatar_url,
+          is_following: requestUserId ? followingIds.has(user.id) : false,
+          is_current_user: requestUserId === user.id,
+        };
+      });
+
+    return {
+      users,
+      total: users.length,
+    };
   }
 
   async getRecipeComments(

@@ -167,12 +167,26 @@ export default function CommentsScreen() {
     const maxDepth = 2;
     const canReply = depth < maxDepth;
     const isHighlighted = highlightedId === comment.id;
+    const containerClassName = [
+      isReply && depth > 0 ? "ml-8 mt-2 border-l-2 border-gray-200 pl-2.5" : "mb-3",
+      "flex-row gap-2.5 rounded-2xl",
+      isHighlighted ? "border border-gray-200 bg-gray-50 px-2 py-2" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const contentClassName = [
+      "rounded-2xl px-3 py-2",
+      isReply ? "bg-gray-50" : "bg-gray-100",
+      isHighlighted ? "bg-gray-100" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     return (
       <View
         key={comment.id}
-        className={`${isReply && depth > 0 ? "ml-8 mt-2 border-l-2 border-gray-200 pl-2.5" : "mb-3"} flex-row gap-2.5`}
-        style={isHighlighted ? { backgroundColor: "#fefce8", borderRadius: 12, padding: 4, borderWidth: 1, borderColor: "#fde047" } : undefined}
+        className={containerClassName}
       >
         <View className={`${isReply ? "h-7 w-7" : "h-8 w-8"} overflow-hidden rounded-full bg-gray-200 flex-shrink-0`}>
           {comment.user?.avatar_url ? (
@@ -187,7 +201,7 @@ export default function CommentsScreen() {
         </View>
 
         <View className="flex-1 min-w-0">
-          <View className={`rounded-2xl px-3 py-2 ${isReply ? "bg-gray-50" : "bg-gray-100"}`}>
+          <View className={contentClassName}>
             <Text className="text-xs font-bold text-gray-900">
               {comment.user?.username || "Anonymous"}
             </Text>
@@ -298,12 +312,12 @@ export default function CommentsScreen() {
           >
             <MaterialIcons
               name={isLiked ? "favorite" : "favorite-border"}
-              size={22}
-              color={isLiked ? "#EF4444" : "#6B7280"}
+              size={26}
+              color={isLiked ? "#DC2626" : "#4B5563"}
             />
           </TouchableOpacity>
           <TouchableOpacity className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5">
-            <MaterialIcons name="chat-bubble-outline" size={22} color="#6B7280" />
+            <MaterialIcons name="chat-bubble-outline" size={26} color="#4B5563" />
           </TouchableOpacity>
         </View>
 
