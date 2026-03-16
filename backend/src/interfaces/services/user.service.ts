@@ -2,7 +2,7 @@ import { UserProfileResponse } from "../../dto/user/user.response";
 import { UpdateProfileRequest } from "../../dto/user/update-profile.request";
 
 export interface IUserService {
-  getProfile(userId: number): Promise<UserProfileResponse | null>;
+  getProfile(userId: number, currentUserId?: number): Promise<UserProfileResponse | null>;
   updateProfile(
     userId: number,
     data: UpdateProfileRequest,

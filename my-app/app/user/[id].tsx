@@ -32,6 +32,8 @@ export default function PublicProfileScreen() {
 
         const profileData = profileRes.data?.data || profileRes.data?.user || profileRes.data?.profile || profileRes.data;
         setProfile(profileData);
+        // Đặt trạng thái ban đầu của nút Follow dựa theo dữ liệu backend trả về
+        setIsFollowing(!!profileData?.is_following);
 
         const recipesData = recipesRes.data?.data || recipesRes.data?.recipes || recipesRes.data || [];
         setRecipes(Array.isArray(recipesData) ? recipesData : []);
@@ -47,13 +49,27 @@ export default function PublicProfileScreen() {
 
   const handleFollow = async () => {
     try {
-      if (isFollowing) {
+      const currentFollowingState = isFollowing;
+      setIsFollowing(!isFollowing);
+
+      // Cập nhật số lượng người theo dõi ngay lập tức trên UI (Optimistic Update)
+      setProfile((prev: any) => ({
+        ...prev,
+        followers_count: (prev.followers_count || 0) + (currentFollowingState ? -1 : 1),
+      }));
+
+      if (currentFollowingState) {
         await apiClient.delete(`/users/${id}/follow`);
       } else {
         await apiClient.post(`/users/${id}/follow`);
       }
-      setIsFollowing(!isFollowing);
     } catch (error) {
+      // Nếu gọi API thất bại, khôi phục lại trạng thái cũ
+      setIsFollowing(isFollowing);
+      setProfile((prev: any) => ({
+        ...prev,
+        followers_count: (prev.followers_count || 0) + (isFollowing ? -1 : 1),
+      }));
       console.error("Lỗi khi follow/unfollow:", error);
     }
   };

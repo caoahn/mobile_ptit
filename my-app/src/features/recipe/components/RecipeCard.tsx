@@ -17,6 +17,7 @@ import Toast from "react-native-toast-message";
 import { Recipe, RecipeLikeUser } from "../types/recipe.types";
 import { followUser, unfollowUser } from "../../auth/services/userService";
 import { getRecipeLikes, toggleLike, toggleSave } from "../services/recipeService";
+import { useAuthStore } from "../../auth/store/authStore";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -25,6 +26,7 @@ interface RecipeCardProps {
 
 export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   const router = useRouter();
+  const { user: currentUser } = useAuthStore();
   const [isLiked, setIsLiked] = useState(recipe.is_liked || false);
   const [isSaved, setIsSaved] = useState(recipe.is_saved || false);
   const [likesCount, setLikesCount] = useState(recipe.likes_count);
@@ -236,7 +238,15 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
       <View className="flex-row items-center justify-between px-3 py-3">
         <TouchableOpacity 
           className="flex-row items-center gap-3"
-          onPress={() => recipe.chef?.id && router.push(`/user/${recipe.chef.id}` as any)}
+          onPress={() => {
+            if (recipe.chef?.id) {
+              if (String(currentUser?.id) === String(recipe.chef.id)) {
+                router.push("/(tabs)/profile" as any);
+              } else {
+                router.push(`/user/${recipe.chef.id}` as any);
+              }
+            }
+          }}
         >
           <View className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
             {recipe.chef?.avatar_url ? (

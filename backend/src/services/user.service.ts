@@ -3,6 +3,8 @@ import { User } from "../models/user.model";
 import { IUserService } from "../interfaces/services/user.service";
 import { UserProfileResponse } from "../dto/user/user.response";
 import { UpdateProfileRequest } from "../dto/user/update-profile.request";
+import { Follow } from "../models/follow.model";
+import { sequelize } from "../config/database";
 
 export class UserService implements IUserService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -29,10 +31,26 @@ export class UserService implements IUserService {
     };
   }
 
-  async getProfile(userId: number): Promise<UserProfileResponse | null> {
+  async getProfile(userId: number, currentUserId?: number): Promise<UserProfileResponse | null> {
     const user = await this.userRepository.findById(userId);
     if (!user) return null;
-    return this.toDTO(user);
+    
+    const dto = this.toDTO(user);
+
+    dto.followers_count = await Follow.count({ where: { following_id: userId } });
+    dto.following_count = await Follow.count({ where: { follower_id: userId } });
+    if (sequelize.models.Recipe) {
+      dto.recipes_count = await sequelize.models.Recipe.count({ where: { user_id: userId } });
+    }
+
+    let isFollowing = false;
+    if (currentUserId && currentUserId !== userId) {
+      const followRecord = await Follow.findOne({ where: { follower_id: currentUserId, following_id: userId } });
+      isFollowing = !!followRecord;
+    }
+    (dto as any).is_following = isFollowing;
+
+    return dto;
   }
 
   async updateProfile(
@@ -46,11 +64,15 @@ export class UserService implements IUserService {
 
   async followUser(followerId: number, followingId: number): Promise<void> {
     if (followerId === followingId) throw new Error("Cannot follow yourself");
-    return this.userRepository.followUser(followerId, followingId);
+    await Follow.findOrCreate({
+      where: { follower_id: followerId, following_id: followingId },
+    });
   }
 
   async unfollowUser(followerId: number, followingId: number): Promise<void> {
-    return this.userRepository.unfollowUser(followerId, followingId);
+    await Follow.destroy({
+      where: { follower_id: followerId, following_id: followingId },
+    });
   }
 
   async getFollowers(userId: number): Promise<UserProfileResponse[]> {
