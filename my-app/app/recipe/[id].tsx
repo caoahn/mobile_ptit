@@ -38,7 +38,6 @@ export default function RecipeDetailScreen() {
       setLoading(false);
     }
   }, [id]);
-  console.log(recipe); // Debug log to check the ID value
 
   useEffect(() => {
     if (id) {

@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,17 @@ import {
 } from "@/src/features/recipe/services/recipeService";
 
 const COMMENTS_PER_PAGE = 10;
+
+const formatTimeAgo = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return "vừa xong";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} phút`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} giờ`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} ngày`;
+  return `${Math.floor(seconds / 604800)} tuần`;
+};
 
 export default function CommentsScreen() {
   const { id, commentId } = useLocalSearchParams<{ id: string; commentId?: string }>();
@@ -115,7 +126,7 @@ export default function CommentsScreen() {
     }
   };
 
-  const handleLike = async () => {
+  const handleLike = useCallback(async () => {
     try {
       const result = await toggleLike(recipeId);
       setIsLiked(result.liked);
@@ -123,7 +134,7 @@ export default function CommentsScreen() {
     } catch (error) {
       console.error("Failed to toggle like:", error);
     }
-  };
+  }, [recipeId]);
 
   const handleSubmitComment = async () => {
     if (!commentText.trim()) return;
@@ -152,16 +163,7 @@ export default function CommentsScreen() {
     }
   };
 
-  const formatTimeAgo = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    if (seconds < 60) return "vừa xong";
-    if (seconds < 3600) return `${Math.floor(seconds / 60)} phút`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)} giờ`;
-    if (seconds < 604800) return `${Math.floor(seconds / 86400)} ngày`;
-    return `${Math.floor(seconds / 604800)} tuần`;
-  };
+
 
   const renderComment = (comment: Comment, isReply: boolean = false, depth: number = 0) => {
     const maxDepth = 2;
@@ -228,7 +230,8 @@ export default function CommentsScreen() {
   };
 
   // Header: ảnh bài viết + thông tin + like/comment
-  const renderPostHeader = () => {
+  // Dùng useCallback để giữ reference ổn định → FlatList không remount header khi gõ comment
+  const renderPostHeader = useCallback(() => {
     if (!recipe) return null;
     return (
       <View className="mb-2 bg-white -mx-3">
@@ -329,9 +332,10 @@ export default function CommentsScreen() {
         </View>
       </View>
     );
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipe, isLiked, likesCount, total, handleLike]);
 
-  const renderFooter = () => {
+  const renderFooter = useCallback(() => {
     if (loadingMore) {
       return <View className="items-center py-3"><ActivityIndicator size="small" color="#29a38f" /></View>;
     }
@@ -345,7 +349,8 @@ export default function CommentsScreen() {
         </TouchableOpacity>
       </View>
     );
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingMore, hasMore, total, comments.length]);
 
   return (
     <KeyboardAvoidingView

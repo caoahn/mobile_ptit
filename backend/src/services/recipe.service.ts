@@ -60,7 +60,6 @@ export class RecipeService implements IRecipeService {
     userId?: number,
   ): Promise<RecipeResponse> {
     const raw = recipe.toJSON() as any;
-    console.log("Raw recipe data in toDTO:", raw);
     const counts = await this.getRecipeCounts(recipe.id);
     const interactions = userId
       ? await this.checkUserInteractions(userId, recipe.id)
@@ -156,7 +155,6 @@ export class RecipeService implements IRecipeService {
     userId: number,
     data: CreateRecipeRequest,
   ): Promise<RecipeResponse> {
-    console.log("Creating recipe with data:", data);
     const { ingredients, steps, tags, ...recipeData } = data;
     const newRecipe: RecipeCreationAttributes = {
       ...recipeData,

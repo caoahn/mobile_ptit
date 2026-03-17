@@ -183,7 +183,6 @@ export default function CreateScreen() {
         })),
         tags: tags.length > 0 ? tags : undefined,
       };
-      console.log("Submitting recipe data:", recipeData);
 
       await createRecipe(recipeData);
       Toast.show({ type: "success", text1: "Thành công", text2: "Công thức đã được đăng!" });
