@@ -16,6 +16,11 @@ import {
 import Toast from "react-native-toast-message";
 import { useDialogStore } from "@/src/shared/stores/useDialogStore";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getRecipe, updateRecipe, deleteRecipe } 
+from "@/src/shared/services/api/recipe.service";
+
+import * as ImagePicker from "expo-image-picker";
+import { uploadImage } from "@/src/shared/services/api/uploadService";
 
 // Types
 interface Ingredient {
@@ -41,6 +46,7 @@ const DIFFICULTY_LABELS = {
 
 export default function EditRecipeScreen() {
   const { id } = useLocalSearchParams();
+  console.log("Param ID:", id);
   const [isLoading, setIsLoading] = useState(true);
   const showDialog = useDialogStore((state) => state.showDialog);
 
@@ -50,7 +56,7 @@ export default function EditRecipeScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<"Easy" | "Medium" | "Hard">("Easy");
   const [cookingTime, setCookingTime] = useState("");
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null); 
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { id: "1", name: "", amount: "", unit: "" },
   ]);
@@ -64,26 +70,61 @@ export default function EditRecipeScreen() {
 
   // Load data
   useEffect(() => {
-    // Simulate fetching data
-    setTimeout(() => {
-      setTitle("Spicy Miso Ramen");
-      setDescription("A rich and spicy noodle soup that warms the soul. Perfect for cold winter nights.");
-      setSelectedCategory("Món tối");
-      setDifficulty("Medium");
-      setCookingTime("45");
-      setImage("https://lh3.googleusercontent.com/aida-public/AB6AXuDRMfoec0Pm0cAemNw4Af1dDioOhmWH5VjGt5h2enP_u3PO4U7__KwprSHyWhS_52ismBYKl9uQ8k58VZ_AWNIVMSrJGUzDRb1n1rGSOaZKPq4g7iN-C16d14PQlv4ob55568ms9gQuK30p3qJ8R8eytBR-nDNEf17vm8ISwTQeGC-M9hpKEJnetP_zHqO0Pka7Kf4iFBcqKojqa0m2YrqOuhtJo_YNfi0hGeOwZyQBJM3qI-E9xX1yZkWoempEYWbtQciSV5OIkyPV");
-      setIngredients([
-        { id: "1", name: "Miso Paste", amount: "2", unit: "tbsp" },
-        { id: "2", name: "Ramen Noodles", amount: "200", unit: "g" },
-      ]);
-      setSteps([
-        { id: "1", description: "Boil water in a large pot.", image_url: "" },
-        { id: "2", description: "Add miso paste and stir well.", image_url: "" },
-      ]);
-      setTags(["Japanese", "Spicy", "Dinner"]);
+  const fetchRecipe = async () => {
+    const recipeId = Array.isArray(id) ? id[0] : id;
+
+    if (!recipeId || isNaN(Number(recipeId))) {
+      console.log("Invalid recipe id:", recipeId);
       setIsLoading(false);
-    }, 1000);
-  }, [id]);
+      return;
+    }
+
+    try {
+      const data = await getRecipe(Number(recipeId));
+
+      setTitle(data.title || "");
+      setDescription(data.description || "");
+      setSelectedCategory(data.category || null);
+      setCookingTime(String(data.cook_time || "")); // FIX cook_time
+      setImage(data.image_url || null);
+
+      // ingredients
+      if (data.ingredients) {
+        setIngredients(
+          data.ingredients.map((ing: any) => ({
+            id: String(ing.id),
+            name: ing.name,
+            amount: ing.amount,
+            unit: ing.unit,
+          }))
+        );
+      }
+
+      // steps
+      if (data.steps) {
+        setSteps(
+          data.steps.map((step: any) => ({
+            id: String(step.id),
+            description: step.description,
+            image_url: step.image_url || "",
+          }))
+        );
+      }
+
+      // tags
+      if (data.tags) {
+        setTags(data.tags.map((t: any) => t.name));
+      }
+
+    } catch (error) {
+      console.log("Fetch recipe error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchRecipe();
+}, [id]);
 
   // Handlers
   const handleAddIngredient = () => {
@@ -140,48 +181,196 @@ export default function EditRecipeScreen() {
   };
 
   const handleUpdate = async () => {
-    // Validation
-    if (!title.trim()) {
-      Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng nhập tên món ăn" });
-      return;
-    }
-    // ... other validations same as create
+  if (!title.trim()) {
+    Toast.show({
+      type: "error",
+      text1: "Lỗi",
+      text2: "Vui lòng nhập tên món ăn",
+    });
+    return;
+  }
 
-    try {
-      setIsSubmitting(true);
-      // Simulate API call
-      setTimeout(() => {
-        setIsSubmitting(false);
-        Toast.show({ type: "success", text1: "Thành công", text2: "Công thức đã được cập nhật!" });
-        setTimeout(() => router.back(), 1500);
-      }, 1000);
-    } catch (error) {
-      setIsSubmitting(false);
-      Toast.show({ type: "error", text1: "Lỗi", text2: "Không thể cập nhật công thức." });
-    }
-  };
+  try {
+    setIsSubmitting(true);
+
+    const payload = {
+  title,
+  description,
+  category: selectedCategory ?? undefined,
+  image_url: image ?? undefined,
+  cook_time: Number(cookingTime), // FIX
+
+  ingredients: ingredients.map((ing) => ({
+    name: ing.name,
+    amount: ing.amount,
+    unit: ing.unit,
+  })),
+
+  steps: steps.map((step, index) => ({
+    order: index + 1, // API dùng order
+    description: step.description,
+    image_url: step.image_url ?? undefined,
+  })),
+
+  tags,
+};
+
+    await updateRecipe(Number(id), payload);
+
+    Toast.show({
+      type: "success",
+      text1: "Thành công",
+      text2: "Công thức đã được cập nhật!",
+    });
+
+    setTimeout(() => router.back(), 1200);
+
+  } catch (error) {
+    Toast.show({
+      type: "error",
+      text1: "Lỗi",
+      text2: "Không thể cập nhật công thức.",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleDelete = () => {
-    showDialog({
-      title: "Xác nhận",
-      message: "Bạn có chắc chắn muốn xóa công thức này không? Hành động này không thể hoàn tác.",
-      confirmText: "Xóa",
-      cancelText: "Hủy",
-      onConfirm: () => {
-        setIsDeleting(true);
-        // Simulate API call
-        setTimeout(() => {
-          setIsDeleting(false);
-          Toast.show({ type: "success", text1: "Đã xóa", text2: "Công thức đã bị xóa thành công." });
-          setTimeout(() => router.back(), 1500);
-        }, 1000);
-      }
-    });
-  };
+  showDialog({
+    title: "Xác nhận",
+    message: "Bạn có chắc chắn muốn xóa công thức này không?",
+    confirmText: "Xóa",
+    cancelText: "Hủy",
 
-  const handlePickImage = () => {
-    Toast.show({ type: "info", text1: "Upload Image", text2: "This would open the image picker in a real device." });
-  };
+    onConfirm: async () => {
+      try {
+        setIsDeleting(true);
+
+        await deleteRecipe(Number(id));
+
+        Toast.show({
+          type: "success",
+          text1: "Đã xóa",
+          text2: "Công thức đã bị xóa",
+        });
+
+        setTimeout(() => router.back(), 1200);
+
+      } catch (error) {
+        Toast.show({
+          type: "error",
+          text1: "Lỗi",
+          text2: "Không thể xóa công thức",
+        });
+      } finally {
+        setIsDeleting(false);
+      }
+    },
+  });
+};
+
+  const handlePickImage = async () => {
+  try {
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Toast.show({
+        type: "error",
+        text1: "Permission denied",
+      });
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images, // ✅ dùng bản cũ để hết lỗi đỏ
+      quality: 0.8,
+      allowsEditing: true,
+    });
+
+    if (!result.canceled) {
+      const localUri = result.assets[0].uri;
+
+      console.log("LOCAL URI:", localUri);
+
+      // 🔥 upload ảnh (đã fix blob trong uploadService)
+      const uploadResult = await uploadImage(localUri);
+
+      console.log("UPLOAD RESULT:", uploadResult);
+
+      // ⚠️ đảm bảo đúng format response
+      const imageUrl = uploadResult?.url || uploadResult;
+
+      setImage(imageUrl);
+
+      Toast.show({
+        type: "success",
+        text1: "Upload success",
+      });
+    }
+  } catch (error: any) {
+    console.log("UPLOAD ERROR:", error?.response?.data || error);
+
+    Toast.show({
+      type: "error",
+      text1: "Upload failed",
+    });
+  }
+};
+
+
+  const handlePickStepImage = async (stepId: string) => {
+  try {
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Toast.show({
+        type: "error",
+        text1: "Permission denied",
+      });
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+      allowsEditing: true,
+    });
+
+    if (!result.canceled) {
+      const localUri = result.assets[0].uri;
+
+      console.log("STEP IMAGE URI:", localUri);
+
+      const uploadResult = await uploadImage(localUri);
+
+      const imageUrl = uploadResult?.url || uploadResult;
+
+      // 🔥 update đúng step
+      setSteps((prev) =>
+        prev.map((step) =>
+          step.id === stepId
+            ? { ...step, image_url: imageUrl }
+            : step
+        )
+      );
+
+      Toast.show({
+        type: "success",
+        text1: "Upload step image success",
+      });
+    }
+  } catch (error: any) {
+    console.log("STEP UPLOAD ERROR:", error?.response?.data || error);
+
+    Toast.show({
+      type: "error",
+      text1: "Upload step image failed",
+    });
+  }
+};
 
   if (isLoading) {
     return (
@@ -394,22 +583,48 @@ export default function EditRecipeScreen() {
                   </View>
 
                   <View className="ml-2">
-                    <View className="mb-2 flex-row justify-between">
-                      <Text className="font-bold text-gray-900">Bước {index + 1}</Text>
-                      {steps.length > 1 && (
-                        <TouchableOpacity onPress={() => handleRemoveStep(step.id)}>
-                          <MaterialIcons name="delete-outline" size={20} color="#ef4444" />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                    <TextInput
-                      placeholder="Mô tả chi tiết bước này..."
-                      value={step.description}
-                      onChangeText={(v) => handleStepChange(step.id, "description", v)}
-                      multiline
-                      className="min-h-[60px] text-sm leading-relaxed text-gray-600"
-                    />
-                  </View>
+  <View className="mb-2 flex-row justify-between">
+    <Text className="font-bold text-gray-900">
+      Bước {index + 1}
+    </Text>
+
+    <View className="flex-row items-center">
+      {/* 🔥 Nút upload ảnh */}
+      <TouchableOpacity
+        onPress={() => handlePickStepImage(step.id)}
+        className="mr-2"
+      >
+        <MaterialIcons name="image" size={20} color="#29a38f" />
+      </TouchableOpacity>
+
+      {steps.length > 1 && (
+        <TouchableOpacity onPress={() => handleRemoveStep(step.id)}>
+          <MaterialIcons name="delete-outline" size={20} color="#ef4444" />
+        </TouchableOpacity>
+      )}
+    </View>
+  </View>
+
+  {/* Mô tả */}
+  <TextInput
+    placeholder="Mô tả chi tiết bước này..."
+    value={step.description}
+    onChangeText={(v) =>
+      handleStepChange(step.id, "description", v)
+    }
+    multiline
+    className="min-h-[60px] text-sm leading-relaxed text-gray-600"
+  />
+
+  {/* 🔥 Hiển thị ảnh nếu có */}
+  {step.image_url ? (
+    <Image
+      source={{ uri: step.image_url }}
+      className="mt-2 h-32 w-full rounded-lg"
+      resizeMode="cover"
+    />
+  ) : null}
+</View>
                 </View>
               ))}
             </View>

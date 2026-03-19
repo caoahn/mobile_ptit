@@ -3,6 +3,13 @@ import container from "../container";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { RecipeController } from "../controllers/recipe.controller";
 
+import { RecipeService } from "../services/update.recipe.service";
+import { UpdateRecipeController } from "../controllers/update.recipe.controller";
+
+
+const updateService = new RecipeService();
+const updateController = new UpdateRecipeController(updateService);
+
 const recipeRouter = Router();
 const recipeController =
   container.resolve<RecipeController>("recipeController");
@@ -282,9 +289,11 @@ recipeRouter.post("/", authMiddleware, recipeController.createRecipe);
  *       200:
  *         description: Recipe updated
  */
-recipeRouter.put("/:id", authMiddleware, (req, res) =>
-  res.send("Update logic here"),
-); // TODO
+recipeRouter.put(
+  "/:id",
+  authMiddleware,
+  updateController.updateRecipe
+);
 
 /**
  * @swagger
@@ -304,10 +313,11 @@ recipeRouter.put("/:id", authMiddleware, (req, res) =>
  *       200:
  *         description: Recipe deleted
  */
-recipeRouter.delete("/:id", authMiddleware, (req, res) =>
-  res.send("Delete logic here"),
-); // TODO
-
+recipeRouter.delete(
+  "/:id",
+  authMiddleware,
+  updateController.deleteRecipe
+);
 /**
  * @swagger
  * /recipes/{id}/like:
@@ -387,5 +397,9 @@ recipeRouter.post("/:id/save", authMiddleware, recipeController.toggleSave);
  *         description: Recipe unsaved
  */
 recipeRouter.delete("/:id/save", authMiddleware, recipeController.toggleSave); // Toggle handles both
+
+
+recipeRouter.get("/user/:id", recipeController.getUserRecipes);
+
 
 export default recipeRouter;

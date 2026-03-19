@@ -5,14 +5,18 @@ import recipeRoute from "./recipe.routes";
 import utilRoute from "./util.routes";
 import uploadRoute from "./upload.route";
 import notificationRoute from "./notification.route";
+import otpRoute from "./otp.routes";
+import updateRecipeRoute from "./update.recipe.router";
 
 const router = Router();
 
 router.use("/auth", authRoute);
 router.use("/users", userRoute);
+router.use("/auth", otpRoute);
 router.use("/recipes", recipeRoute);
 router.use("/upload", uploadRoute);
 router.use("/notifications", notificationRoute);
 router.use("/", utilRoute);
+router.use("/recipes", updateRecipeRoute);
 
 export default router;

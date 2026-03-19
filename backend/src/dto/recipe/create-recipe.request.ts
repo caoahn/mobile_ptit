@@ -8,6 +8,7 @@ export interface CreateIngredientRequest {
 
 export interface CreateStepRequest {
   order: number;
+  title: string;
   description: string;
   image_url?: string;
 }

@@ -4,6 +4,9 @@ import { env } from "./config/env";
 import { corsOptions } from "./config/cors";
 import routes from "./routes";
 import { errorHandler } from "./middlewares/error.middleware";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 

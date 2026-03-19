@@ -1,4 +1,9 @@
 import { Button, Container, Input } from "@/src/shared/components";
+import {
+  sendOtp,
+  verifyOtp,
+  resetPassword,
+} from "@/src/shared/services/api/authServices";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
@@ -9,40 +14,101 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
+
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
-  const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: New Password
+  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
+  // gửi OTP
   const handleSendCode = async () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    if (!email) {
+      Alert.alert("Lỗi", "Vui lòng nhập email");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await sendOtp(email);
+
+      Alert.alert("Thành công", "OTP đã được gửi vào email");
+
       setStep(2);
-    }, 1000);
+    } catch (error: any) {
+      Alert.alert(
+        "Lỗi",
+        error?.response?.data?.message || "Không gửi được OTP"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // xác thực OTP
   const handleVerifyOtp = async () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    if (!otp) {
+      Alert.alert("Lỗi", "Vui lòng nhập OTP");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await verifyOtp(email, otp);
+
       setStep(3);
-    }, 1000);
+    } catch (error: any) {
+      Alert.alert(
+        "OTP sai",
+        error?.response?.data?.message || "OTP không hợp lệ"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // reset password
   const handleResetPassword = async () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    if (!password || !confirmPassword) {
+      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ mật khẩu");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Lỗi", "Mật khẩu không khớp");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await resetPassword(email, password);
+
+      Alert.alert("Thành công", "Đổi mật khẩu thành công");
+
       router.replace("/(auth)/login" as any);
-    }, 1000);
+    } catch (error: any) {
+      Alert.alert(
+        "Lỗi",
+        error?.response?.data?.message || "Không thể đổi mật khẩu"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <Container safe>
       <StatusBar style="dark" />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
@@ -57,25 +123,20 @@ export default function ForgotPasswordScreen() {
               <Text className="text-gray-500 text-lg">← Quay lại</Text>
             </TouchableOpacity>
 
-            <View className="w-16 h-16 bg-blue-100 rounded-full items-center justify-center mb-6">
-              <Text className="text-3xl">
-                {step === 1 ? "🔑" : step === 2 ? "✉️" : "🔒"}
-              </Text>
-            </View>
-
             <Text className="text-2xl font-bold text-text mb-2">
               {step === 1
                 ? "Quên Mật Khẩu?"
                 : step === 2
-                  ? "Nhập Mã Xác Thực"
-                  : "Đặt Mật Khẩu Mới"}
+                ? "Nhập Mã OTP"
+                : "Đặt Mật Khẩu Mới"}
             </Text>
+
             <Text className="text-gray-500">
               {step === 1
-                ? "Nhập email của bạn để nhận mã xác thực"
+                ? "Nhập email để nhận mã OTP"
                 : step === 2
-                  ? `Mã đã được gửi đến: ${email || "user@example.com"}`
-                  : "Nhập mật khẩu mới cho tài khoản của bạn"}
+                ? `OTP đã gửi tới: ${email}`
+                : "Nhập mật khẩu mới"}
             </Text>
           </View>
 
@@ -88,11 +149,10 @@ export default function ForgotPasswordScreen() {
                   placeholder="user@example.com"
                   value={email}
                   onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
                 />
+
                 <Button
-                  title="GỬI MÃ XÁC THỰC"
+                  title="GỬI MÃ OTP"
                   onPress={handleSendCode}
                   isLoading={isLoading}
                 />
@@ -102,13 +162,15 @@ export default function ForgotPasswordScreen() {
             {step === 2 && (
               <>
                 <Input
-                  label="OTP Code"
-                  placeholder="1234"
+                  label="OTP"
+                  placeholder="123456"
+                  value={otp}
+                  onChangeText={setOtp}
                   keyboardType="number-pad"
-                  className="text-center text-xl tracking-widest"
                 />
+
                 <Button
-                  title="XÁC NHẬN"
+                  title="XÁC NHẬN OTP"
                   onPress={handleVerifyOtp}
                   isLoading={isLoading}
                 />
@@ -121,12 +183,18 @@ export default function ForgotPasswordScreen() {
                   label="Mật khẩu mới"
                   placeholder="••••••••"
                   secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
                 />
+
                 <Input
-                  label="Xác nhận mật khẩu mới"
+                  label="Xác nhận mật khẩu"
                   placeholder="••••••••"
                   secureTextEntry
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
                 />
+
                 <Button
                   title="ĐẶT LẠI MẬT KHẨU"
                   onPress={handleResetPassword}
