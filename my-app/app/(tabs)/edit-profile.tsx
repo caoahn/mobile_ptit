@@ -1,10 +1,12 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getProfile, updateProfile } from "@/src/features/auth/services/userService";
 import {
   Image,
   KeyboardAvoidingView,
   Platform,
+
   ScrollView,
   StatusBar,
   Text,
@@ -15,28 +17,121 @@ import {
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+
+import * as ImagePicker from "expo-image-picker";
+import { uploadImage } from "@/src/shared/services/uploadService";
+
+
 export default function EditProfileScreen() {
-  const [name, setName] = useState("Alex Culinary");
-  const [username, setUsername] = useState("alex_culinary");
-  const [bio, setBio] = useState("Exploring plant-based fusion with AI");
-  const [image, setImage] = useState(
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuBoIibnJOshuOXx_XIIyvpIZfazYbPiGJKnX-pGVdE4_BLd2PmG5AODJU5KrXQ054lvmJG3aJlynInH9V5dzRHH4xX25WouqEPxdyIMI2s3DzNt_beI4Vs7ZXbsBpBvMXfE3_XqBBki9gLBjM7r4vxK1k7CNRabLL_S1-42RcljeP1oUag_6PBMqhO38exWhW2myTQxZ83QZ1xOXwzp2RjH0-u4cC6FaJzwef1NKbHgpkyipADOaIMXCGcCRm9OUj-HcDM4hac_HfB5"
-  );
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [bio, setBio] = useState("");
+  const [image, setImage] = useState("");
+  const [email, setEmail] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const user = await getProfile();
+
+        setFullName(user.full_name);
+        setUsername(user.username);
+        setBio(user.bio || "");
+        setImage(
+          user.avatar_url ||
+          "https://res.cloudinary.com/dkxvnzebp/image/upload/v1773670730/main-sample.png"
+        );
+        setEmail(user.email || "");
+      } catch (error) {
+        console.log("Load profile error", error);
+      }
+    };
+    loadProfile();
+  }, []);
+
+
   const handleSave = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      setIsLoading(true);
+
+      await updateProfile({
+        full_name: fullName,
+        username: username,
+        bio: bio,
+        avatar_url: image,
+      });
+
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "Profile updated successfully",
+      });
+
+      setTimeout(() => router.back(), 1200);
+
+    } catch (error) {
+      console.log(error);
+
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Update failed",
+      });
+
+    } finally {
       setIsLoading(false);
-      Toast.show({ type: "success", text1: "Success", text2: "Profile updated successfully" });
-      setTimeout(() => router.back(), 1500);
-    }, 1000);
+    }
   };
 
-  const handlePickImage = () => {
-    Toast.show({ type: "info", text1: "Change Avatar", text2: "This would open image picker in a real device." });
+
+  const handlePickImage = async () => {
+    try {
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permission.granted) {
+        Toast.show({
+          type: "error",
+          text1: "Permission denied",
+        });
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        allowsEditing: true,
+      });
+
+      if (!result.canceled) {
+        const localUri = result.assets[0].uri;
+
+        console.log("LOCAL URI:", localUri);
+
+        const uploadResult = await uploadImage(localUri);
+
+        console.log("UPLOAD RESULT:", uploadResult);
+
+        setImage(uploadResult.url);
+
+        Toast.show({
+          type: "success",
+          text1: "Upload success",
+        });
+      }
+    } catch (error: any) {
+      console.log("UPLOAD ERROR:", error?.response?.data || error);
+
+      Toast.show({
+        type: "error",
+        text1: "Upload failed",
+      });
+    }
   };
+
+
 
   return (
     <SafeAreaView className="flex-1 bg-background-light">
@@ -90,8 +185,8 @@ export default function EditProfileScreen() {
                 Name
               </Text>
               <TextInput
-                value={name}
-                onChangeText={setName}
+                value={fullName}
+                onChangeText={setFullName}
                 className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
                 placeholder="Your Name"
               />
@@ -106,8 +201,7 @@ export default function EditProfileScreen() {
                 value={username}
                 onChangeText={setUsername}
                 className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
-                placeholder="Username"
-                autoCapitalize="none"
+                placeholder="Your Username"
               />
             </View>
 
@@ -119,11 +213,8 @@ export default function EditProfileScreen() {
               <TextInput
                 value={bio}
                 onChangeText={setBio}
-                multiline
-                numberOfLines={4}
-                className="min-h-[100px] rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
-                placeholder="Write something about yourself..."
-                textAlignVertical="top"
+                className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
+                placeholder="Your Bio"
               />
             </View>
 
@@ -139,22 +230,14 @@ export default function EditProfileScreen() {
                     Email
                   </Text>
                   <TextInput
-                    value="alex@example.com"
-                    editable={false}
-                    className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-base font-medium text-gray-500"
+                    value={email}
+                    onChangeText={setEmail}
+                    className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
+                    placeholder="Your Email"
                   />
                 </View>
 
-                <View>
-                  <Text className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">
-                    Phone
-                  </Text>
-                  <TextInput
-                    placeholder="+1 234 567 890"
-                    className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
-                    keyboardType="phone-pad"
-                  />
-                </View>
+
               </View>
             </View>
           </View>

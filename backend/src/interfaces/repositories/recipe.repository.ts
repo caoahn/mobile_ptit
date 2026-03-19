@@ -2,6 +2,7 @@ import {
   Recipe,
   RecipeCreationAttributes,
   RecipeAttributes,
+  RecipeStepCreationAttributes,
   Like,
 } from "../../models/index";
 
@@ -32,4 +33,8 @@ export interface IRecipeRepository {
   saveRecipe(userId: number, recipeId: number): Promise<void>;
   unsaveRecipe(userId: number, recipeId: number): Promise<void>;
   getSavedRecipes(userId: number): Promise<Recipe[]>;
+  replaceSteps(
+    recipeId: number,
+    steps: RecipeStepCreationAttributes[],
+  ): Promise<void>;
 }

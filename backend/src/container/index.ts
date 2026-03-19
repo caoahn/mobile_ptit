@@ -24,6 +24,10 @@ import { RecipeController } from "../controllers/recipe.controller";
 import { UtilController } from "../controllers/util.controller";
 import { UploadController } from "../controllers/upload.controller";
 import { NotificationController } from "../controllers/notification.controller";
+import { UpdateRecipeController } from "../controllers/update.recipe.controller";
+
+// Services (update recipe)
+import { UpdateRecipeService } from "../services/update.recipe.service";
 
 const container = createContainer({
   injectionMode: InjectionMode.CLASSIC,
@@ -42,6 +46,7 @@ container.register({
   authService: asClass(AuthService).scoped(),
   socketService: asClass(SocketService).singleton(),
   recipeService: asClass(RecipeService).scoped(),
+  updateRecipeService: asClass(UpdateRecipeService).scoped(),
   aiService: asClass(AIService).scoped(),
   cloudinaryService: asClass(CloudinaryService).scoped(),
   notificationService: asClass(NotificationService).scoped(),
@@ -50,6 +55,7 @@ container.register({
   userController: asClass(UserController).scoped(),
   authController: asClass(AuthController).scoped(),
   recipeController: asClass(RecipeController).scoped(),
+  updateRecipeController: asClass(UpdateRecipeController).scoped(),
   healthController: asClass(HealthController).scoped(),
   utilController: asClass(UtilController).scoped(),
   uploadController: asClass(UploadController).scoped(),

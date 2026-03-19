@@ -135,3 +135,8 @@ export const searchRecipes = async (
   );
   return response.data;
 };
+
+export const getUserRecipes = async (userId: number): Promise<Recipe[]> => {
+  const response = await apiClient.get<Recipe[]>(`/recipes/user/${userId}`);
+  return response.data;
+};

@@ -5,6 +5,9 @@ import { logger } from "./utils/logger";
 import { connectDB } from "./config/database";
 import container from "./container";
 import { SocketService } from "./services/socket.service";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const startServer = async () => {
   await connectDB();

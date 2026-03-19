@@ -125,7 +125,24 @@ export class RecipeRepository implements IRecipeRepository {
   }
 
   async delete(id: number): Promise<void> {
+    await RecipeStep.destroy({ where: { recipe_id: id } });
     await Recipe.destroy({ where: { id } });
+  }
+
+  async replaceSteps(
+    recipeId: number,
+    steps: {
+      recipe_id: number;
+      step_number: number;
+      title?: string;
+      description?: string;
+      image_url?: string;
+    }[],
+  ): Promise<void> {
+    await RecipeStep.destroy({ where: { recipe_id: recipeId } });
+    if (steps.length > 0) {
+      await RecipeStep.bulkCreate(steps);
+    }
   }
 
   async search(

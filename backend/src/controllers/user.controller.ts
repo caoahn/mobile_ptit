@@ -16,7 +16,10 @@ export class UserController {
         return sendError(res, 400, "User ID is required");
       }
 
-      const user = await this.userService.getProfile(targetUserId, loggedInUserId);
+      const user = await this.userService.getProfile(
+        targetUserId,
+        loggedInUserId,
+      );
       if (!user) {
         return sendError(res, 404, "User not found");
       }
@@ -63,7 +66,10 @@ export class UserController {
     try {
       const userId = parseInt(req.params.id);
       const loggedInUserId = (req as any).user?.id;
-      const followers = await this.userService.getFollowers(userId, loggedInUserId);
+      const followers = await this.userService.getFollowers(
+        userId,
+        loggedInUserId,
+      );
       sendSuccess(res, followers);
     } catch (error) {
       next(error);
@@ -74,7 +80,10 @@ export class UserController {
     try {
       const userId = parseInt(req.params.id);
       const loggedInUserId = (req as any).user?.id;
-      const following = await this.userService.getFollowing(userId, loggedInUserId);
+      const following = await this.userService.getFollowing(
+        userId,
+        loggedInUserId,
+      );
       sendSuccess(res, following);
     } catch (error) {
       next(error);
