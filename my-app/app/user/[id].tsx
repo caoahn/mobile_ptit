@@ -156,7 +156,7 @@ export default function PublicProfileScreen() {
               {profile.recipes_count || recipes.length || 0}
             </Text>
             <Text className="text-[11px] font-medium uppercase tracking-widest text-[#67837f]">
-              Recipes
+              Công thức
             </Text>
           </View>
           <View className="h-8 w-[1px] bg-[#dde4e3] ]" />
@@ -206,12 +206,12 @@ export default function PublicProfileScreen() {
           <View className="flex-row border-b border-[#dde4e3] px-6 ]">
             <TouchableOpacity className="flex-1 border-b-2 border-primary py-4">
               <Text className="text-center text-sm font-bold tracking-tight text-[#121716]">
-                Recipes
+                Công thức
               </Text>
             </TouchableOpacity>
             <TouchableOpacity className="flex-1 py-4">
               <Text className="text-center text-sm font-medium tracking-tight text-[#67837f] ]">
-                Collections
+                Bộ sưu tập
               </Text>
             </TouchableOpacity>
           </View>

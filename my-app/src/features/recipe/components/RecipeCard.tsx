@@ -184,10 +184,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   };
 
   const formatTime = (minutes: number): string => {
-    if (minutes < 60) return `${minutes} MINS`;
+    if (minutes < 60) return `${minutes} phút`;
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return mins > 0 ? `${hours}H ${mins}M` : `${hours}H`;
+    return mins > 0 ? `${hours}h ${mins}p` : `${hours}h`;
   };
 
   const renderLikedUser = ({ item }: { item: RecipeLikeUser }) => {
@@ -264,7 +264,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           </View>
           <View>
             <Text className="text-xs font-bold">
-              {recipe.chef?.username || "Anonymous"}
+              {recipe.chef?.username || "Ẩn danh"}
             </Text>
             <Text className="text-[10px] text-gray-500">{recipe.category}</Text>
           </View>
@@ -335,7 +335,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           disabled={likesCount === 0}
         >
           <Text className={`text-xs font-bold ${likesCount > 0 ? "text-gray-900" : "text-gray-400"}`}>
-            {likesCount.toLocaleString()} likes
+            {likesCount.toLocaleString()} lượt thích
           </Text>
         </TouchableOpacity>
         <Text className="text-sm leading-relaxed">
@@ -357,14 +357,14 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
         {recipe.comments_count > 0 && (
           <TouchableOpacity className="mt-2" onPress={handleOpenComments}>
             <Text className="text-xs text-gray-500">
-              View all {recipe.comments_count} comments
+              Xem tất cả {recipe.comments_count} bình luận
             </Text>
           </TouchableOpacity>
         )}
         <Link href={`/recipe/${recipe.id}`} asChild>
           <TouchableOpacity className="mt-3 w-full rounded-lg border border-gray-100 bg-gray-50 py-2.5">
             <Text className="text-center text-xs font-bold uppercase tracking-widest text-primary">
-              View Full Recipe
+              Xem chi tiết
             </Text>
           </TouchableOpacity>
         </Link>
@@ -409,7 +409,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
             <View className="absolute inset-0 bg-black/80" />
             <View className="flex-row items-center justify-between z-10">
               <View className="flex-1">
-                <Text className="text-sm text-white/80">Bởi {recipe.chef?.username || "Anonymous"}</Text>
+                <Text className="text-sm text-white/80">Bởi {recipe.chef?.username || "Ẩn danh"}</Text>
                 {recipe.cook_time > 0 && (
                   <Text className="text-xs text-white/60 mt-1">
                     Thời gian: {formatTime(recipe.cook_time)}

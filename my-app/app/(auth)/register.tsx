@@ -31,17 +31,17 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     // Validation
     if (!formData.username.trim() || !formData.email.trim() || !formData.password.trim()) {
-      Toast.show({ type: "error", text1: "Error", text2: "Please fill in all fields" });
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng điền đầy đủ thông tin" });
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      Toast.show({ type: "error", text1: "Error", text2: "Passwords do not match" });
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Mật khẩu không khớp" });
       return;
     }
 
     if (formData.password.length < 8) {
-      Toast.show({ type: "error", text1: "Error", text2: "Password must be at least 8 characters" });
+      Toast.show({ type: "error", text1: "Lỗi", text2: "Mật khẩu phải có ít nhất 8 ký tự" });
       return;
     }
 
@@ -56,8 +56,8 @@ export default function RegisterScreen() {
       // Registration successful, redirect to login
       Toast.show({
         type: "success",
-        text1: "Success",
-        text2: "Your account has been created successfully! Please log in.",
+        text1: "Thành công",
+        text2: "Tài khoản của bạn đã được tạo! Vui lòng đăng nhập.",
       });
       setTimeout(() => {
         router.replace("/(auth)/login");
@@ -66,8 +66,8 @@ export default function RegisterScreen() {
       console.error("Register error:", error);
       Toast.show({
         type: "error",
-        text1: "Registration Failed",
-        text2: error.response?.data?.message || error.message || "Unable to register. Please try again.",
+        text1: "Đăng ký thất bại",
+        text2: error.response?.data?.message || error.message || "Không thể đăng ký. Vui lòng thử lại.",
       });
     } finally {
       setIsLoading(false);
@@ -104,17 +104,17 @@ export default function RegisterScreen() {
             </View>
 
             <Text className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
-              Create Account
+              Tạo Tài Khoản
             </Text>
             <Text className="text-gray-500 text-base">
-              Sign up to get started with DishGram
+              Đăng ký để bắt đầu với DishGram
             </Text>
           </View>
 
           {/* Form Section */}
           <View className="w-full space-y-4">
             <Input
-              label="Username"
+              label="Tên người dùng"
               placeholder="johndoe"
               value={formData.username}
               onChangeText={(text) => handleChange("username", text)}
@@ -124,7 +124,7 @@ export default function RegisterScreen() {
             />
 
             <Input
-              label="Email Address"
+              label="Địa chỉ Email"
               placeholder="chef@example.com"
               value={formData.email}
               onChangeText={(text) => handleChange("email", text)}
@@ -135,7 +135,7 @@ export default function RegisterScreen() {
             />
 
             <Input
-              label="Password"
+              label="Mật khẩu"
               placeholder="••••••••"
               value={formData.password}
               onChangeText={(text) => handleChange("password", text)}
@@ -144,7 +144,7 @@ export default function RegisterScreen() {
             />
 
             <Input
-              label="Confirm Password"
+              label="Xác nhận mật khẩu"
               placeholder="••••••••"
               value={formData.confirmPassword}
               onChangeText={(text) => handleChange("confirmPassword", text)}
@@ -154,39 +154,39 @@ export default function RegisterScreen() {
 
             <View className="mb-6">
               <Text className="text-xs text-gray-400 mb-1">
-                • At least 8 characters
+                • Ít nhất 8 ký tự
               </Text>
               <Text className="text-xs text-gray-400 mb-1">
-                • Mix of uppercase and lowercase letters
+                • Kết hợp chữ hoa và chữ thường
               </Text>
               <Text className="text-xs text-gray-400">
-                • Include numbers and special characters
+                • Bao gồm số và ký tự đặc biệt
               </Text>
             </View>
 
             <Button
-              title="Create Account"
+              title="Đăng ký"
               onPress={handleRegister}
               isLoading={isLoading}
               className="shadow-lg shadow-primary/30 rounded-xl py-4"
             />
 
             <Text className="text-gray-400 text-xs text-center mt-4">
-              By signing up, you agree to our{" "}
-              <Text className="text-primary font-bold">Terms of Service</Text>
-              {"\n"}and{" "}
-              <Text className="text-primary font-bold">Privacy Policy</Text>
+              Bằng việc đăng ký, bạn đồng ý với{" "}
+              <Text className="text-primary font-bold">Điều khoản dịch vụ</Text>
+              {"\n"}và{" "}
+              <Text className="text-primary font-bold">Chính sách bảo mật</Text>
             </Text>
           </View>
 
           {/* Footer Section */}
           <View className="flex-row justify-center mt-auto pt-10">
             <Text className="text-gray-500 font-medium">
-              Already have an account?{" "}
+              Đã có tài khoản?{" "}
             </Text>
             <Link href="/(auth)/login" asChild>
               <TouchableOpacity>
-                <Text className="text-primary font-bold">Sign In</Text>
+                <Text className="text-primary font-bold">Đăng nhập</Text>
               </TouchableOpacity>
             </Link>
           </View>

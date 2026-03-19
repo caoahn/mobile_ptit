@@ -28,8 +28,8 @@ export default function LoginScreen() {
     if (!email.trim() || !password.trim()) {
       Toast.show({
         type: "error",
-        text1: "Error",
-        text2: "Please fill in all fields",
+        text1: "Lỗi",
+        text2: "Vui lòng điền đầy đủ thông tin",
       });
       return;
     }
@@ -47,8 +47,8 @@ export default function LoginScreen() {
       console.error("Login error:", error);
       Toast.show({
         type: "error",
-        text1: "Login Failed",
-        text2: error.response?.data?.message || error.message || "Unable to login. Please check your credentials.",
+        text1: "Đăng nhập thất bại",
+        text2: error.response?.data?.message || error.message || "Không thể đăng nhập. Vui lòng kiểm tra lại thông tin.",
       });
     } finally {
       setIsLoading(false);
@@ -79,14 +79,14 @@ export default function LoginScreen() {
               DishGram
             </Text>
             <Text className="text-gray-500 text-center text-base font-medium">
-              Discover, Cook, and Share{"\n"}Your Culinary Masterpieces
+              Khám phá, nấu nướng và chia sẻ{"\n"}những kiệt tác ẩm thực của bạn
             </Text>
           </View>
 
           {/* Form Section */}
           <View className="w-full space-y-4">
             <Input
-              label="Email Address"
+              label="Địa chỉ Email"
               placeholder="chef@example.com"
               value={email}
               onChangeText={setEmail}
@@ -98,7 +98,7 @@ export default function LoginScreen() {
 
             <View className="mb-2">
               <Input
-                label="Password"
+                label="Mật khẩu"
                 placeholder="••••••••"
                 value={password}
                 onChangeText={setPassword}
@@ -110,13 +110,13 @@ export default function LoginScreen() {
                 onPress={() => router.push("/(auth)/forgot-password")}
               >
                 <Text className="text-primary font-bold text-sm">
-                  Forgot Password?
+                  Quên mật khẩu?
                 </Text>
               </TouchableOpacity>
             </View>
 
             <Button
-              title="Sign In"
+              title="Đăng nhập"
               onPress={handleLogin}
               isLoading={isLoading}
               className="shadow-lg shadow-primary/30 mt-4 rounded-xl py-4"
@@ -128,7 +128,7 @@ export default function LoginScreen() {
             <View className="flex-row items-center mb-6">
               <View className="flex-1 h-[1px] bg-gray-100" />
               <Text className="mx-4 text-gray-400 text-xs font-bold uppercase tracking-widest">
-                Or continue with
+                Hoặc tiếp tục với
               </Text>
               <View className="flex-1 h-[1px] bg-gray-100" />
             </View>
@@ -137,9 +137,9 @@ export default function LoginScreen() {
               <TouchableOpacity className="w-14 h-14 bg-white border border-gray-100 rounded-2xl items-center justify-center shadow-sm">
                 <Image
                   source={{
-                    uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png",
+                    uri: "https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png",
                   }}
-                  className="w-6 h-6"
+                  className="w-9 h-9"
                   resizeMode="contain"
                 />
               </TouchableOpacity>
@@ -155,11 +155,11 @@ export default function LoginScreen() {
           {/* Footer Section */}
           <View className="flex-row justify-center mt-auto pt-10">
             <Text className="text-gray-500 font-medium">
-              Don&apos;t have an account?{" "}
+              Chưa có tài khoản?{" "}
             </Text>
             <Link href="/(auth)/register" asChild>
               <TouchableOpacity>
-                <Text className="text-primary font-bold">Sign Up</Text>
+                <Text className="text-primary font-bold">Đăng ký</Text>
               </TouchableOpacity>
             </Link>
           </View>
