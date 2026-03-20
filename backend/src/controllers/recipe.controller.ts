@@ -23,6 +23,8 @@ export class RecipeController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const category = req.query.category as string;
+      const time = req.query.time as string;
+      const sort = req.query.sort as string;
       const userId = (req as any).user?.id; // Optional auth
 
       const result = await this.recipeService.getFeed(
@@ -30,6 +32,8 @@ export class RecipeController {
         limit,
         category,
         userId,
+        time,
+        sort
       );
       res.json(result);
     } catch (error) {
@@ -39,9 +43,14 @@ export class RecipeController {
 
   getRecipeDetail = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const recipeId = parseInt(req.params.id);
+      if (isNaN(recipeId)) {
+        return res.status(400).json({ message: "ID công thức không hợp lệ" });
+      }
+
       const userId = (req as any).user?.id; // Optional auth
       const result = await this.recipeService.getRecipeDetail(
-        parseInt(req.params.id),
+        recipeId,
         userId,
       );
       if (!result) {

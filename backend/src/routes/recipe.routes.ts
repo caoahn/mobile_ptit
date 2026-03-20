@@ -25,6 +25,18 @@ recipeRouter.get("/", authMiddleware, recipeController.getFeed);
 
 /**
  * @swagger
+ * /recipes/feed:
+ *   get:
+ *     summary: Get recipe feed
+ *     tags: [Recipes]
+ *     responses:
+ *       200:
+ *         description: List of recipes
+ */
+recipeRouter.get("/feed", authMiddleware, recipeController.getFeed);
+
+/**
+ * @swagger
  * /recipes/search:
  *   get:
  *     summary: Search recipes by name or ingredient

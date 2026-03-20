@@ -18,6 +18,8 @@ export interface IRecipeService {
     limit: number,
     category?: string,
     userId?: number,
+    time?: string,
+    sort?: string
   ): Promise<GetFeedResponse>;
   getRecipeDetail(id: number, userId?: number): Promise<RecipeResponse | null>;
   searchRecipes(

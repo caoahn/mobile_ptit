@@ -13,13 +13,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // Mock data for filters
 const CATEGORIES = ["Món sáng", "Món trưa", "Món tối", "Tráng miệng", "Ăn vặt", "Đồ uống"];
 const COOKING_TIMES = ["Dưới 15p", "15-30p", "30-60p", "Trên 60p"];
-const DIFFICULTIES = ["Dễ", "Trung bình", "Khó"];
 
 export default function FilterScreen() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
-  const [rating, setRating] = useState(0);
 
   const toggleCategory = (category: string) => {
     setSelectedCategories((prev) =>
@@ -32,12 +29,23 @@ export default function FilterScreen() {
   const handleReset = () => {
     setSelectedCategories([]);
     setSelectedTime(null);
-    setSelectedDifficulty(null);
-    setRating(0);
   };
 
   const handleShowResults = () => {
-    router.push("/filter-results" as Href);
+    const timeMap: Record<string, string> = {
+      "Dưới 15p": "under_15",
+      "15-30p": "15_to_30",
+      "30-60p": "30_to_60",
+      "Trên 60p": "over_60"
+    };
+
+    router.push({
+      pathname: "/filter-results",
+      params: {
+        categories: selectedCategories.join(","),
+        time: selectedTime ? timeMap[selectedTime] : "",
+      }
+    } as any);
   };
 
   return (
@@ -45,7 +53,7 @@ export default function FilterScreen() {
       <StatusBar barStyle="dark-content" />
       {/* Header */}
       <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.push("/search" as Href)}>
           <MaterialIcons name="close" size={24} color="#121716" />
         </TouchableOpacity>
         <Text className="text-lg font-bold text-gray-900">
@@ -113,56 +121,6 @@ export default function FilterScreen() {
           </View>
         </View>
 
-        {/* Difficulty Section */}
-        <View className="mb-6">
-          <Text className="text-base font-bold text-gray-900 mb-3">
-            Độ khó
-          </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {DIFFICULTIES.map((diff) => (
-              <TouchableOpacity
-                key={diff}
-                onPress={() => setSelectedDifficulty(diff)}
-                className={`rounded-full px-4 py-2 border ${selectedDifficulty === diff
-                  ? "bg-primary border-primary"
-                  : "bg-white border-gray-200"
-                  }`}
-              >
-                <Text
-                  className={`font-medium ${selectedDifficulty === diff
-                    ? "text-white"
-                    : "text-gray-700"
-                    }`}
-                >
-                  {diff}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Rating Section */}
-        <View className="mb-6">
-          <Text className="text-base font-bold text-gray-900 mb-3">
-            Đánh giá
-          </Text>
-          <View className="flex-row items-center">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                <MaterialIcons
-                  name={star <= rating ? "star" : "star-border"}
-                  size={32}
-                  color={star <= rating ? "#F59E0B" : "#9ca3af"}
-                />
-              </TouchableOpacity>
-            ))}
-            {rating > 0 && (
-              <Text className="ml-2 text-gray-600">
-                từ {rating} sao trở lên
-              </Text>
-            )}
-          </View>
-        </View>
       </ScrollView>
 
       {/* Bottom Action Bar */}

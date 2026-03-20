@@ -12,7 +12,7 @@ import {
 import { Tag, RecipeTag } from "../models/tag.model";
 import { findOrCreateTag } from "../helpers/tag";
 import { sequelize } from "../config/database";
-import { QueryTypes } from "sequelize";
+import { QueryTypes, Op } from "sequelize";
 
 import { IRecipeRepository } from "../interfaces/repositories/recipe.repository";
 
@@ -76,10 +76,28 @@ export class RecipeRepository implements IRecipeRepository {
     page: number = 1,
     limit: number = 10,
     category?: string,
+    time?: string,
+    sort?: string
   ): Promise<{ rows: Recipe[]; count: number }> {
     const whereClause: any = {};
+    
     if (category) {
-      whereClause.category = category;
+      const categoryList = category.split(",");
+      whereClause.category = { [Op.in]: categoryList };
+    }
+
+    if (time) {
+      if (time === "under_15") whereClause.cook_time = { [Op.lt]: 15 };
+      else if (time === "15_to_30") whereClause.cook_time = { [Op.between]: [15, 30] };
+      else if (time === "30_to_60") whereClause.cook_time = { [Op.between]: [30, 60] };
+      else if (time === "over_60") whereClause.cook_time = { [Op.gt]: 60 };
+    }
+
+    let orderClause: any = [["created_at", "DESC"]];
+    if (sort === "oldest") {
+      orderClause = [["created_at", "ASC"]];
+    } else if (sort === "most_liked") {
+      orderClause = [[sequelize.literal('(SELECT COUNT(*) FROM likes WHERE likes.recipe_id = Recipe.id)'), 'DESC']];
     }
 
     return Recipe.findAndCountAll({
@@ -96,7 +114,7 @@ export class RecipeRepository implements IRecipeRepository {
         { model: RecipeStep, as: "steps" },
         { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
       ],
-      order: [["created_at", "DESC"]],
+      order: orderClause,
       distinct: true,
     });
   }
