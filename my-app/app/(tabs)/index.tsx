@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RecipeCard } from "@/src/features/recipe/components/RecipeCard";
+import { LoadingSpinner } from "@/src/shared/components";
 import { getFeed } from "@/src/features/recipe/services/recipeService";
 import { Recipe } from "@/src/features/recipe/types/recipe.types";
 import { useNotificationStore } from "@/src/features/notification/store/notificationStore";
@@ -89,12 +90,7 @@ export default function HomeScreen() {
 
   const renderEmpty = () => {
     if (loading && page === 1) {
-      return (
-        <View className="flex-1 items-center justify-center py-20">
-          <ActivityIndicator size="large" color="#29a38f" />
-          <Text className="mt-4 text-gray-500">Đang tải...</Text>
-        </View>
-      );
+      return <LoadingSpinner className="flex-1 items-center justify-center py-20" />;
     }
 
     if (error) {

@@ -1,22 +1,22 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
-import { router, Href } from "expo-router";
+import React, { useEffect, useState, useCallback } from "react";
+import { router, Href, useFocusEffect } from "expo-router";
 
 import {
   Image,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuthStore } from "@/src/features/auth/store/authStore";
 import { useDialogStore } from "@/src/shared/stores/useDialogStore";
 import { getUserRecipes } from "@/src/features/recipe/services/recipeService";
 import { getProfile } from "@/src/features/auth/services/userService";
+import { LoadingSpinner } from "@/src/shared/components";
 
 export default function ProfileScreen() {
   const { logout, user, updateUser } = useAuthStore();
@@ -71,6 +71,28 @@ export default function ProfileScreen() {
 
     fetchRecipes();
   }, [user?.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const refresh = async () => {
+        if (!user) return;
+        try {
+          setLoading(true);
+          const [freshUser, data] = await Promise.all([
+            getProfile(),
+            getUserRecipes((user as any).id),
+          ]);
+          updateUser(freshUser);
+          setRecipes(data || []);
+        } catch (error) {
+          console.log("Focus refresh error:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      refresh();
+    }, [user?.id])
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-background-light">
@@ -200,9 +222,7 @@ export default function ProfileScreen() {
 
           {/* Loading */}
           {loading ? (
-            <View className="py-20">
-              <ActivityIndicator size="large" />
-            </View>
+            <LoadingSpinner className="py-20 items-center justify-center" />
           ) : (
             <View className="flex-row flex-wrap bg-white">
               {recipes.map((item) => (

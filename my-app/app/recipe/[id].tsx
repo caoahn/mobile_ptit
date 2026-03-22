@@ -8,10 +8,10 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
   Modal,
 } from "react-native";
 import { getRecipeById, toggleSave } from "@/src/features/recipe/services/recipeService";
+import { LoadingSpinner } from "@/src/shared/components";
 import { RecipeDetail } from "@/src/features/recipe/types/recipe.types";
 
 export default function RecipeDetailScreen() {
@@ -92,12 +92,7 @@ export default function RecipeDetailScreen() {
   };
 
   if (loading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background-light">
-        <ActivityIndicator size="large" color="#29a38f" />
-        <Text className="mt-4 text-gray-500">Đang tải...</Text>
-      </View>
-    );
+    return <LoadingSpinner className="flex-1 items-center justify-center bg-background-light" />;
   }
 
   if (error || !recipe) {

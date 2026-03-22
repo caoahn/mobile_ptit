@@ -76,6 +76,7 @@ Collection.init(
     sequelize,
     tableName: "collections",
     timestamps: true,
+    paranoid: true,
     underscored: true,
   },
 );

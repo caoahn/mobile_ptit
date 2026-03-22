@@ -18,6 +18,7 @@ import { Recipe, RecipeLikeUser } from "../types/recipe.types";
 import { followUser, unfollowUser } from "../../auth/services/userService";
 import { getRecipeLikes, toggleLike, toggleSave } from "../services/recipeService";
 import { useAuthStore } from "../../auth/store/authStore";
+import { LoadingSpinner } from "@/src/shared/components";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -38,31 +39,31 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   const [followLoadingUserId, setFollowLoadingUserId] = useState<number | null>(null);
   const backdropOpacity = React.useRef(new Animated.Value(0)).current;
   const sheetTranslateY = React.useRef(new Animated.Value(36)).current;
-  const sheetOpacity = React.useRef(new Animated.Value(0.96)).current;
+  const sheetOpacity = React.useRef(new Animated.Value(0)).current;
 
   const animateLikesModal = (visible: boolean) => {
     if (visible) {
-      setLikesModalMounted(true);
       backdropOpacity.setValue(0);
       sheetTranslateY.setValue(36);
-      sheetOpacity.setValue(0.96);
+      sheetOpacity.setValue(0);
+      setLikesModalMounted(true);
 
       Animated.parallel([
         Animated.timing(backdropOpacity, {
           toValue: 1,
-          duration: 180,
+          duration: 200,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.timing(sheetTranslateY, {
           toValue: 0,
-          duration: 240,
+          duration: 260,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(sheetOpacity, {
           toValue: 1,
-          duration: 220,
+          duration: 240,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
@@ -73,19 +74,19 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
     Animated.parallel([
       Animated.timing(backdropOpacity, {
         toValue: 0,
-        duration: 140,
-        easing: Easing.in(Easing.quad),
-        useNativeDriver: true,
-      }),
-      Animated.timing(sheetTranslateY, {
-        toValue: 24,
         duration: 160,
         easing: Easing.in(Easing.quad),
         useNativeDriver: true,
       }),
+      Animated.timing(sheetTranslateY, {
+        toValue: 32,
+        duration: 180,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true,
+      }),
       Animated.timing(sheetOpacity, {
-        toValue: 0.98,
-        duration: 140,
+        toValue: 0,
+        duration: 160,
         easing: Easing.in(Easing.quad),
         useNativeDriver: true,
       }),
@@ -139,10 +140,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
     router.push(`/recipe/${recipe.id}/comments`);
   };
 
-  const handleOpenLikes = async () => {
+  const handleOpenLikes = () => {
     setLikesModalVisible(true);
     animateLikesModal(true);
-    await loadRecipeLikes();
+    loadRecipeLikes();
   };
 
   const handleCloseLikesModal = () => {
@@ -193,9 +194,18 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   const renderLikedUser = ({ item }: { item: RecipeLikeUser }) => {
     const isFollowLoading = followLoadingUserId === item.id;
 
+    const handleNavigateToProfile = () => {
+      handleCloseLikesModal();
+      if (item.is_current_user) {
+        router.push("/(tabs)/profile" as any);
+      } else {
+        router.push(`/user/${item.id}` as any);
+      }
+    };
+
     return (
       <View className="flex-row items-center justify-between px-4 py-3">
-        <View className="flex-row flex-1 items-center gap-3">
+        <TouchableOpacity className="flex-row flex-1 items-center gap-3" onPress={handleNavigateToProfile}>
           <View className="h-11 w-11 overflow-hidden rounded-full bg-gray-200">
             {item.avatar_url ? (
               <Image source={{ uri: item.avatar_url }} className="h-full w-full" />
@@ -211,7 +221,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           <View className="flex-1">
             <Text className="text-sm font-semibold text-gray-900">{item.username}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {!item.is_current_user && (
           <TouchableOpacity
@@ -236,7 +246,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
     <View className="flex-col">
       {/* Post Header */}
       <View className="flex-row items-center justify-between px-3 py-3">
-        <TouchableOpacity 
+        <TouchableOpacity
           className="flex-row items-center gap-3"
           onPress={() => {
             if (recipe.chef?.id) {
@@ -473,10 +483,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
             </View>
 
             {loadingLikes ? (
-              <View className="items-center justify-center py-10">
-                <ActivityIndicator size="small" color="#2563EB" />
-                <Text className="mt-3 text-sm text-gray-500">Đang tải danh sách người thích</Text>
-              </View>
+              <LoadingSpinner
+                text="Đang tải danh sách người thích"
+                className="items-center justify-center py-10"
+              />
             ) : likedUsers.length > 0 ? (
               <FlatList
                 data={likedUsers}

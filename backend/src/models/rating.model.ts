@@ -66,6 +66,7 @@ Rating.init(
     sequelize,
     tableName: "ratings",
     timestamps: true,
+    paranoid: true,
     underscored: true,
   },
 );

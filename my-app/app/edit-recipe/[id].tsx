@@ -18,6 +18,7 @@ import { useDialogStore } from "@/src/shared/stores/useDialogStore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getRecipeById, updateRecipe, deleteRecipe }
   from "@/src/features/recipe/services/recipeService";
+import { LoadingSpinner } from "@/src/shared/components";
 
 import * as ImagePicker from "expo-image-picker";
 import { uploadImage } from "@/src/shared/services/uploadService";
@@ -223,7 +224,7 @@ export default function EditRecipeScreen() {
         text2: "Công thức đã được cập nhật!",
       });
 
-      setTimeout(() => router.back(), 1200);
+      setTimeout(() => router.replace("/(tabs)/profile" as any), 1200);
 
     } catch {
       Toast.show({
@@ -255,7 +256,7 @@ export default function EditRecipeScreen() {
             text2: "Công thức đã bị xóa",
           });
 
-          setTimeout(() => router.back(), 1200);
+          setTimeout(() => router.replace("/(tabs)/profile" as any), 1200);
 
         } catch {
           Toast.show({
@@ -368,8 +369,8 @@ export default function EditRecipeScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-background-light">
-        <ActivityIndicator size="large" color="#29a38f" />
+      <SafeAreaView className="flex-1 bg-background-light">
+        <LoadingSpinner />
       </SafeAreaView>
     );
   }

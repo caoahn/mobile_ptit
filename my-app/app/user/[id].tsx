@@ -8,10 +8,10 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import apiClient from "@/src/shared/services/api/client";
+import { LoadingSpinner } from "@/src/shared/components";
 
 export default function PublicProfileScreen() {
   const { id } = useLocalSearchParams();
@@ -76,8 +76,8 @@ export default function PublicProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-background-light items-center justify-center">
-        <ActivityIndicator size="large" color="#29a38f" />
+      <SafeAreaView className="flex-1 bg-background-light">
+        <LoadingSpinner />
       </SafeAreaView>
     );
   }
@@ -160,7 +160,7 @@ export default function PublicProfileScreen() {
             </Text>
           </View>
           <View className="h-8 w-[1px] bg-[#dde4e3] ]" />
-          <TouchableOpacity 
+          <TouchableOpacity
             className="flex-1 flex-col items-center"
             onPress={() => router.push(`/connection?type=followers&username=${profile.full_name || profile.username}&userId=${id}` as any)}
           >
@@ -172,7 +172,7 @@ export default function PublicProfileScreen() {
             </Text>
           </TouchableOpacity>
           <View className="h-8 w-[1px] bg-[#dde4e3] ]" />
-          <TouchableOpacity 
+          <TouchableOpacity
             className="flex-1 flex-col items-center"
             onPress={() => router.push(`/connection?type=following&username=${profile.full_name || profile.username}&userId=${id}` as any)}
           >

@@ -2,32 +2,24 @@ import { Request, Response, NextFunction } from "express";
 import { IUpdateRecipeService } from "../interfaces/services/update.recipe.service";
 
 export class UpdateRecipeController {
-  constructor(private readonly recipeService: IUpdateRecipeService) {}
+  constructor(private readonly updateRecipeService: IUpdateRecipeService) {}
 
   updateRecipe = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const recipeId = parseInt(req.params.id);
       const userId = (req as any).user.id;
 
-      console.log("UPDATE REQUEST RECEIVED");
-      console.log("Recipe ID:", recipeId);
-      console.log("User ID:", userId);
-      console.log("Body:", JSON.stringify(req.body, null, 2));
-
-      const recipe = await this.recipeService.updateRecipe(
+      const recipe = await this.updateRecipeService.updateRecipe(
         recipeId,
         userId,
         req.body,
       );
-
-      console.log("UPDATE RESULT:", recipe);
 
       res.json({
         success: true,
         data: recipe,
       });
     } catch (error) {
-      console.log("UPDATE ERROR:", error);
       next(error);
     }
   };
@@ -37,7 +29,7 @@ export class UpdateRecipeController {
       const recipeId = parseInt(req.params.id);
       const userId = (req as any).user.id;
 
-      await this.recipeService.deleteRecipe(recipeId, userId);
+      await this.updateRecipeService.deleteRecipe(recipeId, userId);
 
       res.json({
         success: true,

@@ -46,7 +46,7 @@ export const NotificationList: React.FC = () => {
     if (!isLoading) return null;
     return (
       <View className="py-4 items-center">
-        <ActivityIndicator size="small" color="#3B82F6" />
+        <ActivityIndicator size="small" color="#29a38f" />
       </View>
     );
   };
@@ -70,7 +70,7 @@ export const NotificationList: React.FC = () => {
         <RefreshControl
           refreshing={isLoading && page === 1}
           onRefresh={handleRefresh}
-          tintColor="#3B82F6"
+          tintColor="#29a38f"
         />
       }
       contentContainerStyle={{ flexGrow: 1 }}

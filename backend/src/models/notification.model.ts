@@ -74,6 +74,7 @@ Notification.init(
     tableName: "notifications",
     timestamps: true,
     updatedAt: false,
+    paranoid: true,
     underscored: true,
   },
 );

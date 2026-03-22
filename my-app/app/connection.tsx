@@ -1,8 +1,8 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState, useEffect } from "react";
+import { LoadingSpinner } from "@/src/shared/components";
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   StatusBar,
@@ -33,7 +33,7 @@ export default function ConnectionScreen() {
         const endpoint = activeTab === "followers" ? `/users/${userId}/followers` : `/users/${userId}/following`;
         const res = await apiClient.get(endpoint);
         const fetchedUsers = res.data?.data || res.data || [];
-        
+
         setUsers(fetchedUsers.map((u: any) => ({
           ...u,
           is_following: !!u.is_following
@@ -176,9 +176,7 @@ export default function ConnectionScreen() {
       </View>
 
       {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#29a38f" />
-        </View>
+        <LoadingSpinner text="" />
       ) : (
         <FlatList
           data={filteredUsers}

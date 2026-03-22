@@ -7,7 +7,6 @@ import {
   Like,
   SavedRecipe,
   User,
-  Comment,
 } from "../models/index";
 import { Tag, RecipeTag } from "../models/tag.model";
 import { findOrCreateTag } from "../helpers/tag";
@@ -143,7 +142,10 @@ export class RecipeRepository implements IRecipeRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await RecipeStep.destroy({ where: { recipe_id: id } });
+    await Promise.all([
+      RecipeStep.destroy({ where: { recipe_id: id } }),
+      Ingredient.destroy({ where: { recipe_id: id } }),
+    ]);
     await Recipe.destroy({ where: { id } });
   }
 

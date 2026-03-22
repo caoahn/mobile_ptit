@@ -1,14 +1,9 @@
 import { IRecipeRepository } from "../interfaces/repositories/recipe.repository";
-import {
-  Recipe,
-  RecipeCreationAttributes,
-  Like,
-  Comment,
-  Follow,
-} from "../models/index";
+import { ICommentRepository } from "../interfaces/repositories/comment.repository";
+import { ILikeRepository } from "../interfaces/repositories/like.repository";
+import { Recipe, RecipeCreationAttributes } from "../models/index";
 import { IRecipeService } from "../interfaces/services/recipe.service";
 import { CreateRecipeRequest } from "../dto/recipe/create-recipe.request";
-import { Op } from "sequelize";
 import {
   RecipeResponse,
   RecipeFeedItemResponse,
@@ -20,21 +15,22 @@ import {
   GetRecipeLikesResponse,
   RecipeLikeUserResponse,
 } from "../dto/recipe/likes.response";
-import { sequelize } from "../config/database";
 import { INotificationService } from "../interfaces/services/notification.service";
 
 export class RecipeService implements IRecipeService {
   constructor(
     private readonly recipeRepository: IRecipeRepository,
     private readonly notificationService: INotificationService,
+    private readonly commentRepository: ICommentRepository,
+    private readonly likeRepository: ILikeRepository,
   ) {}
 
   private async getRecipeCounts(
     recipeId: number,
   ): Promise<{ likes_count: number; comments_count: number }> {
     const [likes_count, comments_count] = await Promise.all([
-      Like.count({ where: { recipe_id: recipeId } }),
-      Comment.count({ where: { recipe_id: recipeId } }),
+      this.likeRepository.countByRecipeId(recipeId),
+      this.commentRepository.countByRecipeId(recipeId),
     ]);
     return { likes_count, comments_count };
   }
@@ -44,14 +40,12 @@ export class RecipeService implements IRecipeService {
     recipeId: number,
   ): Promise<{ is_liked: boolean; is_saved: boolean }> {
     const [like, saved] = await Promise.all([
-      Like.findOne({ where: { user_id: userId, recipe_id: recipeId } }),
-      sequelize.models.SavedRecipe.findOne({
-        where: { user_id: userId, recipe_id: recipeId },
-      }),
+      this.likeRepository.findByUserAndRecipe(userId, recipeId),
+      this.likeRepository.isSaved(userId, recipeId),
     ]);
     return {
       is_liked: !!like,
-      is_saved: !!saved,
+      is_saved: saved,
     };
   }
 
@@ -283,7 +277,7 @@ export class RecipeService implements IRecipeService {
     recipeId: number,
     requestUserId?: number,
   ): Promise<GetRecipeLikesResponse> {
-    const likes = await this.recipeRepository.getRecipeLikes(recipeId);
+    const likes = await this.likeRepository.getLikesByRecipe(recipeId);
     const rawLikes = likes.map((like) => like.toJSON() as any);
     const likerIds = rawLikes
       .map((like) => like.user?.id)
@@ -291,22 +285,17 @@ export class RecipeService implements IRecipeService {
 
     let followingIds = new Set<number>();
     if (requestUserId && likerIds.length > 0) {
-      const follows = await Follow.findAll({
-        where: {
-          follower_id: requestUserId,
-          following_id: { [Op.in]: likerIds },
-        },
-        attributes: ["following_id"],
-      });
-
-      followingIds = new Set(follows.map((follow) => follow.following_id));
+      const ids = await this.likeRepository.findFollowingIds(
+        requestUserId,
+        likerIds,
+      );
+      followingIds = new Set(ids);
     }
 
     const users: RecipeLikeUserResponse[] = rawLikes
       .filter((like) => like.user)
       .map((like) => {
         const user = like.user;
-
         return {
           id: user.id,
           username: user.username,
@@ -317,10 +306,7 @@ export class RecipeService implements IRecipeService {
         };
       });
 
-    return {
-      users,
-      total: users.length,
-    };
+    return { users, total: users.length };
   }
 
   async getRecipeComments(
@@ -328,88 +314,49 @@ export class RecipeService implements IRecipeService {
     page: number = 1,
     limit: number = 10,
   ): Promise<GetCommentsResponse> {
-    // Get total count of parent comments
-    const total = await Comment.count({
-      where: {
-        recipe_id: recipeId,
-        parent_comment_id: { [Op.is]: null },
-      } as any,
-    });
+    const { rows: comments, count: total } =
+      await this.commentRepository.findParentComments(recipeId, page, limit);
 
-    // Get paginated parent comments
-    const comments = await Comment.findAll({
-      where: {
-        recipe_id: recipeId,
-        parent_comment_id: { [Op.is]: null },
-      } as any,
-      include: [
-        {
-          model: sequelize.models.User,
-          as: "user",
-          attributes: ["id", "username", "avatar_url"],
-        },
-      ],
-      order: [["created_at", "DESC"]],
-      limit,
-      offset: (page - 1) * limit,
-    });
-
-    // Helper function to fetch replies recursively (max 3 levels: 0, 1, 2)
     const fetchReplies = async (
       parentId: number,
       currentDepth: number = 0,
     ): Promise<any[]> => {
-      const maxDepth = 2;
-      if (currentDepth >= maxDepth) {
-        return [];
-      }
-
-      const replies = await Comment.findAll({
-        where: { parent_comment_id: parentId },
-        include: [
-          {
-            model: sequelize.models.User,
-            as: "user",
-            attributes: ["id", "username", "avatar_url"],
-          },
-        ],
-        order: [["created_at", "ASC"]],
-      });
-
+      if (currentDepth >= 2) return [];
+      const replies = await this.commentRepository.findReplies(parentId);
       return Promise.all(
         replies.map(async (r: any) => {
           const nestedReplies = await fetchReplies(r.id, currentDepth + 1);
+          const raw = r.toJSON() as any;
           return {
-            id: r.id,
-            content: r.content,
+            id: raw.id,
+            content: raw.content,
             user: {
-              id: r.user.id,
-              username: r.user.username,
-              avatar_url: r.user.avatar_url,
+              id: raw.user.id,
+              username: raw.user.username,
+              avatar_url: raw.user.avatar_url,
             },
-            parent_comment_id: r.parent_comment_id,
-            created_at: r.created_at,
+            parent_comment_id: raw.parent_comment_id,
+            created_at: raw.created_at,
             replies: nestedReplies,
           };
         }),
       );
     };
 
-    // Get replies for each parent comment
     const commentsData = await Promise.all(
       comments.map(async (comment: any) => {
+        const raw = comment.toJSON() as any;
         const replies = await fetchReplies(comment.id, 0);
-
         return {
-          id: comment.id,
-          content: comment.content,
+          id: raw.id,
+          content: raw.content,
           user: {
-            id: comment.user.id,
-            username: comment.user.username,
-            avatar_url: comment.user.avatar_url,
+            id: raw.user.id,
+            username: raw.user.username,
+            avatar_url: raw.user.avatar_url,
           },
-          parent_comment_id: comment.parent_comment_id,
-          created_at: comment.created_at,
+          parent_comment_id: raw.parent_comment_id,
+          created_at: raw.created_at,
           replies,
         };
       }),
@@ -429,58 +376,46 @@ export class RecipeService implements IRecipeService {
     recipeId: number,
     data: { content: string; parent_comment_id?: number },
   ): Promise<CommentResponse> {
-    const comment = await Comment.create({
+    const comment = await this.commentRepository.create({
       user_id: userId,
       recipe_id: recipeId,
       content: data.content,
       parent_comment_id: data.parent_comment_id,
     });
 
-    // TẠO NOTIFICATION KHI COMMENT
+    // Notification cho chủ bài viết
     const recipe = await this.recipeRepository.findById(recipeId);
     if (recipe) {
-      // Notification cho chủ bài viết
       await this.notificationService.createNotification(
-        recipe.user_id, // Người nhận
+        recipe.user_id,
         "comment",
-        userId, // Người comment
+        userId,
         recipeId,
         comment.id,
       );
     }
 
-    // NẾU LÀ REPLY: Tạo notification cho người được reply
+    // Nếu là reply: notification cho người được reply
     if (data.parent_comment_id) {
-      const parentComment = await Comment.findByPk(data.parent_comment_id);
-      if (parentComment) {
-        // Chỉ tạo notification nếu người được reply khác với:
-        // - userId (người reply - tránh tự thông báo cho mình)
-        // - recipe.user_id (đã có notification rồi - tránh duplicate)
-        if (
-          parentComment.user_id !== userId &&
-          parentComment.user_id !== recipe?.user_id
-        ) {
-          await this.notificationService.createNotification(
-            parentComment.user_id, // Người nhận (owner của parent comment)
-            "comment",
-            userId, // Người reply
-            recipeId,
-            comment.id,
-          );
-        }
+      const parentComment = await this.commentRepository.findById(
+        data.parent_comment_id,
+      );
+      if (
+        parentComment &&
+        parentComment.user_id !== userId &&
+        parentComment.user_id !== recipe?.user_id
+      ) {
+        await this.notificationService.createNotification(
+          parentComment.user_id,
+          "comment",
+          userId,
+          recipeId,
+          comment.id,
+        );
       }
     }
 
-    const commentWithUser = await Comment.findByPk(comment.id, {
-      include: [
-        {
-          model: sequelize.models.User,
-          as: "user",
-          attributes: ["id", "username", "avatar_url"],
-        },
-      ],
-    });
-
+    const commentWithUser = await this.commentRepository.findById(comment.id);
     const raw = commentWithUser?.toJSON() as any;
 
     return {
