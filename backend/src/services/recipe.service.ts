@@ -67,6 +67,7 @@ export class RecipeService implements IRecipeService {
       image_url: raw.image_url,
       difficulty: raw.difficulty,
       cook_time: raw.cook_time,
+      servings: raw.servings,
       chef: raw.chef
         ? {
             id: raw.chef.id,

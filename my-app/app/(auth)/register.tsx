@@ -103,10 +103,10 @@ export default function RegisterScreen() {
               </View>
             </View>
 
-            <Text className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
+            <Text className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight text-center">
               Tạo Tài Khoản
             </Text>
-            <Text className="text-gray-500 text-base">
+            <Text className="text-gray-500 text-base text-center">
               Đăng ký để bắt đầu với DishGram
             </Text>
           </View>

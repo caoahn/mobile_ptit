@@ -36,20 +36,14 @@ interface Step {
 }
 
 const CATEGORIES = ["Món sáng", "Món trưa", "Món tối", "Tráng miệng", "Ăn vặt", "Đồ uống"];
-const DIFFICULTIES: ("Easy" | "Medium" | "Hard")[] = ["Easy", "Medium", "Hard"];
-const DIFFICULTY_LABELS = {
-  Easy: "Dễ",
-  Medium: "Trung bình",
-  Hard: "Khó",
-};
 
 export default function CreateScreen() {
   // State
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [difficulty, setDifficulty] = useState<"Easy" | "Medium" | "Hard">("Easy");
   const [cookingTime, setCookingTime] = useState("");
+  const [servings, setServings] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [ingredients, setIngredients] = useState<Ingredient[]>([
@@ -123,8 +117,8 @@ export default function CreateScreen() {
     setTitle("");
     setDescription("");
     setSelectedCategory(null);
-    setDifficulty("Easy");
     setCookingTime("");
+    setServings("");
     setImage(null);
     setUploadingImage(false);
     setIngredients([{ id: "1", name: "", amount: "", unit: "" }]);
@@ -152,7 +146,7 @@ export default function CreateScreen() {
       Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng nhập thời gian nấu hợp lệ (phút)" });
       return;
     }
-    if (ingredients.some(i => !i.name.trim() || !i.amount.trim())) {
+    if (ingredients.some(i => !i.name.trim())) {
       Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng điền đầy đủ thông tin nguyên liệu" });
       return;
     }
@@ -167,14 +161,15 @@ export default function CreateScreen() {
       const recipeData = {
         title: title.trim(),
         description: description.trim(),
-        category: selectedCategory,
-        difficulty,
+        category: selectedCategory!,
+        difficulty: "Easy" as const, 
         cook_time: Number(cookingTime),
+        servings: servings ? Number(servings) : undefined,
         image_url: image || undefined,
         ingredients: ingredients.map(i => ({
           name: i.name.trim(),
-          amount: i.amount.trim(),
-          unit: i.unit.trim(),
+          amount: i.amount.trim() || undefined,
+          unit: i.unit.trim() || undefined,
         })),
         steps: steps.map((s, index) => ({
           order: index + 1,
@@ -418,35 +413,27 @@ export default function CreateScreen() {
               </ScrollView>
             </View>
 
-            <View className="mb-5">
-              <Text className="mb-2 text-xs font-medium text-gray-700">Độ khó *</Text>
-              <View className="flex-row">
-                {DIFFICULTIES.map((diff, index) => (
-                  <TouchableOpacity
-                    key={diff}
-                    onPress={() => setDifficulty(diff)}
-                    className={`flex-1 rounded-xl border py-3 ${index > 0 ? 'ml-2' : ''} ${difficulty === diff
-                      ? "bg-primary border-primary"
-                      : "bg-white border-gray-200"
-                      }`}
-                  >
-                    <Text className={`text-center text-sm font-bold ${difficulty === diff ? "text-white" : "text-gray-600"}`}>
-                      {DIFFICULTY_LABELS[diff]}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+            <View className="flex-row gap-4">
+              <View className="flex-1">
+                <Text className="mb-1 text-xs font-medium text-gray-700">Thời gian nấu (phút) *</Text>
+                <TextInput
+                  value={cookingTime}
+                  onChangeText={setCookingTime}
+                  placeholder="60"
+                  keyboardType="number-pad"
+                  className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary"
+                />
               </View>
-            </View>
-
-            <View>
-              <Text className="mb-1 text-xs font-medium text-gray-700">Thời gian nấu (phút) *</Text>
-              <TextInput
-                value={cookingTime}
-                onChangeText={setCookingTime}
-                placeholder="60"
-                keyboardType="number-pad"
-                className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary"
-              />
+              <View className="flex-1">
+                <Text className="mb-1 text-xs font-medium text-gray-700">Khẩu phần (người)</Text>
+                <TextInput
+                  value={servings}
+                  onChangeText={setServings}
+                  placeholder="VD: 2"
+                  keyboardType="number-pad"
+                  className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary"
+                />
+              </View>
             </View>
           </View>
 

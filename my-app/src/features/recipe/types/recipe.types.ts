@@ -15,8 +15,8 @@ export interface Tag {
 export interface Ingredient {
   id: number;
   name: string;
-  amount: string;
-  unit: string;
+  amount?: string;
+  unit?: string;
 }
 
 export interface RecipeStep {
@@ -33,6 +33,7 @@ export interface Recipe {
   category: string;
   image_url?: string;
   cook_time: number;
+  servings?: number;
   chef?: Chef;
   tags: Tag[];
   likes_count: number;
@@ -91,8 +92,8 @@ export interface RecipeLikesResponse {
 // Create Recipe types (for API requests)
 export interface CreateIngredientRequest {
   name: string;
-  amount: string;
-  unit: string;
+  amount?: string;
+  unit?: string;
 }
 
 export interface CreateStepRequest {
@@ -108,6 +109,7 @@ export interface CreateRecipeRequest {
   image_url?: string;
   difficulty: "Easy" | "Medium" | "Hard";
   cook_time: number;
+  servings?: number;
   ingredients: CreateIngredientRequest[];
   steps: CreateStepRequest[];
   tags?: string[];
