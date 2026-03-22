@@ -5,6 +5,8 @@ import { UserRepository } from "../repositories/user.repository";
 import { TokenRepository } from "../repositories/token.repository";
 import { RecipeRepository } from "../repositories/recipe.repository";
 import { NotificationRepository } from "../repositories/notification.repository";
+import { CommentRepository } from "../repositories/comment.repository";
+import { LikeRepository } from "../repositories/like.repository";
 
 // Services
 import { UserService } from "../services/user.service";
@@ -39,6 +41,8 @@ container.register({
   tokenRepository: asClass(TokenRepository).scoped(),
   recipeRepository: asClass(RecipeRepository).scoped(),
   notificationRepository: asClass(NotificationRepository).scoped(),
+  commentRepository: asClass(CommentRepository).scoped(),
+  likeRepository: asClass(LikeRepository).scoped(),
 
   // Services
   userService: asClass(UserService).scoped(),

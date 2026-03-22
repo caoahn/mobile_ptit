@@ -7,7 +7,6 @@ import {
   Like,
   SavedRecipe,
   User,
-  Comment,
 } from "../models/index";
 import { Tag, RecipeTag } from "../models/tag.model";
 import { findOrCreateTag } from "../helpers/tag";

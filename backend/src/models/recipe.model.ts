@@ -106,6 +106,7 @@ Recipe.init(
     sequelize,
     tableName: "recipes",
     timestamps: true,
+    paranoid: true,
     underscored: true,
   },
 );

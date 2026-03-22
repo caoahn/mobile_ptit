@@ -53,6 +53,7 @@ Tag.init(
     tableName: "tags",
     timestamps: true,
     updatedAt: false,
+    paranoid: true,
     underscored: true,
   },
 );

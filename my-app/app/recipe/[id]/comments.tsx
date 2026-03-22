@@ -15,6 +15,8 @@ import {
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Comment, RecipeDetail } from "@/src/features/recipe/types/recipe.types";
+import { LoadingSpinner } from "@/src/shared/components";
+import { useAuthStore } from "@/src/features/auth/store/authStore";
 import {
   getRecipeComments,
   createComment,
@@ -38,6 +40,7 @@ const formatTimeAgo = (dateString: string): string => {
 export default function CommentsScreen() {
   const { id, commentId } = useLocalSearchParams<{ id: string; commentId?: string }>();
   const router = useRouter();
+  const { user: currentUser } = useAuthStore();
   const recipeId = parseInt(id);
   const targetCommentId = commentId ? parseInt(commentId) : null;
 
@@ -190,7 +193,16 @@ export default function CommentsScreen() {
         key={comment.id}
         className={containerClassName}
       >
-        <View className={`${isReply ? "h-7 w-7" : "h-8 w-8"} overflow-hidden rounded-full bg-gray-200 flex-shrink-0`}>
+        <TouchableOpacity
+          className={`${isReply ? "h-7 w-7" : "h-8 w-8"} overflow-hidden rounded-full bg-gray-200 flex-shrink-0`}
+          onPress={() => {
+            if (comment.user?.id && String(comment.user.id) === String(currentUser?.id)) {
+              router.push("/(tabs)/profile" as any);
+            } else if (comment.user?.id) {
+              router.push(`/user/${comment.user.id}` as any);
+            }
+          }}
+        >
           {comment.user?.avatar_url ? (
             <Image source={{ uri: comment.user.avatar_url }} className="h-full w-full" />
           ) : (
@@ -200,7 +212,7 @@ export default function CommentsScreen() {
               </Text>
             </View>
           )}
-        </View>
+        </TouchableOpacity>
 
         <View className="flex-1 min-w-0">
           <View className={contentClassName}>
@@ -332,7 +344,7 @@ export default function CommentsScreen() {
         </View>
       </View>
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipe, isLiked, likesCount, total, handleLike]);
 
   const renderFooter = useCallback(() => {
@@ -349,7 +361,7 @@ export default function CommentsScreen() {
         </TouchableOpacity>
       </View>
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingMore, hasMore, total, comments.length]);
 
   return (
@@ -361,9 +373,7 @@ export default function CommentsScreen() {
       <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
         {/* Content */}
         {loading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#29a38f" />
-          </View>
+          <LoadingSpinner text="" />
         ) : (
           <FlatList
             ref={flatListRef}

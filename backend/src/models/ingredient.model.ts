@@ -7,11 +7,13 @@ export interface IngredientAttributes {
   name: string;
   amount?: string;
   unit?: string;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export interface IngredientCreationAttributes extends Optional<
   IngredientAttributes,
-  "id" | "amount" | "unit"
+  "id" | "amount" | "unit" | "created_at" | "updated_at"
 > {}
 
 export class Ingredient
@@ -23,6 +25,8 @@ export class Ingredient
   public name!: string;
   public amount?: string;
   public unit?: string;
+  public readonly created_at!: Date;
+  public readonly updated_at!: Date;
 }
 
 Ingredient.init(
@@ -48,11 +52,22 @@ Ingredient.init(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
   },
   {
     sequelize,
     tableName: "ingredients",
-    timestamps: false, // No createdAt/updatedAt in design
+    timestamps: true,
+    paranoid: true,
     underscored: true,
   },
 );

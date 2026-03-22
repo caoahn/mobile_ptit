@@ -5,7 +5,7 @@ import "../global.css";
 import { useEffect } from "react";
 
 import { useAuthStore } from "@/src/features/auth/store/authStore";
-import { View, ActivityIndicator } from "react-native";
+import { LoadingSpinner } from "@/src/shared/components";
 import { authEvents, AUTH_EVENTS } from "@/src/shared/services/api/authEvents";
 import { socketClient } from "@/src/shared/services/socket";
 import { PaperProvider } from "react-native-paper";
@@ -67,21 +67,13 @@ export default function RootLayout() {
 
   // Show loading screen while checking auth
   if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#29a38f" />
-      </View>
-    );
+    return <LoadingSpinner text="" />;
   }
 
   return (
     <PaperProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="create"
-          options={{ presentation: "fullScreenModal" }}
-        />
         <Stack.Screen name="recipe/[id]" />
         <Stack.Screen name="(auth)" />
       </Stack>

@@ -8,11 +8,13 @@ export interface RecipeStepAttributes {
   title?: string;
   description?: string;
   image_url?: string;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export interface RecipeStepCreationAttributes extends Optional<
   RecipeStepAttributes,
-  "id" | "title" | "description" | "image_url"
+  "id" | "title" | "description" | "image_url" | "created_at" | "updated_at"
 > {}
 
 export class RecipeStep
@@ -25,6 +27,8 @@ export class RecipeStep
   public title?: string;
   public description?: string;
   public image_url?: string;
+  public readonly created_at!: Date;
+  public readonly updated_at!: Date;
 }
 
 RecipeStep.init(
@@ -58,7 +62,8 @@ RecipeStep.init(
   {
     sequelize,
     tableName: "recipe_steps",
-    timestamps: false,
+    timestamps: true,
+    paranoid: true,
     underscored: true,
   },
 );
