@@ -7,6 +7,7 @@ import {
   Like,
   SavedRecipe,
   User,
+  Follow,
 } from "../models/index";
 import { Tag, RecipeTag } from "../models/tag.model";
 import { findOrCreateTag } from "../helpers/tag";
@@ -203,6 +204,44 @@ export class RecipeRepository implements IRecipeRepository {
         { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
       ],
       order: [["created_at", "DESC"]],
+    });
+  }
+
+  async getFollowingFeed(
+    userId: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ rows: Recipe[]; count: number }> {
+    // Get list of users that current user is following
+    const following = await Follow.findAll({
+      where: { follower_id: userId },
+      attributes: ["following_id"],
+    });
+
+    const followingIds = following.map((f: any) => f.following_id);
+
+    // If not following anyone, return empty result
+    if (followingIds.length === 0) {
+      return { rows: [], count: 0 };
+    }
+
+    // Get recipes from followed users
+    return Recipe.findAndCountAll({
+      where: { user_id: followingIds },
+      limit,
+      offset: (page - 1) * limit,
+      include: [
+        {
+          model: User,
+          as: "chef",
+          attributes: ["id", "username", "avatar_url"],
+        },
+        { model: Ingredient, as: "ingredients" },
+        { model: RecipeStep, as: "steps" },
+        { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
+      ],
+      order: [["created_at", "DESC"]],
+      distinct: true,
     });
   }
 

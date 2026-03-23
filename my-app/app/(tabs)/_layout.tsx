@@ -62,6 +62,17 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="follow"
+        options={{
+          title: "Follow",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="people" size={26} color={color} />
+          ),
+        }}
+      />
+
+      {/* Temporarily disabled - Explore/Discover tab */}
+      {/* <Tabs.Screen
         name="discover"
         options={{
           title: "Explore",
@@ -69,7 +80,7 @@ export default function TabLayout() {
             <MaterialIcons name="explore" size={26} color={color} />
           ),
         }}
-      />
+      /> */}
 
       <Tabs.Screen
         name="profile"
@@ -88,6 +99,7 @@ export default function TabLayout() {
       <Tabs.Screen name="edit-profile" options={{ href: null }} />
       <Tabs.Screen name={"filter"} options={{ href: null }} />
       <Tabs.Screen name={"filter-results"} options={{ href: null }} />
+      <Tabs.Screen name="discover" options={{ href: null }} />
     </Tabs>
   );
 }

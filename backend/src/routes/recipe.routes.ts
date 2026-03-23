@@ -57,6 +57,38 @@ recipeRouter.get("/search", recipeController.searchRecipes);
 
 /**
  * @swagger
+ * /recipes/following:
+ *   get:
+ *     summary: Get recipes from followed users
+ *     description: Get feed of recipes posted by users that the current user is following
+ *     tags: [Recipes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of results per page
+ *     responses:
+ *       200:
+ *         description: Paginated list of recipes from followed users
+ */
+recipeRouter.get(
+  "/following",
+  authMiddleware,
+  recipeController.getFollowingFeed,
+);
+
+/**
+ * @swagger
  * /recipes/{id}:
  *   get:
  *     summary: Get recipe detail

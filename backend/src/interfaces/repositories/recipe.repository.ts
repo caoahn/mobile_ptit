@@ -27,6 +27,11 @@ export interface IRecipeRepository {
     limit?: number,
   ): Promise<{ rows: Recipe[]; count: number }>;
   findByUserId(userId: number): Promise<Recipe[]>;
+  getFollowingFeed(
+    userId: number,
+    page: number,
+    limit: number,
+  ): Promise<{ rows: Recipe[]; count: number }>;
   likeRecipe(userId: number, recipeId: number): Promise<void>;
   unlikeRecipe(userId: number, recipeId: number): Promise<void>;
   getRecipeLikes(recipeId: number): Promise<Like[]>;
