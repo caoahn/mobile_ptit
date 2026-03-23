@@ -75,6 +75,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="recipe/[id]" />
+        <Stack.Screen name="recipe/[id]/comments" />
         <Stack.Screen name="(auth)" />
       </Stack>
       <StatusBar style="auto" />

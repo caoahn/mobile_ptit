@@ -15,4 +15,6 @@ export interface ICommentRepository {
     parent_comment_id?: number;
   }): Promise<Comment>;
   countByRecipeId(recipeId: number): Promise<number>;
+  update(id: number, content: string): Promise<Comment | null>;
+  delete(id: number): Promise<void>;
 }

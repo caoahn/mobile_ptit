@@ -161,6 +161,18 @@ recipeRouter.post(
   recipeController.createComment,
 );
 
+recipeRouter.patch(
+  "/:id/comments/:commentId",
+  authMiddleware,
+  recipeController.updateComment,
+);
+
+recipeRouter.delete(
+  "/:id/comments/:commentId",
+  authMiddleware,
+  recipeController.deleteComment,
+);
+
 /**
  * @swagger
  * /recipes:

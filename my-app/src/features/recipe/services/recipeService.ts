@@ -68,6 +68,25 @@ export const createComment = async (
   return response.data;
 };
 
+export const updateComment = async (
+  recipeId: number,
+  commentId: number,
+  content: string,
+): Promise<Comment> => {
+  const response = await apiClient.patch<Comment>(
+    `/recipes/${recipeId}/comments/${commentId}`,
+    { content },
+  );
+  return response.data;
+};
+
+export const deleteComment = async (
+  recipeId: number,
+  commentId: number,
+): Promise<void> => {
+  await apiClient.delete(`/recipes/${recipeId}/comments/${commentId}`);
+};
+
 export const createRecipe = async (
   data: CreateRecipeRequest,
 ): Promise<Recipe> => {

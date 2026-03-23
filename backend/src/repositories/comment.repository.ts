@@ -67,4 +67,13 @@ export class CommentRepository implements ICommentRepository {
   async countByRecipeId(recipeId: number): Promise<number> {
     return Comment.count({ where: { recipe_id: recipeId } });
   }
+
+  async update(id: number, content: string): Promise<Comment | null> {
+    await Comment.update({ content }, { where: { id } });
+    return this.findById(id);
+  }
+
+  async delete(id: number): Promise<void> {
+    await Comment.destroy({ where: { id } });
+  }
 }
