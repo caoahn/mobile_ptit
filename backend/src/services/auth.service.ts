@@ -39,6 +39,7 @@ export class AuthService implements IAuthService {
     const newUser: UserCreationAttributes = {
       email: data.email,
       username: data.username,
+      full_name: data.full_name,
       password_hash: hashedPassword,
     };
 
