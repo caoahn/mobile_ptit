@@ -238,15 +238,15 @@ export default function CommentsScreen() {
     const isDeleting = deletingId === comment.id;
 
     const containerClassName = [
-      isReply && depth > 0 ? "ml-8 mt-2 border-l-2 border-gray-200 pl-2.5" : "mb-3",
-      "flex-row gap-2.5 rounded-2xl",
-      isHighlighted ? "border border-gray-200 bg-gray-50 px-2 py-2" : "",
+      isReply && depth > 0 ? "ml-8 mt-1.5" : "mb-4",
+      "flex-row gap-2",
+      isHighlighted ? "border border-gray-200 bg-gray-50 px-2 py-2 rounded-2xl" : "",
     ]
       .filter(Boolean)
       .join(" ");
 
     const contentClassName = [
-      "rounded-2xl px-3 py-2",
+      "rounded-2xl px-3 py-2 flex-1",
       isReply ? "bg-gray-50" : "bg-gray-100",
       isHighlighted ? "bg-gray-100" : "",
     ]
@@ -258,6 +258,22 @@ export default function CommentsScreen() {
         key={comment.id}
         className={containerClassName}
       >
+        {/* Thread connector: L-shaped curved line cho reply */}
+        {isReply && depth > 0 && (
+          <View
+            style={{
+              position: "absolute",
+              left: -18,
+              top: 0,
+              width: 14,
+              height: 18,
+              borderLeftWidth: 1.5,
+              borderBottomWidth: 1.5,
+              borderColor: "rgba(209,213,219,0.85)",
+              borderBottomLeftRadius: 8,
+            }}
+          />
+        )}
         <TouchableOpacity
           className={`${isReply ? "h-7 w-7" : "h-8 w-8"} overflow-hidden rounded-full bg-gray-200 flex-shrink-0`}
           onPress={() => {

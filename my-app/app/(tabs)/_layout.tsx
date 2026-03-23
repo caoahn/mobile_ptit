@@ -2,7 +2,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, View } from "react-native";
-import { NotificationBadge } from "@/src/features/notification/components/NotificationBadge";
 
 export default function TabLayout() {
   return (
