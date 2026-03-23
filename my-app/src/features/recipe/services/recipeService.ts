@@ -27,6 +27,21 @@ export const getFeed = async (
   return response.data;
 };
 
+export const getFollowingFeed = async (
+  page: number = 1,
+  limit: number = 10,
+): Promise<FeedResponse> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+
+  const response = await apiClient.get<FeedResponse>(
+    `/recipes/following?${params.toString()}`,
+  );
+  return response.data;
+};
+
 export const getRecipeById = async (id: number): Promise<RecipeDetail> => {
   const response = await apiClient.get<RecipeDetail>(`/recipes/${id}`);
   return response.data;

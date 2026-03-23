@@ -21,6 +21,11 @@ export interface IRecipeService {
     time?: string,
     sort?: string
   ): Promise<GetFeedResponse>;
+  getFollowingFeed(
+    userId: number,
+    page: number,
+    limit: number,
+  ): Promise<GetFeedResponse>;
   getRecipeDetail(id: number, userId?: number): Promise<RecipeResponse | null>;
   searchRecipes(
     query: string,

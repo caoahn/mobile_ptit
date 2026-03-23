@@ -237,6 +237,30 @@ export class RecipeService implements IRecipeService {
     return Promise.all(recipes.map((r) => this.toDTO(r, requestUserId)));
   }
 
+  async getFollowingFeed(
+    userId: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<GetFeedResponse> {
+    const { rows, count } = await this.recipeRepository.getFollowingFeed(
+      userId,
+      page,
+      limit,
+    );
+
+    const recipes = await Promise.all(
+      rows.map((r) => this.toFeedItemDTO(r, userId)),
+    );
+
+    return {
+      recipes,
+      total: count,
+      page,
+      limit,
+      hasMore: page * limit < count,
+    };
+  }
+
   async toggleLike(userId: number, recipeId: number): Promise<boolean> {
     try {
       await this.recipeRepository.likeRecipe(userId, recipeId);

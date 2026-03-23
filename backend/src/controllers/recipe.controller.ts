@@ -41,6 +41,27 @@ export class RecipeController {
     }
   };
 
+  getFollowingFeed = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const userId = (req as any).user.id;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const result = await this.recipeService.getFollowingFeed(
+        userId,
+        page,
+        limit,
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getRecipeDetail = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const recipeId = parseInt(req.params.id);
