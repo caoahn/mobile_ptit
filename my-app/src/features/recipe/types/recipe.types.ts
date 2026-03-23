@@ -64,6 +64,7 @@ export interface Comment {
   user: Chef;
   parent_comment_id?: number;
   created_at: string;
+  updated_at?: string;
   replies?: Comment[];
 }
 

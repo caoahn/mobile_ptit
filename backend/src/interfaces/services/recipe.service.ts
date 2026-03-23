@@ -49,4 +49,10 @@ export interface IRecipeService {
     recipeId: number,
     data: CreateCommentRequest,
   ): Promise<CommentResponse>;
+  updateComment(
+    userId: number,
+    commentId: number,
+    content: string,
+  ): Promise<CommentResponse>;
+  deleteComment(userId: number, commentId: number): Promise<void>;
 }

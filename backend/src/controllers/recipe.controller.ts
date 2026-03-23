@@ -173,4 +173,35 @@ export class RecipeController {
       next(error);
     }
   };
+
+  updateComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = (req as any).user.id;
+      const commentId = parseInt(req.params.commentId);
+      const { content } = req.body;
+      if (!content?.trim()) {
+        res.status(400).json({ message: "Nội dung không được để trống" });
+        return;
+      }
+      const comment = await this.recipeService.updateComment(
+        userId,
+        commentId,
+        content.trim(),
+      );
+      res.json(comment);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteComment = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = (req as any).user.id;
+      const commentId = parseInt(req.params.commentId);
+      await this.recipeService.deleteComment(userId, commentId);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  };
 }

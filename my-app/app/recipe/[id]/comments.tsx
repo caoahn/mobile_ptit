@@ -11,6 +11,8 @@ import {
   Platform,
   ActivityIndicator,
   Image,
+  Modal,
+  Pressable,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,6 +22,8 @@ import { useAuthStore } from "@/src/features/auth/store/authStore";
 import {
   getRecipeComments,
   createComment,
+  updateComment,
+  deleteComment,
   getRecipeById,
   toggleLike,
 } from "@/src/features/recipe/services/recipeService";
@@ -60,6 +64,13 @@ export default function CommentsScreen() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
+
+  // Edit / delete state
+  const [actionComment, setActionComment] = useState<Comment | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editText, setEditText] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -166,22 +177,76 @@ export default function CommentsScreen() {
     }
   };
 
+  const handleStartEdit = (comment: Comment) => {
+    setActionComment(null);
+    setEditingId(comment.id);
+    setEditText(comment.content);
+  };
+
+  const handleSaveEdit = async (comment: Comment) => {
+    if (!editText.trim() || editText.trim() === comment.content) {
+      setEditingId(null);
+      return;
+    }
+    try {
+      setSavingEdit(true);
+      await updateComment(recipeId, comment.id, editText.trim());
+      // Update comment in-place in state tree
+      const patchContent = (list: Comment[]): Comment[] =>
+        list.map((c) => {
+          if (c.id === comment.id) return { ...c, content: editText.trim() };
+          if (c.replies) return { ...c, replies: patchContent(c.replies) };
+          return c;
+        });
+      setComments((prev) => patchContent(prev));
+      setEditingId(null);
+    } catch (error: any) {
+      Toast.show({ type: "error", text1: "Lỗi", text2: error?.response?.data?.message || "Không thể chỉnh sửa" });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleDeleteComment = async (comment: Comment) => {
+    setActionComment(null);
+    try {
+      setDeletingId(comment.id);
+      await deleteComment(recipeId, comment.id);
+      // Remove comment and any in-tree occurrence
+      const removeById = (list: Comment[]): Comment[] =>
+        list.filter((c) => c.id !== comment.id).map((c) => ({
+          ...c,
+          replies: c.replies ? removeById(c.replies) : c.replies,
+        }));
+      setComments((prev) => removeById(prev));
+      setTotal((t) => t - 1);
+    } catch (error: any) {
+      Toast.show({ type: "error", text1: "Lỗi", text2: error?.response?.data?.message || "Không thể xóa bình luận" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
 
 
   const renderComment = (comment: Comment, isReply: boolean = false, depth: number = 0) => {
     const maxDepth = 2;
     const canReply = depth < maxDepth;
     const isHighlighted = highlightedId === comment.id;
+    const isOwn = String(comment.user?.id) === String(currentUser?.id);
+    const isEditing = editingId === comment.id;
+    const isDeleting = deletingId === comment.id;
+
     const containerClassName = [
-      isReply && depth > 0 ? "ml-8 mt-2 border-l-2 border-gray-200 pl-2.5" : "mb-3",
-      "flex-row gap-2.5 rounded-2xl",
-      isHighlighted ? "border border-gray-200 bg-gray-50 px-2 py-2" : "",
+      isReply && depth > 0 ? "ml-8 mt-1.5" : "mb-4",
+      "flex-row gap-2",
+      isHighlighted ? "border border-gray-200 bg-gray-50 px-2 py-2 rounded-2xl" : "",
     ]
       .filter(Boolean)
       .join(" ");
 
     const contentClassName = [
-      "rounded-2xl px-3 py-2",
+      "rounded-2xl px-3 py-2 flex-1",
       isReply ? "bg-gray-50" : "bg-gray-100",
       isHighlighted ? "bg-gray-100" : "",
     ]
@@ -193,6 +258,22 @@ export default function CommentsScreen() {
         key={comment.id}
         className={containerClassName}
       >
+        {/* Thread connector: L-shaped curved line cho reply */}
+        {isReply && depth > 0 && (
+          <View
+            style={{
+              position: "absolute",
+              left: -18,
+              top: 0,
+              width: 14,
+              height: 18,
+              borderLeftWidth: 1.5,
+              borderBottomWidth: 1.5,
+              borderColor: "rgba(209,213,219,0.85)",
+              borderBottomLeftRadius: 8,
+            }}
+          />
+        )}
         <TouchableOpacity
           className={`${isReply ? "h-7 w-7" : "h-8 w-8"} overflow-hidden rounded-full bg-gray-200 flex-shrink-0`}
           onPress={() => {
@@ -215,25 +296,91 @@ export default function CommentsScreen() {
         </TouchableOpacity>
 
         <View className="flex-1 min-w-0">
-          <View className={contentClassName}>
-            <Text className="text-xs font-bold text-gray-900">
-              {comment.user?.username || "Anonymous"}
-            </Text>
-            <Text className="mt-0.5 text-sm leading-relaxed text-gray-800">
-              {comment.content}
-            </Text>
-          </View>
-          <View className="mt-1 flex-row items-center gap-3 px-1">
-            <Text className="text-xs text-gray-400">{formatTimeAgo(comment.created_at)}</Text>
-            {canReply && (
-              <TouchableOpacity
-                onPress={() => setReplyingTo(comment)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Text className="text-xs font-semibold text-primary">Trả lời</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          {isEditing ? (
+            <View className={`${contentClassName} flex-row items-end gap-2`}>
+              <View className="flex-1">
+                <Text className="text-xs font-bold text-gray-900 mb-1">
+                  {comment.user?.username || "Anonymous"}
+                </Text>
+                <TextInput
+                  value={editText}
+                  onChangeText={setEditText}
+                  multiline
+                  maxLength={500}
+                  autoFocus
+                  className="text-sm leading-relaxed text-gray-800 bg-white rounded-xl px-2 py-1.5"
+                  style={{ textAlignVertical: "top" }}
+                  editable={!savingEdit}
+                />
+              </View>
+              <View className="flex-row gap-1.5 mb-0.5">
+                <TouchableOpacity
+                  onPress={() => setEditingId(null)}
+                  disabled={savingEdit}
+                  className="rounded-full p-1.5 bg-gray-200"
+                >
+                  <MaterialIcons name="close" size={16} color="#4B5563" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleSaveEdit(comment)}
+                  disabled={savingEdit || !editText.trim()}
+                  className={`rounded-full p-1.5 ${editText.trim() && !savingEdit ? "bg-primary" : "bg-gray-200"}`}
+                >
+                  {savingEdit ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <MaterialIcons name="check" size={16} color={editText.trim() ? "white" : "#9CA3AF"} />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity
+              className={contentClassName}
+              onLongPress={() => isOwn && setActionComment(comment)}
+              delayLongPress={400}
+              activeOpacity={isOwn ? 0.7 : 1}
+            >
+              <View className="flex-row items-center justify-between">
+                <Text className="text-xs font-bold text-gray-900">
+                  {comment.user?.username || "Anonymous"}
+                </Text>
+                {isOwn && !isDeleting && (
+                  <TouchableOpacity
+                    onPress={() => setActionComment(comment)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    className="ml-2"
+                  >
+                    <MaterialIcons name="more-horiz" size={18} color="#9CA3AF" />
+                  </TouchableOpacity>
+                )}
+                {isDeleting && <ActivityIndicator size="small" color="#9CA3AF" />}
+              </View>
+              <Text className="mt-0.5 text-sm leading-relaxed text-gray-800">
+                {comment.content}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {!isEditing && (
+            <View className="mt-1 flex-row items-center gap-3 px-1">
+              <Text className="text-xs text-gray-400">
+                {formatTimeAgo(comment.updated_at || comment.created_at)}
+              </Text>
+              {comment.updated_at && comment.updated_at !== comment.created_at && (
+                <Text className="text-xs text-gray-400 italic">đã chỉnh sửa</Text>
+              )}
+              {canReply && (
+                <TouchableOpacity
+                  onPress={() => setReplyingTo(comment)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text className="text-xs font-semibold text-primary">Trả lời</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
           {comment.replies && comment.replies.length > 0 &&
             comment.replies.map((reply) => renderComment(reply, true, depth + 1))}
         </View>
@@ -445,6 +592,58 @@ export default function CommentsScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Action Sheet Modal for edit / delete */}
+        <Modal
+          visible={!!actionComment}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setActionComment(null)}
+        >
+          <Pressable
+            className="flex-1 justify-end"
+            style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+            onPress={() => setActionComment(null)}
+          >
+            <Pressable onPress={() => { }} className="bg-white rounded-t-3xl overflow-hidden">
+              {/* Handle bar */}
+              <View className="items-center pt-2.5 pb-1">
+                <View className="h-1 w-8 rounded-full bg-gray-200" />
+              </View>
+
+              {/* Edit action */}
+              <TouchableOpacity
+                onPress={() => actionComment && handleStartEdit(actionComment)}
+                activeOpacity={0.7}
+                className="flex-row items-center gap-3.5 px-5 py-4 border-b border-gray-100"
+              >
+                <MaterialIcons name="edit" size={20} color="#29a38f" />
+                <Text className="text-[15px] font-medium text-gray-800">Chỉnh sửa bình luận</Text>
+              </TouchableOpacity>
+
+              {/* Delete action */}
+              <TouchableOpacity
+                onPress={() => actionComment && handleDeleteComment(actionComment)}
+                activeOpacity={0.7}
+                className="flex-row items-center gap-3.5 px-5 py-4"
+              >
+                <MaterialIcons name="delete-outline" size={20} color="#EF4444" />
+                <Text className="text-[15px] font-medium text-red-500">Xóa bình luận</Text>
+              </TouchableOpacity>
+
+              {/* Cancel */}
+              <View className="px-4 pt-2 pb-8">
+                <TouchableOpacity
+                  onPress={() => setActionComment(null)}
+                  activeOpacity={0.7}
+                  className="rounded-2xl bg-gray-100 items-center py-3.5"
+                >
+                  <Text className="text-sm font-semibold text-gray-500">Hủy</Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </SafeAreaView>
     </KeyboardAvoidingView>
   );

@@ -338,6 +338,7 @@ export class RecipeService implements IRecipeService {
             },
             parent_comment_id: raw.parent_comment_id,
             created_at: raw.created_at,
+            updated_at: raw.updated_at,
             replies: nestedReplies,
           };
         }),
@@ -358,6 +359,7 @@ export class RecipeService implements IRecipeService {
           },
           parent_comment_id: raw.parent_comment_id,
           created_at: raw.created_at,
+          updated_at: raw.updated_at,
           replies,
         };
       }),
@@ -429,7 +431,46 @@ export class RecipeService implements IRecipeService {
       },
       parent_comment_id: raw.parent_comment_id,
       created_at: raw.created_at,
+      updated_at: raw.updated_at,
       replies: [],
     };
+  }
+
+  async updateComment(
+    userId: number,
+    commentId: number,
+    content: string,
+  ): Promise<CommentResponse> {
+    const comment = await this.commentRepository.findById(commentId);
+    if (!comment) throw { statusCode: 404, message: "Comment not found" };
+    if (comment.user_id !== userId)
+      throw {
+        statusCode: 403,
+        message: "Không có quyền chỉnh sửa bình luận này",
+      };
+
+    const updated = await this.commentRepository.update(commentId, content);
+    const raw = updated?.toJSON() as any;
+    return {
+      id: raw.id,
+      content: raw.content,
+      user: {
+        id: raw.user.id,
+        username: raw.user.username,
+        avatar_url: raw.user.avatar_url,
+      },
+      parent_comment_id: raw.parent_comment_id,
+      created_at: raw.created_at,
+      updated_at: raw.updated_at,
+      replies: [],
+    };
+  }
+
+  async deleteComment(userId: number, commentId: number): Promise<void> {
+    const comment = await this.commentRepository.findById(commentId);
+    if (!comment) throw { statusCode: 404, message: "Comment not found" };
+    if (comment.user_id !== userId)
+      throw { statusCode: 403, message: "Không có quyền xóa bình luận này" };
+    await this.commentRepository.delete(commentId);
   }
 }

@@ -67,5 +67,6 @@ export interface CommentResponse {
   user: ChefResponse;
   parent_comment_id?: number;
   created_at: Date;
+  updated_at?: Date;
   replies?: CommentResponse[];
 }
