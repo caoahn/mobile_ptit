@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuthStore } from "@/src/features/auth/store/authStore";
 import { useDialogStore } from "@/src/shared/stores/useDialogStore";
-import { getUserRecipes } from "@/src/features/recipe/services/recipeService";
+import { getUserRecipes, getSavedRecipes } from "@/src/features/recipe/services/recipeService";
 import { getProfile } from "@/src/features/auth/services/userService";
 import { LoadingSpinner } from "@/src/shared/components";
 
@@ -23,6 +23,8 @@ export default function ProfileScreen() {
   const showDialog = useDialogStore((state) => state.showDialog);
 
   const [recipes, setRecipes] = useState<any[]>([]);
+  const [savedRecipes, setSavedRecipes] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"recipes" | "saved">("recipes");
   const [loading, setLoading] = useState(true);
 
   const DEFAULT_AVATAR =
@@ -59,11 +61,14 @@ export default function ProfileScreen() {
       try {
         if (!user) return;
 
-        const data = await getUserRecipes((user as any).id);
-        console.log("recipes:", data);
-        setRecipes(data || []);
+        const [myRecipes, savedRes] = await Promise.all([
+          getUserRecipes((user as any).id),
+          getSavedRecipes().catch(() => []),
+        ]);
+        setRecipes(myRecipes || []);
+        setSavedRecipes(savedRes || []);
       } catch (error) {
-        console.log("Fetch recipes error:", error);
+        console.log("Fetch recipes & saved error:", error);
       } finally {
         setLoading(false);
       }
@@ -78,12 +83,14 @@ export default function ProfileScreen() {
         if (!user) return;
         try {
           setLoading(true);
-          const [freshUser, data] = await Promise.all([
+          const [freshUser, myRecipes, savedRes] = await Promise.all([
             getProfile(),
             getUserRecipes((user as any).id),
+            getSavedRecipes().catch(() => []),
           ]);
           updateUser(freshUser);
-          setRecipes(data || []);
+          setRecipes(myRecipes || []);
+          setSavedRecipes(savedRes || []);
         } catch (error) {
           console.log("Focus refresh error:", error);
         } finally {
@@ -207,15 +214,21 @@ export default function ProfileScreen() {
         {/* Tabs */}
         <View className="mt-2">
           <View className="flex-row border-b border-[#dde4e3] px-6">
-            <TouchableOpacity className="flex-1 border-b-2 border-primary py-4">
-              <Text className="text-center text-sm font-bold">
-                My Recipes
+            <TouchableOpacity 
+              onPress={() => setActiveTab("recipes")}
+              className={`flex-1 py-4 ${activeTab === "recipes" ? "border-b-2 border-primary" : ""}`}
+            >
+              <Text className={`text-center text-sm ${activeTab === "recipes" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
+                Công thức
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-1 py-4">
-              <Text className="text-center text-sm text-[#67837f]">
-                Collections
+            <TouchableOpacity 
+              onPress={() => setActiveTab("saved")}
+              className={`flex-1 py-4 ${activeTab === "saved" ? "border-b-2 border-primary" : ""}`}
+            >
+              <Text className={`text-center text-sm ${activeTab === "saved" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
+                Bộ sưu tập
               </Text>
             </TouchableOpacity>
           </View>
@@ -225,35 +238,48 @@ export default function ProfileScreen() {
             <LoadingSpinner className="py-20 items-center justify-center" />
           ) : (
             <View className="flex-row flex-wrap bg-white">
-              {recipes.map((item) => (
-                <View
-                  key={item.id}
-                  className="relative aspect-square w-1/3 p-[1px]"
-                >
-                  <Image
-                    source={{
-                      uri: item.image_url || "https://res.cloudinary.com/dkxvnzebp/image/upload/v1773670730/main-sample.png"
-                    }}
-                    className="h-full w-full"
-                  />
-
-                  {/* Edit */}
-                  <TouchableOpacity
-                    onPress={() => router.push(`/edit-recipe/${item.id}`)}
-                    className="absolute top-1 right-1 rounded-full bg-black/50 p-1.5"
-                  >
-                    <MaterialIcons name="edit" size={14} color="white" />
-                  </TouchableOpacity>
-
-                  {/* Likes */}
-                  <View className="absolute bottom-1 right-1 flex-row items-center gap-1">
-                    <MaterialIcons name="favorite" size={12} color="white" />
-                    <Text className="text-[10px] font-bold text-white">
-                      {item.likes_count ?? 0}
-                    </Text>
-                  </View>
+              {(activeTab === "recipes" ? recipes : savedRecipes).length === 0 ? (
+                <View className="w-full items-center justify-center py-16">
+                  <MaterialIcons name={activeTab === "recipes" ? "restaurant-menu" : "bookmark-border"} size={48} color="#cbd5e1" />
+                  <Text className="mt-4 text-sm font-medium text-gray-500">
+                    {activeTab === "recipes" ? "Chưa có công thức nào" : "Bạn chưa lưu công thức nào"}
+                  </Text>
                 </View>
-              ))}
+              ) : (
+                (activeTab === "recipes" ? recipes : savedRecipes).map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    className="relative aspect-square w-1/3 p-[1px]"
+                    onPress={() => router.push(`/recipe/${item.id}`)}
+                    activeOpacity={0.9}
+                  >
+                    <Image
+                      source={{
+                        uri: item.image_url || "https://placehold.co/150x150/png"
+                      }}
+                      className="h-full w-full"
+                    />
+
+                    {/* Nút sửa chỉ hiện ở tab "Công thức của mình" */}
+                    {activeTab === "recipes" && (
+                      <TouchableOpacity
+                        onPress={() => router.push(`/edit-recipe/${item.id}`)}
+                        className="absolute top-1 right-1 rounded-full bg-black/50 p-1.5"
+                      >
+                        <MaterialIcons name="edit" size={14} color="white" />
+                      </TouchableOpacity>
+                    )}
+
+                    {/* Likes */}
+                    <View className="absolute bottom-1 right-1 flex-row items-center gap-1">
+                      <MaterialIcons name="favorite" size={12} color="white" />
+                      <Text className="text-[10px] font-bold text-white">
+                        {item.likes_count ?? 0}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              )}
             </View>
           )}
         </View>

@@ -161,7 +161,7 @@ export default function RecipeDetailScreen() {
                 <MaterialIcons
                   name={isSaved ? "bookmark" : "bookmark-border"}
                   size={28}
-                  color={isSaved ? "black" : "black"}
+                  color={isSaved ? "#F59E0B" : "white"}
                 />
               </TouchableOpacity>
             </View>

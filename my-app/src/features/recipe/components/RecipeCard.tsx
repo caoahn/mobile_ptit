@@ -101,7 +101,13 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
     try {
       setLoadingLikes(true);
       const response = await getRecipeLikes(recipe.id);
-      setLikedUsers(response.users);
+      const sortedUsers = [...response.users].sort((a, b) => {
+        if (a.is_current_user) return -1; 
+        if (b.is_current_user) return 1;  
+        return 0; 
+      });
+
+      setLikedUsers(sortedUsers);
     } catch (error) {
       console.error("Failed to load recipe likes:", error);
       Toast.show({
@@ -332,7 +338,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           <MaterialIcons
             name={isSaved ? "bookmark" : "bookmark-border"}
             size={28}
-            color={isSaved ? "black" : "black"}
+            color={isSaved ? "#F59E0B" : "black"}
           />
         </TouchableOpacity>
       </View>

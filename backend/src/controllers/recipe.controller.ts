@@ -148,6 +148,23 @@ export class RecipeController {
     }
   };
 
+  getUserSavedRecipes = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "ID người dùng không hợp lệ" });
+      }
+      const result = await this.recipeService.getSavedRecipes(userId);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getRecipeComments = async (
     req: Request,
     res: Response,

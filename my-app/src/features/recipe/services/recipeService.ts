@@ -27,6 +27,14 @@ export const getFeed = async (
   return response.data;
 };
 
+export const getSavedRecipes = async (): Promise<Recipe[]> => {
+  const response = await apiClient.get('/users/me/saved');
+  const payload = response.data?.data;
+  const savedData = Array.isArray(payload) ? payload : (payload?.recipes || response.data?.recipes || response.data || []);
+  const mappedSaved = Array.isArray(savedData) ? savedData.map((item: any) => item.recipe ? item.recipe : item) : [];
+  return mappedSaved as Recipe[];
+};
+
 export const getFollowingFeed = async (
   page: number = 1,
   limit: number = 10,
