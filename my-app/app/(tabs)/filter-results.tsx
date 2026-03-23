@@ -121,33 +121,62 @@ export default function FilterResultsScreen() {
           results.map((item) => (
           <TouchableOpacity
             key={item.id}
-            className="flex-row mb-4 bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm"
+            activeOpacity={0.85}
+            className="flex-row mb-3 min-h-[112px] bg-white rounded-2xl overflow-hidden border border-gray-100"
+            style={{ shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}
             onPress={() => router.push(`/recipe/${item.id}`)}
           >
-            <Image
-              source={{ uri: item.image_url || "https://placehold.co/150x150/png" }}
-              className="w-28 h-28"
-              resizeMode="cover"
-            />
+            {/* Thumbnail */}
+            <View className="relative w-28 bg-gray-100">
+              {item.image_url ? (
+                <Image source={{ uri: item.image_url }} className="absolute w-full h-full" resizeMode="cover" />
+              ) : (
+                <View className="absolute w-full h-full items-center justify-center">
+                  <MaterialIcons name="restaurant" size={32} color="#d1d5db" />
+                </View>
+              )}
+            </View>
+
+            {/* Info */}
             <View className="flex-1 p-3 justify-between">
               <View>
-                <Text className="text-xs font-bold text-primary uppercase tracking-wider mb-1">
-                  {item.category || "Công thức"}
-                </Text>
-                <Text className="text-base font-bold text-gray-900 leading-tight" numberOfLines={2}>
+                {item.chef && (
+                  <TouchableOpacity
+                    onPress={() => router.push(`/user/${item.chef!.id}` as any)}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <Text className="text-xs font-bold text-primary uppercase tracking-wider mb-1">
+                      {item.chef.username}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                <Text className="text-sm font-bold text-gray-900 leading-snug" numberOfLines={2}>
                   {item.title}
                 </Text>
-                <Text className="text-xs text-gray-500 mt-1">Bởi @{item.chef?.username || "Ẩn danh"}</Text>
+                {item.description ? (
+                  <Text className="text-xs text-gray-400 mt-1" numberOfLines={1}>
+                    {item.description}
+                  </Text>
+                ) : null}
               </View>
 
               <View className="flex-row items-center justify-between mt-2">
                 <View className="flex-row items-center gap-1">
-                  <MaterialIcons name="schedule" size={14} color="#6b7280" />
-                  <Text className="text-xs text-gray-500">{item.cook_time ? `${item.cook_time} phút` : "--"}</Text>
+                  <MaterialIcons name="schedule" size={13} color="#9ca3af" />
+                    <Text className="text-xs text-gray-500">
+                    {item.cook_time ? `${item.cook_time} phút` : "--"}
+                    {item.servings ? ` • ${item.servings} người` : ""}
+                    </Text>
                 </View>
-                <View className="flex-row items-center gap-1 bg-red-50 px-2 py-1 rounded-full">
-                  <MaterialIcons name="favorite" size={12} color="#ef4444" />
-                  <Text className="text-xs font-bold text-red-500">{item.likes_count || 0}</Text>
+                <View className="flex-row items-center gap-3">
+                  <View className="flex-row items-center gap-1">
+                    <MaterialIcons name="favorite" size={13} color="#ef4444" />
+                    <Text className="text-xs font-semibold text-red-400">{item.likes_count || 0}</Text>
+                  </View>
+                  <View className="flex-row items-center gap-1">
+                    <MaterialIcons name="chat-bubble-outline" size={13} color="#9ca3af" />
+                    <Text className="text-xs text-gray-400">{item.comments_count || 0}</Text>
+                  </View>
                 </View>
               </View>
             </View>
