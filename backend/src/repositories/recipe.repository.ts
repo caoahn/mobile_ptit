@@ -45,6 +45,7 @@ export class RecipeRepository implements IRecipeRepository {
           step_number: step.order,
           description: step.description,
           image_url: step.image_url,
+          duration: step.duration,
         }));
         await RecipeStep.bulkCreate(stepData, { transaction });
       }

@@ -24,6 +24,7 @@ export interface RecipeStep {
   order: number;
   description: string;
   image_url?: string;
+  duration?: number;
 }
 
 export interface Recipe {
@@ -100,6 +101,7 @@ export interface CreateStepRequest {
   order: number;
   description: string;
   image_url?: string;
+  duration?: number;
 }
 
 export interface CreateRecipeRequest {

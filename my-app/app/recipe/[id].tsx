@@ -69,6 +69,11 @@ export default function RecipeDetailScreen() {
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
   };
 
+  const formatDuration = (minutes?: number): string | null => {
+    if (!minutes || minutes <= 0) return null;
+    return `${minutes} phút`;
+  };
+
   const handleStartCooking = () => {
     if (recipe?.steps && recipe.steps.length > 0) {
       setCurrentStep(0);
@@ -284,6 +289,14 @@ export default function RecipeDetailScreen() {
                     <Text className="flex-1 text-base font-bold text-gray-900">
                       Bước {index + 1}
                     </Text>
+                    {step.duration && (
+                      <View className="flex-row items-center">
+                        <MaterialIcons name="schedule" size={16} color="#6B7280" />
+                        <Text className="ml-1 text-xs text-gray-500">
+                          {formatDuration(step.duration)}
+                        </Text>
+                      </View>
+                    )}
                   </View>
                   <Text className="ml-11 text-sm leading-relaxed text-gray-700">
                     {step.description}
@@ -447,9 +460,19 @@ export default function RecipeDetailScreen() {
                       {currentStep + 1}
                     </Text>
                   </View>
-                  <Text className="flex-1 text-2xl font-bold text-gray-900">
-                    Bước {currentStep + 1}
-                  </Text>
+                  <View className="flex-1">
+                    <Text className="text-2xl font-bold text-gray-900">
+                      Bước {currentStep + 1}
+                    </Text>
+                    {recipe.steps[currentStep].duration && (
+                      <View className="mt-1 flex-row items-center">
+                        <MaterialIcons name="schedule" size={18} color="#6B7280" />
+                        <Text className="ml-1 text-sm text-gray-500">
+                          {formatDuration(recipe.steps[currentStep].duration)}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
 
                 <Text className="text-lg leading-loose text-gray-700">

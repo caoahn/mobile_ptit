@@ -11,6 +11,7 @@ export interface CreateStepRequest {
   title: string;
   description: string;
   image_url?: string;
+  duration?: number;
 }
 
 export interface CreateRecipeRequest {

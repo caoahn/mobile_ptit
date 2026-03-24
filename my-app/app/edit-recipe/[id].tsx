@@ -35,6 +35,7 @@ interface Step {
   id: string;
   description: string;
   image_url?: string;
+  duration?: string;
 }
 
 const CATEGORIES = ["Món sáng", "Món trưa", "Món tối", "Tráng miệng", "Ăn vặt", "Đồ uống"];
@@ -62,7 +63,7 @@ export default function EditRecipeScreen() {
     { id: "1", name: "", amount: "", unit: "" },
   ]);
   const [steps, setSteps] = useState<Step[]>([
-    { id: "1", description: "", image_url: "" },
+    { id: "1", description: "", image_url: "", duration: "" },
   ]);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -108,6 +109,7 @@ export default function EditRecipeScreen() {
               id: String(step.id),
               description: step.description,
               image_url: step.image_url || "",
+              duration: step.duration ? String(step.duration) : "",
             }))
           );
         }
@@ -152,7 +154,7 @@ export default function EditRecipeScreen() {
   const handleAddStep = () => {
     setSteps([
       ...steps,
-      { id: Date.now().toString(), description: "", image_url: "" },
+      { id: Date.now().toString(), description: "", image_url: "", duration: "" },
     ]);
   };
 
@@ -211,6 +213,7 @@ export default function EditRecipeScreen() {
           order: index + 1, // API dùng order
           description: step.description,
           image_url: step.image_url ?? undefined,
+          duration: step.duration && !isNaN(Number(step.duration)) && Number(step.duration) > 0 ? Number(step.duration) : undefined,
         })),
 
         tags,
@@ -610,6 +613,18 @@ export default function EditRecipeScreen() {
                       multiline
                       className="min-h-[60px] text-sm leading-relaxed text-gray-600"
                     />
+
+                    {/* Duration Input */}
+                    <View className="mt-3 flex-row items-center">
+                      <MaterialIcons name="schedule" size={18} color="#6b7280" />
+                      <TextInput
+                        placeholder="Thời gian (phút)"
+                        value={step.duration}
+                        onChangeText={(v) => handleStepChange(step.id, "duration", v)}
+                        keyboardType="numeric"
+                        className="ml-2 flex-1 text-sm text-gray-600"
+                      />
+                    </View>
 
                     {/* 🔥 Hiển thị ảnh nếu có */}
                     {step.image_url ? (

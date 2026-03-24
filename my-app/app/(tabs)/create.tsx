@@ -33,6 +33,7 @@ interface Step {
   id: string;
   description: string;
   image_url?: string;
+  duration?: string;
 }
 
 const CATEGORIES = ["Món sáng", "Món trưa", "Món tối", "Tráng miệng", "Ăn vặt", "Đồ uống"];
@@ -56,7 +57,7 @@ export default function CreateScreen() {
     { id: "1", name: "", amount: "", unit: "" },
   ]);
   const [steps, setSteps] = useState<Step[]>([
-    { id: "1", description: "", image_url: "" },
+    { id: "1", description: "", image_url: "", duration: "" },
   ]);
   const [uploadingStepImages, setUploadingStepImages] = useState<{ [key: string]: boolean }>({});
   const [tags, setTags] = useState<string[]>([]);
@@ -90,7 +91,7 @@ export default function CreateScreen() {
   const handleAddStep = () => {
     setSteps([
       ...steps,
-      { id: Date.now().toString(), description: "", image_url: "" },
+      { id: Date.now().toString(), description: "", image_url: "", duration: "" },
     ]);
   };
 
@@ -128,7 +129,7 @@ export default function CreateScreen() {
     setImage(null);
     setUploadingImage(false);
     setIngredients([{ id: "1", name: "", amount: "", unit: "" }]);
-    setSteps([{ id: "1", description: "", image_url: "" }]);
+    setSteps([{ id: "1", description: "", image_url: "", duration: "" }]);
     setUploadingStepImages({});
     setTags([]);
     setTagInput("");
@@ -180,6 +181,7 @@ export default function CreateScreen() {
           order: index + 1,
           description: s.description.trim(),
           image_url: s.image_url || undefined,
+          duration: s.duration && !isNaN(Number(s.duration)) && Number(s.duration) > 0 ? Number(s.duration) : undefined,
         })),
         tags: tags.length > 0 ? tags : undefined,
       };
@@ -536,6 +538,18 @@ export default function CreateScreen() {
                       multiline
                       className="min-h-[60px] text-sm leading-relaxed text-gray-600"
                     />
+
+                    {/* Duration Input */}
+                    <View className="mt-3 flex-row items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                      <MaterialIcons name="schedule" size={18} color="#6b7280" />
+                      <TextInput
+                        placeholder="Thời gian (phút)"
+                        value={step.duration}
+                        onChangeText={(v) => handleStepChange(step.id, "duration", v)}
+                        keyboardType="numeric"
+                        className="ml-2 flex-1 text-sm font-medium text-gray-900"
+                      />
+                    </View>
 
                     {/* Step Image */}
                     <View className="mt-3">
