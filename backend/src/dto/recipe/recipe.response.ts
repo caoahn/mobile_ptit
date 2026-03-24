@@ -10,6 +10,7 @@ export interface RecipeStepResponse {
   order: number;
   description: string;
   image_url?: string;
+  duration?: number;
 }
 
 export interface TagResponse {

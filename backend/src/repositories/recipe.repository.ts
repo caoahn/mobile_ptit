@@ -45,6 +45,7 @@ export class RecipeRepository implements IRecipeRepository {
           step_number: step.order,
           description: step.description,
           image_url: step.image_url,
+          duration: step.duration,
         }));
         await RecipeStep.bulkCreate(stepData, { transaction });
       }
@@ -193,11 +194,11 @@ export class RecipeRepository implements IRecipeRepository {
       const step = steps[i];
       if (step.id) {
         await RecipeStep.update(
-          { step_number: step.order || step.step_number || (i + 1), title: step.title, description: step.description, image_url: step.image_url },
+          { step_number: step.order || step.step_number || (i + 1), title: step.title, description: step.description, image_url: step.image_url, duration: step.duration },
           { where: { id: step.id, recipe_id: recipeId } }
         );
       } else {
-        await RecipeStep.create({ recipe_id: recipeId, step_number: step.order || step.step_number || (i + 1), title: step.title, description: step.description, image_url: step.image_url } as any);
+        await RecipeStep.create({ recipe_id: recipeId, step_number: step.order || step.step_number || (i + 1), title: step.title, description: step.description, image_url: step.image_url, duration: step.duration } as any);
       }
     }
   }

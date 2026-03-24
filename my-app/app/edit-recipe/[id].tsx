@@ -35,6 +35,7 @@ interface Step {
   id: string;
   description: string;
   image_url?: string;
+  duration: string;
 }
 
 const CATEGORIES = ["Món sáng", "Món trưa", "Món tối", "Tráng miệng", "Ăn vặt", "Đồ uống"];
@@ -56,7 +57,7 @@ export default function EditRecipeScreen() {
     { id: "new_1", name: "", amount: "", unit: "" },
   ]);
   const [steps, setSteps] = useState<Step[]>([
-    { id: "new_1", description: "", image_url: "" },
+    { id: "new_1", description: "", image_url: "", duration: "" },
   ]);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -103,6 +104,7 @@ export default function EditRecipeScreen() {
               id: String(step.id),
               description: step.description,
               image_url: step.image_url || "",
+              duration: String(step.duration || ""),
             }))
           );
         }
@@ -121,6 +123,12 @@ export default function EditRecipeScreen() {
 
     fetchRecipe();
   }, [id]);
+
+  // Tự động tính tổng thời gian nấu
+  React.useEffect(() => {
+    const total = steps.reduce((sum, step) => sum + (Number(step.duration) || 0), 0);
+    setCookingTime(total > 0 ? String(total) : "");
+  }, [steps]);
 
   // Handlers
   const handleAddIngredient = () => {
@@ -147,7 +155,7 @@ export default function EditRecipeScreen() {
   const handleAddStep = () => {
     setSteps([
       ...steps,
-      { id: `new_${Date.now()}`, description: "", image_url: "" },
+      { id: `new_${Date.now()}`, description: "", image_url: "", duration: "" },
     ]);
   };
 
@@ -209,6 +217,7 @@ export default function EditRecipeScreen() {
           order: index + 1, // API dùng order
           description: step.description,
           image_url: step.image_url ?? undefined,
+          duration: step.duration && !isNaN(Number(step.duration)) && Number(step.duration) > 0 ? Number(step.duration) : undefined,
         })),
 
         tags,
@@ -590,6 +599,17 @@ export default function EditRecipeScreen() {
                       </View>
                     </View>
 
+                    {/* Step duration */}
+                    <View className="mb-2">
+                      <TextInput
+                        placeholder="Thời gian thực hiện bước này (phút)"
+                        value={step.duration}
+                        onChangeText={(v) => handleStepChange(step.id, "duration", v)}
+                        keyboardType="number-pad"
+                        className="rounded-lg bg-gray-50 px-3 py-2 text-sm font-medium focus:bg-white focus:ring-1 focus:ring-primary"
+                      />
+                    </View>
+
                     {/* Mô tả */}
                     <TextInput
                       placeholder="Mô tả chi tiết bước này..."
@@ -601,7 +621,19 @@ export default function EditRecipeScreen() {
                       className="min-h-[60px] text-sm leading-relaxed text-gray-600"
                     />
 
-                    {/* Hiển thị ảnh nếu có */}
+                    {/* Duration Input */}
+                    <View className="mt-3 flex-row items-center">
+                      <MaterialIcons name="schedule" size={18} color="#6b7280" />
+                      <TextInput
+                        placeholder="Thời gian (phút)"
+                        value={step.duration}
+                        onChangeText={(v) => handleStepChange(step.id, "duration", v)}
+                        keyboardType="numeric"
+                        className="ml-2 flex-1 text-sm text-gray-600"
+                      />
+                    </View>
+
+                    {/* 🔥 Hiển thị ảnh nếu có */}
                     {step.image_url ? (
                       <Image
                         source={{ uri: step.image_url }}

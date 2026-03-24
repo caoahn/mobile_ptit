@@ -89,6 +89,7 @@ export class RecipeService implements IRecipeService {
             order: s.step_number,
             description: s.description,
             image_url: s.image_url,
+            duration: s.duration,
           }))
         : [],
       tags: raw.tags

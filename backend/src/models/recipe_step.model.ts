@@ -8,13 +8,20 @@ export interface RecipeStepAttributes {
   title?: string;
   description?: string;
   image_url?: string;
+  duration?: number;
   created_at?: Date;
   updated_at?: Date;
 }
 
 export interface RecipeStepCreationAttributes extends Optional<
   RecipeStepAttributes,
-  "id" | "title" | "description" | "image_url" | "created_at" | "updated_at"
+  | "id"
+  | "title"
+  | "description"
+  | "image_url"
+  | "duration"
+  | "created_at"
+  | "updated_at"
 > {}
 
 export class RecipeStep
@@ -27,6 +34,7 @@ export class RecipeStep
   public title?: string;
   public description?: string;
   public image_url?: string;
+  public duration?: number;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
 }
@@ -57,6 +65,11 @@ RecipeStep.init(
     image_url: {
       type: DataTypes.STRING(255),
       allowNull: true,
+    },
+    duration: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "Duration in minutes",
     },
   },
   {
