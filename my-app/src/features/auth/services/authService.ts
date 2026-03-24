@@ -21,10 +21,11 @@ export const register = async ({
   username,
   email,
   password,
+  full_name,
 }: RegisterRequest): Promise<UserProfileResponse> => {
   const response = await apiClient.post<ApiResponse<UserProfileResponse>>(
     "/auth/register",
-    { username, email, password },
+    { username, email, password, full_name },
   );
   return response.data.data;
 };

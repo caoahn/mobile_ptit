@@ -67,6 +67,7 @@ export class RecipeService implements IRecipeService {
       image_url: raw.image_url,
       difficulty: raw.difficulty,
       cook_time: raw.cook_time,
+      servings: raw.servings,
       chef: raw.chef
         ? {
             id: raw.chef.id,
@@ -170,11 +171,15 @@ export class RecipeService implements IRecipeService {
     limit: number,
     category?: string,
     userId?: number,
+    time?: string,
+    sort?: string
   ): Promise<GetFeedResponse> {
     const { rows, count } = await this.recipeRepository.findAll(
       page,
       limit,
       category,
+      time,
+      sort
     );
 
     const recipes = await Promise.all(

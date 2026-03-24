@@ -23,6 +23,7 @@ export class UpdateRecipeService implements IUpdateRecipeService {
       category: data.category,
       image_url: data.image_url,
       cook_time: data.cooking_time,
+      servings: data.servings,
     });
 
     if (data.steps) {

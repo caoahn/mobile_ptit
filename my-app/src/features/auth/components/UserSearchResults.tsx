@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from "react-native";
 import { searchUsers } from "../services/userService";
 import { UserProfileResponse } from "../types/user.response";
+import { useAuthStore } from "@/src/features/auth/store/authStore";
 
 interface Props {
   query: string;
@@ -13,6 +14,8 @@ export const UserSearchResults: React.FC<Props> = ({ query }) => {
   const router = useRouter();
   const [users, setUsers] = useState<UserProfileResponse[]>([]);
   const [loading, setLoading] = useState(false);
+  const { user: currentUser } = useAuthStore();
+
   useEffect(() => {
     if (!query.trim()) {
       setUsers([]);
@@ -20,10 +23,13 @@ export const UserSearchResults: React.FC<Props> = ({ query }) => {
     }
     setLoading(true);
     searchUsers(query)
-      .then((results) => setUsers(results))
+      .then((results) => {
+        const filtered = results.filter((u) => u.id !== (currentUser as any)?.id);
+        setUsers(filtered);
+      })
       .catch(() => setUsers([]))
       .finally(() => setLoading(false));
-  }, [query]);
+  }, [query, currentUser]);
 
   if (!query.trim()) return null;
 

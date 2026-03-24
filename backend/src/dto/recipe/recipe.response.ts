@@ -1,8 +1,8 @@
 export interface IngredientResponse {
   id: number;
   name: string;
-  amount: string;
-  unit: string;
+  amount?: string;
+  unit?: string;
 }
 
 export interface RecipeStepResponse {
@@ -33,6 +33,7 @@ export interface RecipeResponse {
   image_url?: string;
   difficulty: "Easy" | "Medium" | "Hard";
   cook_time: number;
+  servings?: number;
   chef?: ChefResponse;
   ingredients: IngredientResponse[];
   steps: RecipeStepResponse[];
