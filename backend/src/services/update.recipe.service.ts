@@ -22,7 +22,7 @@ export class UpdateRecipeService implements IUpdateRecipeService {
       description: data.description,
       category: data.category,
       image_url: data.image_url,
-      cook_time: data.cooking_time,
+      cook_time: data.cook_time,
       servings: data.servings,
     });
 
@@ -32,6 +32,10 @@ export class UpdateRecipeService implements IUpdateRecipeService {
 
     if (data.steps) {
       await this.recipeRepository.replaceSteps(recipeId, data.steps);
+    }
+
+    if (data.tags) {
+      await this.recipeRepository.replaceTags(recipeId, data.tags);
     }
 
     return this.recipeRepository.findById(

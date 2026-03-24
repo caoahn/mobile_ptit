@@ -416,27 +416,15 @@ export default function CreateScreen() {
               </ScrollView>
             </View>
 
-            <View className="flex-row gap-4">
-              <View className="flex-1">
-                <Text className="mb-1 text-xs font-medium text-gray-700">Thời gian nấu (phút) *</Text>
-                <TextInput
-                  value={cookingTime}
-                  onChangeText={setCookingTime}
-                  placeholder="60"
-                  keyboardType="number-pad"
-                  className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary"
-                />
-              </View>
-              <View className="flex-1">
-                <Text className="mb-1 text-xs font-medium text-gray-700">Khẩu phần (người)</Text>
-                <TextInput
-                  value={servings}
-                  onChangeText={setServings}
-                  placeholder="VD: 2"
-                  keyboardType="number-pad"
-                  className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary"
-                />
-              </View>
+            <View>
+              <Text className="mb-1 text-xs font-medium text-gray-700">Khẩu phần (người)</Text>
+              <TextInput
+                value={servings}
+                onChangeText={setServings}
+                placeholder="VD: 2"
+                keyboardType="number-pad"
+                className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary"
+              />
             </View>
           </View>
 
@@ -498,6 +486,15 @@ export default function CreateScreen() {
                 Các bước thực hiện
               </Text>
               <Text className="text-[10px] text-gray-400">{steps.length} bước</Text>
+            </View>
+
+            {/* Tổng thời gian nấu hiển thị dạng tĩnh */}
+            <View className="mb-3 flex-row items-center justify-between rounded-xl border border-primary/20 bg-primary/10 p-4">
+              <View className="flex-row items-center gap-2">
+                <MaterialIcons name="timer" size={20} color="#29a38f" />
+                <Text className="text-sm font-bold text-primary">Tổng thời gian nấu</Text>
+              </View>
+              <Text className="text-base font-bold text-primary">{cookingTime || "0"} phút</Text>
             </View>
 
             <View>

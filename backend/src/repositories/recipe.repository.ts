@@ -203,6 +203,21 @@ export class RecipeRepository implements IRecipeRepository {
     }
   }
 
+  async replaceTags(recipeId: number, tags: string[]): Promise<void> {
+    await RecipeTag.destroy({ where: { recipe_id: recipeId } });
+
+    if (tags && tags.length > 0) {
+      const tagInstances = await Promise.all(
+        tags.map((tagName) => findOrCreateTag(tagName)),
+      );
+      const recipeTagData = tagInstances.map((tag) => ({
+        recipe_id: recipeId,
+        tag_id: tag.id,
+      }));
+      await RecipeTag.bulkCreate(recipeTagData);
+    }
+  }
+
   async search(
     query: string,
     page: number = 1,

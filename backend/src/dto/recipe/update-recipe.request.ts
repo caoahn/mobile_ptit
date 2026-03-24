@@ -17,9 +17,10 @@ export interface UpdateRecipeRequest {
   category?: string;
   image_url?: string;
   difficulty?: "Easy" | "Medium" | "Hard";
-  cooking_time?: number;
+  cook_time?: number;
   servings?: number;
   calories?: number;
   ingredients?: UpdateIngredientRequest[];
   steps?: UpdateStepRequest[];
+  tags?: string[]; 
 }
