@@ -9,3 +9,7 @@ export interface RegisterRequest {
   password: string;
   full_name: string;
 }
+
+export interface GoogleLoginRequest {
+  token: string;
+}

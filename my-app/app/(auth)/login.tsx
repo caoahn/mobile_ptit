@@ -2,7 +2,7 @@ import { Button, Input } from "@/src/shared/components";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -16,12 +16,30 @@ import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as authApi from "@/src/features/auth/services/authService";
 import { useAuthStore } from "@/src/features/auth/store/authStore";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuthStore();
+
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID, 
+    iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
+  });
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      if (id_token) {
+        handleGoogleToken(id_token);
+      }
+    }
+  }, [response]);
 
   const handleLogin = async () => {
     // Validation
@@ -53,6 +71,28 @@ export default function LoginScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleToken = async (idToken: string) => {
+    setIsLoading(true);
+    try {
+      const res = await authApi.loginWithGoogle({ token: idToken });
+      await login(res.user, res.access_token, res.refresh_token);
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      console.error("Google login error:", error);
+      Toast.show({
+        type: "error",
+        text1: "Đăng nhập thất bại",
+        text2: error.response?.data?.message || "Không thể đăng nhập bằng Google.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    promptAsync();
   };
 
   return (
@@ -134,7 +174,10 @@ export default function LoginScreen() {
             </View>
 
             <View className="flex-row justify-center gap-4">
-              <TouchableOpacity className="w-14 h-14 bg-white border border-gray-100 rounded-2xl items-center justify-center shadow-sm">
+              <TouchableOpacity 
+                className="w-14 h-14 bg-white border border-gray-100 rounded-2xl items-center justify-center shadow-sm"
+                onPress={handleGoogleLogin}
+              >
                 <Image
                   source={{
                     uri: "https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png",

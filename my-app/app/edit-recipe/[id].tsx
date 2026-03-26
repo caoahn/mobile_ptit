@@ -311,7 +311,7 @@ export default function EditRecipeScreen() {
 
         Toast.show({
           type: "success",
-          text1: "Upload success",
+          text1: "Upload thành công",
         });
       }
     } catch (error: any) {
@@ -319,7 +319,7 @@ export default function EditRecipeScreen() {
 
       Toast.show({
         type: "error",
-        text1: "Upload failed",
+        text1: "Upload thất bại",
       });
     }
   };
@@ -362,7 +362,7 @@ export default function EditRecipeScreen() {
 
         Toast.show({
           type: "success",
-          text1: "Upload step image success",
+          text1: "Upload ảnh bước thành công",
         });
       }
     } catch (error: any) {
@@ -370,7 +370,7 @@ export default function EditRecipeScreen() {
 
       Toast.show({
         type: "error",
-        text1: "Upload step image failed",
+        text1: "Upload ảnh bước thất bại",
       });
     }
   };

@@ -1,4 +1,4 @@
-import { LoginRequest, RegisterRequest } from "../types/auth.request";
+import { LoginRequest, RegisterRequest, GoogleLoginRequest } from "../types/auth.request";
 import { ApiResponse, AuthResponse } from "../types/auth.response";
 import { UserProfileResponse } from "../types/user.response";
 import apiClient from "@/src/shared/services/api/client";
@@ -13,6 +13,16 @@ export const login = async ({
       email,
       password,
     },
+  );
+  return response.data.data;
+};
+
+export const loginWithGoogle = async ({
+  token,
+}: GoogleLoginRequest): Promise<AuthResponse> => {
+  const response = await apiClient.post<ApiResponse<AuthResponse>>(
+    "/auth/google",
+    { token },
   );
   return response.data.data;
 };

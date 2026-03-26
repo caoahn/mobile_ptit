@@ -87,6 +87,30 @@ router.post("/refresh-token", authController.refreshToken);
 
 /**
  * @swagger
+ * /auth/google:
+ *   post:
+ *     summary: Login with Google idToken from Mobile/Web
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: idToken received from Google Sign-In
+ *     responses:
+ *       200:
+ *         description: Login successful
+ */
+router.post("/google", authController.loginWithGoogle);
+
+/**
+ * @swagger
  * /auth/me:
  *   get:
  *     summary: Get current authenticated user
