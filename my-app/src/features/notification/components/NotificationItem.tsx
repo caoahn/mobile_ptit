@@ -36,6 +36,12 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
       return;
     }
 
+    // Follow → đến trang profile của người theo dõi
+    if (notification.type === "follow") {
+      router.push(`/user/${notification.actor.id}` as any);
+      return;
+    }
+
     // Các loại còn lại → recipe detail
     if (notification.recipe) {
       router.push(`/recipe/${notification.recipe.id}` as any);
