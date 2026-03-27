@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Link, useFocusEffect } from "expo-router";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   FlatList,
   StatusBar,
@@ -25,6 +25,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasInitiallyLoaded = useRef(false);
 
   const loadRecipes = async (pageNum: number, refresh: boolean = false, currentLoading: boolean = false, currentHasMore: boolean = true) => {
     if (currentLoading || (!currentHasMore && !refresh)) return;
@@ -54,16 +55,17 @@ export default function HomeScreen() {
   useEffect(() => {
     loadRecipes(1, true, false, true);
     fetchUnreadCount();
+    hasInitiallyLoaded.current = true;
   }, []);
 
   // Refresh feed when tab is focused (e.g., after creating a recipe)
   useFocusEffect(
     useCallback(() => {
-      // Only refresh if we already have data (not first mount)
-      if (recipes.length > 0) {
+      // Only refresh on subsequent focuses, not the initial mount
+      if (hasInitiallyLoaded.current) {
         loadRecipes(1, true, false, true);
       }
-    }, [recipes.length])
+    }, [])
   );
 
   const handleLoadMore = () => {
