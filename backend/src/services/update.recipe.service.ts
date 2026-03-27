@@ -22,20 +22,20 @@ export class UpdateRecipeService implements IUpdateRecipeService {
       description: data.description,
       category: data.category,
       image_url: data.image_url,
-      cook_time: data.cooking_time,
+      cook_time: data.cook_time,
       servings: data.servings,
     });
 
-    if (data.steps) {
-      const steps = data.steps.map((step, index) => ({
-        recipe_id: recipeId,
-        step_number: index + 1,
-        title: step.title,
-        description: step.description,
-        image_url: step.image_url,
-      }));
+    if (data.ingredients) {
+      await this.recipeRepository.replaceIngredients(recipeId, data.ingredients);
+    }
 
-      await this.recipeRepository.replaceSteps(recipeId, steps);
+    if (data.steps) {
+      await this.recipeRepository.replaceSteps(recipeId, data.steps);
+    }
+
+    if (data.tags) {
+      await this.recipeRepository.replaceTags(recipeId, data.tags);
     }
 
     return this.recipeRepository.findById(

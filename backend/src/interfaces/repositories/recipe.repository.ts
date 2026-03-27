@@ -42,6 +42,8 @@ export interface IRecipeRepository {
   getSavedRecipes(userId: number): Promise<Recipe[]>;
   replaceSteps(
     recipeId: number,
-    steps: RecipeStepCreationAttributes[],
+    steps: any[],
   ): Promise<void>;
+  replaceIngredients(recipeId: number, ingredients: any[]): Promise<void>;
+  replaceTags(recipeId: number, tags: string[]): Promise<void>;
 }

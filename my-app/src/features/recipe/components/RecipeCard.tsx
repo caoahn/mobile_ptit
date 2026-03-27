@@ -101,7 +101,13 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
     try {
       setLoadingLikes(true);
       const response = await getRecipeLikes(recipe.id);
-      setLikedUsers(response.users);
+      const sortedUsers = [...response.users].sort((a, b) => {
+        if (a.is_current_user) return -1; 
+        if (b.is_current_user) return 1;  
+        return 0; 
+      });
+
+      setLikedUsers(sortedUsers);
     } catch (error) {
       console.error("Failed to load recipe likes:", error);
       Toast.show({
@@ -185,7 +191,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   };
 
   const formatTime = (minutes: number): string => {
-    if (minutes < 60) return `${minutes} phút`;
+    if (minutes < 60) return `${minutes}p`;
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return mins > 0 ? `${hours}h ${mins}p` : `${hours}h`;
@@ -324,15 +330,15 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           <TouchableOpacity onPress={handleOpenComments}>
             <MaterialIcons name="chat-bubble-outline" size={28} color="black" />
           </TouchableOpacity>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <MaterialIcons name="share" size={28} color="#6B7280" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <TouchableOpacity onPress={handleSave}>
           <MaterialIcons
             name={isSaved ? "bookmark" : "bookmark-border"}
             size={28}
-            color={isSaved ? "black" : "black"}
+            color={isSaved ? "#F59E0B" : "black"}
           />
         </TouchableOpacity>
       </View>
