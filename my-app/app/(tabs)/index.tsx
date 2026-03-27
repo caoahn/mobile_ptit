@@ -157,8 +157,8 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={["#000"]}
-            tintColor="#000"
+            colors={["#29a38f"]}
+            tintColor="#29a38f"
           />
         }
         showsVerticalScrollIndicator={false}
