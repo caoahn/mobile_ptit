@@ -1,7 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState, useRef } from "react";
-import { ActivityIndicator, Image, Text, TouchableOpacity, View, Modal, Animated} from "react-native";
+import { ActivityIndicator, Image, Text, TouchableOpacity, View, Modal, Animated } from "react-native";
 import { searchRecipes } from "../services/recipeService";
 import { Recipe } from "../types/recipe.types";
 
@@ -27,7 +27,7 @@ export const RecipeSearchResults: React.FC<Props> = ({ query }) => {
   useEffect(() => {
     if (showSort) {
       Animated.timing(slideAnim, {
-        toValue: 0, 
+        toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start();
@@ -36,12 +36,12 @@ export const RecipeSearchResults: React.FC<Props> = ({ query }) => {
 
   const closeSortModal = (callback?: () => void) => {
     Animated.timing(slideAnim, {
-      toValue: 300, 
+      toValue: 300,
       duration: 250,
       useNativeDriver: true,
     }).start(() => {
       setShowSort(false);
-      if (callback) callback(); 
+      if (callback) callback();
     });
   };
 
@@ -93,7 +93,7 @@ export const RecipeSearchResults: React.FC<Props> = ({ query }) => {
           ) : (
             <Text className="text-sm font-bold text-primary">{total} kết quả</Text>
           )}
-          <TouchableOpacity 
+          <TouchableOpacity
             className="flex-row items-center gap-1"
             onPress={() => setShowSort(true)}
           >
@@ -120,7 +120,7 @@ export const RecipeSearchResults: React.FC<Props> = ({ query }) => {
           activeOpacity={0.85}
           className="flex-row mb-3 min-h-[112px] bg-white rounded-2xl overflow-hidden border border-gray-100"
           style={{ shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 }}
-          onPress={() => router.push(`/recipe/${item.id}` as any)}
+          onPress={() => router.push(`/recipe/${item.id}/comments` as any)}
         >
           {/* Thumbnail */}
           <View className="relative w-28 bg-gray-100">
@@ -204,7 +204,7 @@ export const RecipeSearchResults: React.FC<Props> = ({ query }) => {
               <Text className="text-lg font-bold text-gray-900 mb-4 text-center border-b border-gray-100 pb-3">
                 Sắp xếp theo
               </Text>
-              
+
               {SORT_OPTIONS.map((opt) => (
                 <TouchableOpacity
                   key={opt.id}
