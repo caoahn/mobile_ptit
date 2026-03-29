@@ -3,11 +3,12 @@ import { User } from "../models/user.model";
 import { IUserService } from "../interfaces/services/user.service";
 import { UserProfileResponse } from "../dto/user/user.response";
 import { UpdateProfileRequest } from "../dto/user/update-profile.request";
-import { Follow } from "../models/follow.model";
-import { sequelize } from "../config/database";
-
+import { INotificationService } from "../interfaces/services/notification.service";
 export class UserService implements IUserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly notificationService: INotificationService,
+  ) {}
 
   private toDTO(user: User): UserProfileResponse {
     const raw = user.toJSON() as any;
@@ -40,26 +41,17 @@ export class UserService implements IUserService {
 
     const dto = this.toDTO(user);
 
-    dto.followers_count = await Follow.count({
-      where: { following_id: userId },
-    });
-    dto.following_count = await Follow.count({
-      where: { follower_id: userId },
-    });
-    if (sequelize.models.Recipe) {
-      dto.recipes_count = await sequelize.models.Recipe.count({
-        where: { user_id: userId },
-      });
-    }
+    [dto.followers_count, dto.following_count, dto.recipes_count] =
+      await Promise.all([
+        this.userRepository.countFollowers(userId),
+        this.userRepository.countFollowing(userId),
+        this.userRepository.countUserRecipes(userId),
+      ]);
 
-    let isFollowing = false;
-    if (currentUserId && currentUserId !== userId) {
-      const followRecord = await Follow.findOne({
-        where: { follower_id: currentUserId, following_id: userId },
-      });
-      isFollowing = !!followRecord;
-    }
-    (dto as any).is_following = isFollowing;
+    (dto as any).is_following =
+      currentUserId && currentUserId !== userId
+        ? await this.userRepository.isFollowing(currentUserId, userId)
+        : false;
 
     return dto;
   }
@@ -75,15 +67,16 @@ export class UserService implements IUserService {
 
   async followUser(followerId: number, followingId: number): Promise<void> {
     if (followerId === followingId) throw new Error("Cannot follow yourself");
-    await Follow.findOrCreate({
-      where: { follower_id: followerId, following_id: followingId },
-    });
+    await this.userRepository.followUser(followerId, followingId);
+    await this.notificationService.createNotification(
+      followingId,
+      "follow",
+      followerId,
+    );
   }
 
   async unfollowUser(followerId: number, followingId: number): Promise<void> {
-    await Follow.destroy({
-      where: { follower_id: followerId, following_id: followingId },
-    });
+    await this.userRepository.unfollowUser(followerId, followingId);
   }
 
   async getFollowers(
@@ -94,10 +87,9 @@ export class UserService implements IUserService {
     const dtos = users.map((u) => this.toDTO(u));
 
     if (currentUserId) {
-      const follows = await Follow.findAll({
-        where: { follower_id: currentUserId },
-      });
-      const followingIds = new Set(follows.map((f) => f.following_id));
+      const followingIds = new Set(
+        await this.userRepository.getFollowingIds(currentUserId),
+      );
       dtos.forEach((dto) => {
         (dto as any).is_following = followingIds.has(dto.id);
       });
@@ -113,10 +105,9 @@ export class UserService implements IUserService {
     const dtos = users.map((u) => this.toDTO(u));
 
     if (currentUserId) {
-      const follows = await Follow.findAll({
-        where: { follower_id: currentUserId },
-      });
-      const followingIds = new Set(follows.map((f) => f.following_id));
+      const followingIds = new Set(
+        await this.userRepository.getFollowingIds(currentUserId),
+      );
       dtos.forEach((dto) => {
         (dto as any).is_following = followingIds.has(dto.id);
       });

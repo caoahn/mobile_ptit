@@ -30,6 +30,8 @@ import { UpdateRecipeController } from "../controllers/update.recipe.controller"
 
 // Services (update recipe)
 import { UpdateRecipeService } from "../services/update.recipe.service";
+import { RecommendationService } from "../services/recommendation.service";
+import { RecommendationController } from "../controllers/recommendation.controller";
 
 const container = createContainer({
   injectionMode: InjectionMode.CLASSIC,
@@ -64,6 +66,8 @@ container.register({
   utilController: asClass(UtilController).scoped(),
   uploadController: asClass(UploadController).scoped(),
   notificationController: asClass(NotificationController).scoped(),
+  recommendationService: asClass(RecommendationService).scoped(),
+  recommendationController: asClass(RecommendationController).scoped(),
 });
 
 export default container;

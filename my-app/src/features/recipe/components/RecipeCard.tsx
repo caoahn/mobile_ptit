@@ -101,7 +101,13 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
     try {
       setLoadingLikes(true);
       const response = await getRecipeLikes(recipe.id);
-      setLikedUsers(response.users);
+      const sortedUsers = [...response.users].sort((a, b) => {
+        if (a.is_current_user) return -1; 
+        if (b.is_current_user) return 1;  
+        return 0; 
+      });
+
+      setLikedUsers(sortedUsers);
     } catch (error) {
       console.error("Failed to load recipe likes:", error);
       Toast.show({
@@ -185,7 +191,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   };
 
   const formatTime = (minutes: number): string => {
-    if (minutes < 60) return `${minutes} phút`;
+    if (minutes < 60) return `${minutes}p`;
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return mins > 0 ? `${hours}h ${mins}p` : `${hours}h`;
@@ -227,7 +233,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           <TouchableOpacity
             onPress={() => handleToggleFollow(item)}
             disabled={isFollowLoading}
-            className={`min-w-[96px] items-center rounded-full px-4 py-2 ${item.is_following ? "border border-gray-200 bg-white" : "bg-blue-500"}`}
+            className={`min-w-[96px] items-center rounded-full px-4 py-2 ${item.is_following ? "border border-gray-200 bg-white" : "bg-primary"}`}
           >
             {isFollowLoading ? (
               <ActivityIndicator size="small" color={item.is_following ? "#4B5563" : "white"} />
@@ -324,15 +330,15 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           <TouchableOpacity onPress={handleOpenComments}>
             <MaterialIcons name="chat-bubble-outline" size={28} color="black" />
           </TouchableOpacity>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <MaterialIcons name="share" size={28} color="#6B7280" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <TouchableOpacity onPress={handleSave}>
           <MaterialIcons
             name={isSaved ? "bookmark" : "bookmark-border"}
             size={28}
-            color={isSaved ? "black" : "black"}
+            color={isSaved ? "#F59E0B" : "black"}
           />
         </TouchableOpacity>
       </View>
@@ -353,15 +359,21 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           <Text numberOfLines={2}>{recipe.description}</Text>
         </Text>
         {recipe.tags && recipe.tags.length > 0 && (
-          <View className="mt-1 flex-row flex-wrap gap-1">
-            {recipe.tags.map((tag) => (
-              <Text
-                key={tag.id}
-                className="text-sm text-blue-600"
-              >
-                #{tag.name}
-              </Text>
+          <View className="mt-1 flex-row flex-wrap items-center gap-1 overflow-hidden">
+            {recipe.tags.slice(0, 3).map((tag) => (
+              <View key={tag.id}>
+                <Text className="text-sm text-blue-600">
+                  #{tag.name}
+                </Text>
+              </View>
             ))}
+            {recipe.tags.length > 3 && (
+              <View className="rounded-full bg-gray-100 px-2 py-0.3">
+                <Text className="text-sm font-medium text-gray-600">
+                  +{recipe.tags.length - 3}
+                </Text>
+              </View>
+            )}
           </View>
         )}
         {recipe.comments_count > 0 && (
@@ -459,8 +471,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           />
 
           <Animated.View
-            className="max-h-[78%] rounded-t-[28px] bg-white pb-6"
+            className="w-full rounded-t-[28px] bg-white pb-6 shadow-[0_-8px_30px_rgba(0,0,0,0.12)]"
             style={{
+              height: '60%',
+              backgroundColor: 'white', // Đảm bảo nền luôn là màu trắng trên mọi thiết bị
               opacity: sheetOpacity,
               transform: [{ translateY: sheetTranslateY }],
             }}
@@ -494,6 +508,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
                 renderItem={renderLikedUser}
                 ItemSeparatorComponent={() => <View className="ml-[72px] h-px bg-gray-100" />}
                 showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 20 }}
               />
             ) : (
               <View className="items-center justify-center px-6 py-12">

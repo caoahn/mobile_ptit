@@ -2,8 +2,8 @@ import { IngredientResponse, RecipeStepResponse } from "./recipe.response";
 
 export interface CreateIngredientRequest {
   name: string;
-  amount: string;
-  unit: string;
+  amount?: string;
+  unit?: string;
 }
 
 export interface CreateStepRequest {
@@ -11,6 +11,7 @@ export interface CreateStepRequest {
   title: string;
   description: string;
   image_url?: string;
+  duration?: number;
 }
 
 export interface CreateRecipeRequest {
@@ -20,6 +21,7 @@ export interface CreateRecipeRequest {
   image_url?: string;
   difficulty: "Easy" | "Medium" | "Hard";
   cook_time: number;
+  servings?: number;
   ingredients: CreateIngredientRequest[];
   steps: CreateStepRequest[];
   tags?: string[]; // Optional array of tag names

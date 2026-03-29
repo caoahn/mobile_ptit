@@ -69,6 +69,18 @@ export default function RecipeDetailScreen() {
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
   };
 
+  const formatDuration = (minutes?: number): string | null => {
+    if (!minutes || minutes <= 0) return null;
+    return `${minutes} phút`;
+  };
+
+  const formatIngredientQuantity = (amount?: string, unit?: string) => {
+    const a = amount?.trim();
+    const u = unit?.trim();
+    if (!a && !u) return "tùy khẩu vị";
+    return `${a || ""} ${u || ""}`.trim();
+  };
+
   const handleStartCooking = () => {
     if (recipe?.steps && recipe.steps.length > 0) {
       setCurrentStep(0);
@@ -154,7 +166,7 @@ export default function RecipeDetailScreen() {
                 <MaterialIcons
                   name={isSaved ? "bookmark" : "bookmark-border"}
                   size={28}
-                  color={isSaved ? "black" : "black"}
+                  color={isSaved ? "#F59E0B" : "white"}
                 />
               </TouchableOpacity>
             </View>
@@ -185,13 +197,13 @@ export default function RecipeDetailScreen() {
                 <Text className="text-xs text-gray-500">Thời gian</Text>
               </View>
 
-              {/* <View className="mr-3 flex-1 items-center rounded-2xl bg-gray-50 p-4">
-                <MaterialIcons name="local-fire-department" size={24} color="#EF4444" />
+              <View className="mr-3 flex-1 items-center rounded-2xl bg-gray-50 p-4">
+                <MaterialIcons name="people" size={24} color="#F59E0B" />
                 <Text className="mt-2 text-sm font-bold text-gray-900">
-                  {recipe.difficulty || "Dễ"}
+                  {recipe.servings ? `${recipe.servings} người` : "--"}
                 </Text>
-                <Text className="text-xs text-gray-500">Độ khó</Text>
-              </View> */}
+                <Text className="text-xs text-gray-500">Khẩu phần</Text>
+              </View>
 
               <View className="flex-1 items-center rounded-2xl bg-gray-50 p-4">
                 <MaterialIcons name="favorite" size={24} color="#EF4444" />
@@ -246,7 +258,7 @@ export default function RecipeDetailScreen() {
                       {ingredient.name}
                     </Text>
                     <Text className="text-sm font-medium text-gray-600">
-                      {ingredient.amount} {ingredient.unit}
+                      {formatIngredientQuantity(ingredient.amount, ingredient.unit)}
                     </Text>
                   </View>
                 ))}
@@ -284,6 +296,14 @@ export default function RecipeDetailScreen() {
                     <Text className="flex-1 text-base font-bold text-gray-900">
                       Bước {index + 1}
                     </Text>
+                    {step.duration && (
+                      <View className="flex-row items-center">
+                        <MaterialIcons name="schedule" size={16} color="#6B7280" />
+                        <Text className="ml-1 text-xs text-gray-500">
+                          {formatDuration(step.duration)}
+                        </Text>
+                      </View>
+                    )}
                   </View>
                   <Text className="ml-11 text-sm leading-relaxed text-gray-700">
                     {step.description}
@@ -359,7 +379,7 @@ export default function RecipeDetailScreen() {
                       {ingredient.name}
                     </Text>
                     <Text className="mt-1 text-sm text-gray-500">
-                      {ingredient.amount} {ingredient.unit}
+                      {formatIngredientQuantity(ingredient.amount, ingredient.unit)}
                     </Text>
                   </View>
                 </View>
@@ -447,9 +467,19 @@ export default function RecipeDetailScreen() {
                       {currentStep + 1}
                     </Text>
                   </View>
-                  <Text className="flex-1 text-2xl font-bold text-gray-900">
-                    Bước {currentStep + 1}
-                  </Text>
+                  <View className="flex-1">
+                    <Text className="text-2xl font-bold text-gray-900">
+                      Bước {currentStep + 1}
+                    </Text>
+                    {recipe.steps[currentStep].duration && (
+                      <View className="mt-1 flex-row items-center">
+                        <MaterialIcons name="schedule" size={18} color="#6B7280" />
+                        <Text className="ml-1 text-sm text-gray-500">
+                          {formatDuration(recipe.steps[currentStep].duration)}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
 
                 <Text className="text-lg leading-loose text-gray-700">
@@ -474,24 +504,22 @@ export default function RecipeDetailScreen() {
                 </TouchableOpacity>
               )}
 
-              <View className="flex-[2]">
-                <TouchableOpacity
-                  onPress={handleNextStep}
-                  className="flex-row items-center justify-center rounded-xl bg-primary py-4"
-                >
-                  <Text className="font-bold text-white">
-                    {currentStep < (recipe?.steps?.length || 0) - 1
-                      ? "Bước tiếp theo"
-                      : "Hoàn thành"}
-                  </Text>
-                  <MaterialIcons
-                    name={currentStep < (recipe?.steps?.length || 0) - 1 ? "arrow-forward" : "check"}
-                    size={24}
-                    color="white"
-                    style={{ marginLeft: 8 }}
-                  />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                onPress={handleNextStep}
+                className="flex-1 flex-row items-center justify-center rounded-xl border-2 border-transparent bg-primary py-4"
+              >
+                <Text className="font-bold text-white">
+                  {currentStep < (recipe?.steps?.length || 0) - 1
+                    ? "Bước tiếp theo"
+                    : "Hoàn thành"}
+                </Text>
+                <MaterialIcons
+                  name={currentStep < (recipe?.steps?.length || 0) - 1 ? "arrow-forward" : "check"}
+                  size={24}
+                  color="white"
+                  style={{ marginLeft: 8 }}
+                />
+              </TouchableOpacity>
             </View>
           </View>
         </View>

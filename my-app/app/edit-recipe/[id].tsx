@@ -35,15 +35,10 @@ interface Step {
   id: string;
   description: string;
   image_url?: string;
+  duration: string;
 }
 
 const CATEGORIES = ["Món sáng", "Món trưa", "Món tối", "Tráng miệng", "Ăn vặt", "Đồ uống"];
-const DIFFICULTIES: ("Easy" | "Medium" | "Hard")[] = ["Easy", "Medium", "Hard"];
-const DIFFICULTY_LABELS = {
-  Easy: "Dễ",
-  Medium: "Trung bình",
-  Hard: "Khó",
-};
 
 export default function EditRecipeScreen() {
   const { id } = useLocalSearchParams();
@@ -55,14 +50,14 @@ export default function EditRecipeScreen() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [difficulty, setDifficulty] = useState<"Easy" | "Medium" | "Hard">("Easy");
   const [cookingTime, setCookingTime] = useState("");
+  const [servings, setServings] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([
-    { id: "1", name: "", amount: "", unit: "" },
+    { id: "new_1", name: "", amount: "", unit: "" },
   ]);
   const [steps, setSteps] = useState<Step[]>([
-    { id: "1", description: "", image_url: "" },
+    { id: "new_1", description: "", image_url: "", duration: "" },
   ]);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -87,6 +82,7 @@ export default function EditRecipeScreen() {
         setDescription(data.description || "");
         setSelectedCategory(data.category || null);
         setCookingTime(String(data.cook_time || "")); // FIX cook_time
+        setServings(String(data.servings || ""));
         setImage(data.image_url || null);
 
         // ingredients
@@ -108,6 +104,7 @@ export default function EditRecipeScreen() {
               id: String(step.id),
               description: step.description,
               image_url: step.image_url || "",
+              duration: String(step.duration || ""),
             }))
           );
         }
@@ -127,11 +124,17 @@ export default function EditRecipeScreen() {
     fetchRecipe();
   }, [id]);
 
+  // Tự động tính tổng thời gian nấu
+  React.useEffect(() => {
+    const total = steps.reduce((sum, step) => sum + (Number(step.duration) || 0), 0);
+    setCookingTime(total > 0 ? String(total) : "");
+  }, [steps]);
+
   // Handlers
   const handleAddIngredient = () => {
     setIngredients([
       ...ingredients,
-      { id: Date.now().toString(), name: "", amount: "", unit: "" },
+      { id: `new_${Date.now()}`, name: "", amount: "", unit: "" },
     ]);
   };
 
@@ -152,7 +155,7 @@ export default function EditRecipeScreen() {
   const handleAddStep = () => {
     setSteps([
       ...steps,
-      { id: Date.now().toString(), description: "", image_url: "" },
+      { id: `new_${Date.now()}`, description: "", image_url: "", duration: "" },
     ]);
   };
 
@@ -193,24 +196,29 @@ export default function EditRecipeScreen() {
 
     try {
       setIsSubmitting(true);
+      const totalCookTime = steps.reduce((sum, step) => sum + (Number(step.duration) || 0), 0);
 
       const payload = {
         title,
         description,
         category: selectedCategory ?? undefined,
         image_url: image ?? undefined,
-        cook_time: Number(cookingTime), // FIX
+        cook_time: totalCookTime,
+        servings: servings ? Number(servings) : undefined,
 
         ingredients: ingredients.map((ing) => ({
+          id: ing.id.startsWith("new_") ? undefined : Number(ing.id),
           name: ing.name,
           amount: ing.amount,
           unit: ing.unit,
         })),
 
         steps: steps.map((step, index) => ({
+          id: step.id.startsWith("new_") ? undefined : Number(step.id),
           order: index + 1, // API dùng order
           description: step.description,
           image_url: step.image_url ?? undefined,
+          duration: step.duration && !isNaN(Number(step.duration)) && Number(step.duration) > 0 ? Number(step.duration) : undefined,
         })),
 
         tags,
@@ -303,7 +311,7 @@ export default function EditRecipeScreen() {
 
         Toast.show({
           type: "success",
-          text1: "Upload success",
+          text1: "Upload thành công",
         });
       }
     } catch (error: any) {
@@ -311,7 +319,7 @@ export default function EditRecipeScreen() {
 
       Toast.show({
         type: "error",
-        text1: "Upload failed",
+        text1: "Upload thất bại",
       });
     }
   };
@@ -354,7 +362,7 @@ export default function EditRecipeScreen() {
 
         Toast.show({
           type: "success",
-          text1: "Upload step image success",
+          text1: "Upload ảnh bước thành công",
         });
       }
     } catch (error: any) {
@@ -362,7 +370,7 @@ export default function EditRecipeScreen() {
 
       Toast.show({
         type: "error",
-        text1: "Upload step image failed",
+        text1: "Upload ảnh bước thất bại",
       });
     }
   };
@@ -475,32 +483,12 @@ export default function EditRecipeScreen() {
               </ScrollView>
             </View>
 
-            <View className="mb-5">
-              <Text className="mb-2 text-xs font-medium text-gray-700">Độ khó *</Text>
-              <View className="flex-row">
-                {DIFFICULTIES.map((diff, index) => (
-                  <TouchableOpacity
-                    key={diff}
-                    onPress={() => setDifficulty(diff)}
-                    className={`flex-1 rounded-xl border py-3 ${index > 0 ? 'ml-2' : ''} ${difficulty === diff
-                      ? "bg-primary border-primary"
-                      : "bg-white border-gray-200"
-                      }`}
-                  >
-                    <Text className={`text-center text-sm font-bold ${difficulty === diff ? "text-white" : "text-gray-600"}`}>
-                      {DIFFICULTY_LABELS[diff]}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
             <View>
-              <Text className="mb-1 text-xs font-medium text-gray-700">Thời gian nấu (phút) *</Text>
+              <Text className="mb-1 text-xs font-medium text-gray-700">Khẩu phần (người)</Text>
               <TextInput
-                value={cookingTime}
-                onChangeText={setCookingTime}
-                placeholder="60"
+                value={servings}
+                onChangeText={setServings}
+                placeholder="VD: 2"
                 keyboardType="number-pad"
                 className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary"
               />
@@ -567,6 +555,15 @@ export default function EditRecipeScreen() {
               <Text className="text-[10px] text-gray-400">{steps.length} bước</Text>
             </View>
 
+            {/* Tổng thời gian nấu hiển thị dạng tĩnh */}
+            <View className="mb-3 flex-row items-center justify-between rounded-xl border border-primary/20 bg-primary/10 p-4">
+              <View className="flex-row items-center gap-2">
+                <MaterialIcons name="timer" size={20} color="#29a38f" />
+                <Text className="text-sm font-bold text-primary">Tổng thời gian nấu</Text>
+              </View>
+              <Text className="text-base font-bold text-primary">{cookingTime || "0"} phút</Text>
+            </View>
+
             <View>
               {steps.map((step, index) => (
                 <View
@@ -584,7 +581,7 @@ export default function EditRecipeScreen() {
                       </Text>
 
                       <View className="flex-row items-center">
-                        {/* 🔥 Nút upload ảnh */}
+                        {/* Nút upload ảnh */}
                         <TouchableOpacity
                           onPress={() => handlePickStepImage(step.id)}
                           className="mr-2"
@@ -610,6 +607,18 @@ export default function EditRecipeScreen() {
                       multiline
                       className="min-h-[60px] text-sm leading-relaxed text-gray-600"
                     />
+
+                    {/* Duration Input */}
+                    <View className="mt-3 flex-row items-center">
+                      <MaterialIcons name="schedule" size={18} color="#6b7280" />
+                      <TextInput
+                        placeholder="Thời gian (phút)"
+                        value={step.duration}
+                        onChangeText={(v) => handleStepChange(step.id, "duration", v)}
+                        keyboardType="numeric"
+                        className="ml-2 flex-1 text-sm text-gray-600"
+                      />
+                    </View>
 
                     {/* 🔥 Hiển thị ảnh nếu có */}
                     {step.image_url ? (

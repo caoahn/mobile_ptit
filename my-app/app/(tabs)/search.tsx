@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router, Href } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -10,15 +10,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RecipeSearchResults } from "@/src/features/recipe/components/RecipeSearchResults";
 import { UserSearchResults } from "@/src/features/auth/components/UserSearchResults";
-
-const RECENT_SEARCHES = [
-  { id: 1, label: "Phở bò" },
-  { id: 2, label: "Bánh flan" },
-  { id: 3, label: "Gà rán" },
-  { id: 4, label: "Salad" },
-];
 
 const POPULAR_SEARCH_CATEGORIES = [
   { id: 1, label: "Món Việt" },
@@ -33,8 +27,45 @@ export default function SearchScreen() {
   const [searchMode, setSearchMode] = useState<"recipes" | "users">("recipes");
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
+  const [recentSearches, setRecentSearches] = useState<{ id: number; label: string }[]>([]);
 
-  const handleSearch = () => setSubmittedQuery(searchQuery.trim());
+  useEffect(() => {
+    const loadRecentSearches = async () => {
+      try {
+        const saved = await AsyncStorage.getItem("recent_searches");
+        if (saved) {
+          setRecentSearches(JSON.parse(saved));
+        }
+      } catch (error) {
+        console.error("Failed to load recent searches", error);
+      }
+    };
+    loadRecentSearches();
+  }, []);
+
+  const saveRecentSearch = async (query: string) => {
+    const newQuery = query.trim();
+    if (!newQuery) return;
+    
+    setRecentSearches((prev) => {
+      const filtered = prev.filter((item) => item.label.toLowerCase() !== newQuery.toLowerCase());
+      const updated = [{ id: Date.now(), label: newQuery }, ...filtered].slice(0, 6);
+      AsyncStorage.setItem("recent_searches", JSON.stringify(updated)).catch(console.error);
+      return updated;
+    });
+  };
+
+  const clearRecentSearches = async () => {
+    setRecentSearches([]);
+    await AsyncStorage.removeItem("recent_searches");
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      setSubmittedQuery(searchQuery.trim());
+      saveRecentSearch(searchQuery.trim());
+    }
+  };
 
   const placeholder =
     searchMode === "recipes"
@@ -109,23 +140,34 @@ export default function SearchScreen() {
         {/* Empty state — no query yet */}
         {submittedQuery.length === 0 ? (
           <>
-            <View className="mb-7">
-              <Text className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">
-                Tìm kiếm gần đây
-              </Text>
-              <View className="flex-row flex-wrap gap-2">
-                {RECENT_SEARCHES.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    className="flex-row items-center bg-white border border-gray-200 rounded-full px-4 py-2"
-                    onPress={() => { setSearchQuery(item.label); setSubmittedQuery(item.label); }}
-                  >
-                    <MaterialIcons name="history" size={15} color="#9ca3af" />
-                    <Text className="ml-1.5 text-sm text-gray-600 font-medium">{item.label}</Text>
+            {recentSearches.length > 0 && (
+              <View className="mb-7">
+                <View className="flex-row items-center justify-between mb-3">
+                  <Text className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                    Tìm kiếm gần đây
+                  </Text>
+                  <TouchableOpacity onPress={clearRecentSearches} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <Text className="text-xs font-medium text-gray-500">Xóa lịch sử</Text>
                   </TouchableOpacity>
-                ))}
+                </View>
+                <View className="flex-row flex-wrap gap-2 overflow-hidden max-h-[84px]">
+                  {recentSearches.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      className="flex-row items-center bg-white border border-gray-200 rounded-full px-4 py-2"
+                      onPress={() => { 
+                        setSearchQuery(item.label); 
+                        setSubmittedQuery(item.label); 
+                        saveRecentSearch(item.label); 
+                      }}
+                    >
+                      <MaterialIcons name="history" size={15} color="#9ca3af" />
+                      <Text className="ml-1.5 text-sm text-gray-600 font-medium">{item.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
+            )}
 
             <View>
               <Text className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">
@@ -141,6 +183,7 @@ export default function SearchScreen() {
                       setSearchMode("recipes");
                       setSearchQuery(item.label);
                       setSubmittedQuery(item.label);
+                      saveRecentSearch(item.label);
                     }}
                   >
                     <Text className="font-semibold text-gray-700">{item.label}</Text>
@@ -161,4 +204,3 @@ export default function SearchScreen() {
     </SafeAreaView>
   );
 }
-

@@ -39,10 +39,7 @@ export default function EditProfileScreen() {
         setFullName(user.full_name);
         setUsername(user.username);
         setBio(user.bio || "");
-        setImage(
-          user.avatar_url ||
-          "https://res.cloudinary.com/dkxvnzebp/image/upload/v1773670730/main-sample.png"
-        );
+        setImage(user.avatar_url || "");
         setEmail(user.email || "");
       } catch (error) {
         console.log("Load profile error", error);
@@ -140,14 +137,14 @@ export default function EditProfileScreen() {
       {/* Header */}
       <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
         <TouchableOpacity onPress={() => router.back()}>
-          <Text className="text-base font-medium text-gray-500">Cancel</Text>
+          <Text className="text-base font-medium text-gray-500">Hủy</Text>
         </TouchableOpacity>
         <Text className="text-lg font-bold text-gray-900">
-          Edit Profile
+          Chỉnh sửa profile
         </Text>
         <TouchableOpacity onPress={handleSave} disabled={isLoading}>
           <Text className={`text-base font-bold ${isLoading ? "text-gray-400" : "text-primary"}`}>
-            {isLoading ? "Saving..." : "Done"}
+            {isLoading ? "Đang lưu..." : "Lưu"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -160,11 +157,19 @@ export default function EditProfileScreen() {
           {/* Avatar Section */}
           <View className="items-center py-8">
             <TouchableOpacity onPress={handlePickImage} className="relative">
-              <View className="h-28 w-28 rounded-full border-4 border-white shadow-sm">
-                <Image
-                  source={{ uri: image }}
-                  className="h-full w-full rounded-full"
-                />
+              <View className="h-28 w-28 rounded-full border-4 border-white shadow-sm overflow-hidden bg-white">
+                {image ? (
+                  <Image
+                    source={{ uri: image }}
+                    className="h-full w-full"
+                  />
+                ) : (
+                  <View className="h-full w-full items-center justify-center bg-gray-200">
+                    <Text className="text-4xl font-bold text-gray-500">
+                      {username?.[0]?.toUpperCase() || "U"}
+                    </Text>
+                  </View>
+                )}
               </View>
               <View className="absolute bottom-0 right-0 rounded-full bg-primary p-2 border-2 border-white">
                 <MaterialIcons name="camera-alt" size={16} color="white" />
@@ -172,7 +177,7 @@ export default function EditProfileScreen() {
             </TouchableOpacity>
             <TouchableOpacity onPress={handlePickImage} className="mt-3">
               <Text className="text-sm font-bold text-primary">
-                Change Profile Photo
+                Đổi ảnh đại diện
               </Text>
             </TouchableOpacity>
           </View>
@@ -182,13 +187,13 @@ export default function EditProfileScreen() {
             {/* Name */}
             <View>
               <Text className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">
-                Name
+                Tên
               </Text>
               <TextInput
                 value={fullName}
                 onChangeText={setFullName}
                 className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
-                placeholder="Your Name"
+                placeholder="Nhập tên"
               />
             </View>
 
@@ -201,27 +206,27 @@ export default function EditProfileScreen() {
                 value={username}
                 onChangeText={setUsername}
                 className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
-                placeholder="Your Username"
+                placeholder="Nhập username"
               />
             </View>
 
             {/* Bio */}
             <View>
               <Text className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">
-                Bio
+                Tiểu sử
               </Text>
               <TextInput
                 value={bio}
                 onChangeText={setBio}
                 className="rounded-xl border border-gray-200 bg-white p-4 text-base font-medium text-gray-900 focus:border-primary"
-                placeholder="Your Bio"
+                placeholder="Nhập tiểu sử"
               />
             </View>
 
             {/* Private Information Section */}
             <View className="mt-4">
               <Text className="mb-4 text-lg font-bold text-gray-900">
-                Private Information
+                Thông tin riêng tư
               </Text>
 
               <View className="space-y-4">

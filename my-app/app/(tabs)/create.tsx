@@ -33,30 +33,25 @@ interface Step {
   id: string;
   description: string;
   image_url?: string;
+  duration: string;
 }
 
 const CATEGORIES = ["Món sáng", "Món trưa", "Món tối", "Tráng miệng", "Ăn vặt", "Đồ uống"];
-const DIFFICULTIES: ("Easy" | "Medium" | "Hard")[] = ["Easy", "Medium", "Hard"];
-const DIFFICULTY_LABELS = {
-  Easy: "Dễ",
-  Medium: "Trung bình",
-  Hard: "Khó",
-};
 
 export default function CreateScreen() {
   // State
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [difficulty, setDifficulty] = useState<"Easy" | "Medium" | "Hard">("Easy");
   const [cookingTime, setCookingTime] = useState("");
+  const [servings, setServings] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { id: "1", name: "", amount: "", unit: "" },
   ]);
   const [steps, setSteps] = useState<Step[]>([
-    { id: "1", description: "", image_url: "" },
+    { id: "1", description: "", image_url: "", duration: "" },
   ]);
   const [uploadingStepImages, setUploadingStepImages] = useState<{ [key: string]: boolean }>({});
   const [tags, setTags] = useState<string[]>([]);
@@ -64,6 +59,11 @@ export default function CreateScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const showDialog = useDialogStore((state) => state.showDialog);
+
+  React.useEffect(() => {
+    const total = steps.reduce((sum, step) => sum + (Number(step.duration) || 0), 0);
+    setCookingTime(total > 0 ? String(total) : "");
+  }, [steps]);
 
   // Handlers
   const handleAddIngredient = () => {
@@ -90,7 +90,7 @@ export default function CreateScreen() {
   const handleAddStep = () => {
     setSteps([
       ...steps,
-      { id: Date.now().toString(), description: "", image_url: "" },
+      { id: Date.now().toString(), description: "", image_url: "", duration: "" },
     ]);
   };
 
@@ -123,12 +123,12 @@ export default function CreateScreen() {
     setTitle("");
     setDescription("");
     setSelectedCategory(null);
-    setDifficulty("Easy");
     setCookingTime("");
+    setServings("");
     setImage(null);
     setUploadingImage(false);
     setIngredients([{ id: "1", name: "", amount: "", unit: "" }]);
-    setSteps([{ id: "1", description: "", image_url: "" }]);
+    setSteps([{ id: "1", description: "", image_url: "", duration: "" }]);
     setUploadingStepImages({});
     setTags([]);
     setTagInput("");
@@ -148,11 +148,7 @@ export default function CreateScreen() {
       Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng chọn danh mục" });
       return;
     }
-    if (!cookingTime || isNaN(Number(cookingTime)) || Number(cookingTime) <= 0) {
-      Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng nhập thời gian nấu hợp lệ (phút)" });
-      return;
-    }
-    if (ingredients.some(i => !i.name.trim() || !i.amount.trim())) {
+    if (ingredients.some(i => !i.name.trim())) {
       Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng điền đầy đủ thông tin nguyên liệu" });
       return;
     }
@@ -167,19 +163,21 @@ export default function CreateScreen() {
       const recipeData = {
         title: title.trim(),
         description: description.trim(),
-        category: selectedCategory,
-        difficulty,
+        category: selectedCategory!,
+        difficulty: "Easy" as const, 
         cook_time: Number(cookingTime),
+        servings: servings ? Number(servings) : undefined,
         image_url: image || undefined,
         ingredients: ingredients.map(i => ({
           name: i.name.trim(),
-          amount: i.amount.trim(),
-          unit: i.unit.trim(),
+          amount: i.amount.trim() || undefined,
+          unit: i.unit.trim() || undefined,
         })),
         steps: steps.map((s, index) => ({
           order: index + 1,
           description: s.description.trim(),
           image_url: s.image_url || undefined,
+          duration: s.duration && !isNaN(Number(s.duration)) && Number(s.duration) > 0 ? Number(s.duration) : undefined,
         })),
         tags: tags.length > 0 ? tags : undefined,
       };
@@ -418,32 +416,12 @@ export default function CreateScreen() {
               </ScrollView>
             </View>
 
-            <View className="mb-5">
-              <Text className="mb-2 text-xs font-medium text-gray-700">Độ khó *</Text>
-              <View className="flex-row">
-                {DIFFICULTIES.map((diff, index) => (
-                  <TouchableOpacity
-                    key={diff}
-                    onPress={() => setDifficulty(diff)}
-                    className={`flex-1 rounded-xl border py-3 ${index > 0 ? 'ml-2' : ''} ${difficulty === diff
-                      ? "bg-primary border-primary"
-                      : "bg-white border-gray-200"
-                      }`}
-                  >
-                    <Text className={`text-center text-sm font-bold ${difficulty === diff ? "text-white" : "text-gray-600"}`}>
-                      {DIFFICULTY_LABELS[diff]}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
             <View>
-              <Text className="mb-1 text-xs font-medium text-gray-700">Thời gian nấu (phút) *</Text>
+              <Text className="mb-1 text-xs font-medium text-gray-700">Khẩu phần (người)</Text>
               <TextInput
-                value={cookingTime}
-                onChangeText={setCookingTime}
-                placeholder="60"
+                value={servings}
+                onChangeText={setServings}
+                placeholder="VD: 2"
                 keyboardType="number-pad"
                 className="rounded-xl border border-gray-200 bg-white p-4 font-medium text-gray-900 focus:border-primary"
               />
@@ -510,6 +488,15 @@ export default function CreateScreen() {
               <Text className="text-[10px] text-gray-400">{steps.length} bước</Text>
             </View>
 
+            {/* Tổng thời gian nấu hiển thị dạng tĩnh */}
+            <View className="mb-3 flex-row items-center justify-between rounded-xl border border-primary/20 bg-primary/10 p-4">
+              <View className="flex-row items-center gap-2">
+                <MaterialIcons name="timer" size={20} color="#29a38f" />
+                <Text className="text-sm font-bold text-primary">Tổng thời gian nấu</Text>
+              </View>
+              <Text className="text-base font-bold text-primary">{cookingTime || "0"} phút</Text>
+            </View>
+
             <View>
               {steps.map((step, index) => (
                 <View
@@ -536,6 +523,18 @@ export default function CreateScreen() {
                       multiline
                       className="min-h-[60px] text-sm leading-relaxed text-gray-600"
                     />
+
+                    {/* Duration Input */}
+                    <View className="mt-3 flex-row items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                      <MaterialIcons name="schedule" size={18} color="#6b7280" />
+                      <TextInput
+                        placeholder="Thời gian (phút)"
+                        value={step.duration}
+                        onChangeText={(v) => handleStepChange(step.id, "duration", v)}
+                        keyboardType="numeric"
+                        className="ml-2 flex-1 text-sm font-medium text-gray-900"
+                      />
+                    </View>
 
                     {/* Step Image */}
                     <View className="mt-3">

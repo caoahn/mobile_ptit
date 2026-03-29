@@ -20,6 +20,6 @@ export const authMiddleware = (
     (req as any).user = user;
     next();
   } catch (err) {
-    return sendError(res, 403, "Forbidden");
+    return sendError(res, 401, "Unauthorized");
   }
 };

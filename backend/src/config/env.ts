@@ -25,4 +25,8 @@ export const env = {
     apiKey: process.env.CLOUDINARY_API_KEY || "",
     apiSecret: process.env.CLOUDINARY_API_SECRET || "",
   },
+  aiService: {
+    url: process.env.AI_SERVICE_URL || "http://localhost:8000",
+    apiKey: process.env.AI_API_KEY || "",
+  },
 };

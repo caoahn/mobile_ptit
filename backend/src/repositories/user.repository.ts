@@ -3,6 +3,7 @@ import {
   UserAttributes,
   UserCreationAttributes,
   Follow,
+  Recipe,
 } from "../models/index";
 import { IUserRepository } from "../interfaces/repositories/user.repository";
 
@@ -62,5 +63,32 @@ export class UserRepository implements IUserRepository {
       attributes: ["id", "username", "full_name", "avatar_url"],
       limit,
     });
+  }
+
+  async countFollowers(userId: number): Promise<number> {
+    return Follow.count({ where: { following_id: userId } });
+  }
+
+  async countFollowing(userId: number): Promise<number> {
+    return Follow.count({ where: { follower_id: userId } });
+  }
+
+  async isFollowing(followerId: number, followingId: number): Promise<boolean> {
+    const record = await Follow.findOne({
+      where: { follower_id: followerId, following_id: followingId },
+    });
+    return !!record;
+  }
+
+  async getFollowingIds(userId: number): Promise<number[]> {
+    const follows = await Follow.findAll({
+      where: { follower_id: userId },
+      attributes: ["following_id"],
+    });
+    return follows.map((f) => f.following_id);
+  }
+
+  async countUserRecipes(userId: number): Promise<number> {
+    return Recipe.count({ where: { user_id: userId } });
   }
 }

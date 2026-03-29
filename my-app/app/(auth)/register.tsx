@@ -17,6 +17,7 @@ import * as authApi from "@/src/features/auth/services/authService";
 
 export default function RegisterScreen() {
   const [formData, setFormData] = useState({
+    full_name: "",
     username: "",
     email: "",
     password: "",
@@ -30,7 +31,7 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     // Validation
-    if (!formData.username.trim() || !formData.email.trim() || !formData.password.trim()) {
+    if (!formData.full_name.trim() || !formData.username.trim() || !formData.email.trim() || !formData.password.trim()) {
       Toast.show({ type: "error", text1: "Lỗi", text2: "Vui lòng điền đầy đủ thông tin" });
       return;
     }
@@ -48,6 +49,7 @@ export default function RegisterScreen() {
     setIsLoading(true);
     try {
       await authApi.register({
+        full_name: formData.full_name.trim(),
         username: formData.username,
         email: formData.email,
         password: formData.password,
@@ -103,16 +105,26 @@ export default function RegisterScreen() {
               </View>
             </View>
 
-            <Text className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
+            <Text className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight text-center">
               Tạo Tài Khoản
             </Text>
-            <Text className="text-gray-500 text-base">
+            <Text className="text-gray-500 text-base text-center">
               Đăng ký để bắt đầu với DishGram
             </Text>
           </View>
 
           {/* Form Section */}
           <View className="w-full space-y-4">
+            <Input
+              label="Họ và tên"
+              placeholder="John Doe"
+              value={formData.full_name}
+              onChangeText={(text) => handleChange("full_name", text)}
+              autoCapitalize="words"
+              autoCorrect={false}
+              containerClassName="mb-4"
+            />
+
             <Input
               label="Tên người dùng"
               placeholder="johndoe"
@@ -124,7 +136,7 @@ export default function RegisterScreen() {
             />
 
             <Input
-              label="Địa chỉ Email"
+              label="Địa chỉ email"
               placeholder="chef@example.com"
               value={formData.email}
               onChangeText={(text) => handleChange("email", text)}

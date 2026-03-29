@@ -189,4 +189,24 @@ router.get("/:id/recipes", recipeController.getUserRecipes);
  */
 router.get("/me/saved", recipeController.getMySavedRecipes);
 
+/**
+ * @swagger
+ * /users/{id}/saved:
+ *   get:
+ *     summary: Get saved recipes of a specific user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of saved recipes
+ */
+router.get("/:id/saved", recipeController.getUserSavedRecipes);
+
 export default router;

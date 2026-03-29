@@ -18,6 +18,8 @@ export default function PublicProfileScreen() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [recipes, setRecipes] = useState<any[]>([]);
+  const [savedRecipes, setSavedRecipes] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"recipes" | "saved">("recipes");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,9 +27,13 @@ export default function PublicProfileScreen() {
       if (!id) return;
       try {
         setLoading(true);
-        const [profileRes, recipesRes] = await Promise.all([
+        const [profileRes, recipesRes, savedRes] = await Promise.all([
           apiClient.get(`/users/${id}`),
           apiClient.get(`/users/${id}/recipes`),
+          apiClient.get(`/users/${id}/saved`).catch((err) => { 
+            console.log("Fetch user saved recipes err:", err?.message); 
+            return { data: { data: [] } }; 
+          }),
         ]);
 
         const profileData = profileRes.data?.data || profileRes.data?.user || profileRes.data?.profile || profileRes.data;
@@ -37,6 +43,11 @@ export default function PublicProfileScreen() {
 
         const recipesData = recipesRes.data?.data || recipesRes.data?.recipes || recipesRes.data || [];
         setRecipes(Array.isArray(recipesData) ? recipesData : []);
+
+        const payload = savedRes.data?.data;
+        const savedData = Array.isArray(payload) ? payload : (payload?.recipes || savedRes.data?.recipes || savedRes.data || []);
+        const mappedSaved = Array.isArray(savedData) ? savedData.map((item: any) => item.recipe || item.Recipe || item) : [];
+        setSavedRecipes(mappedSaved);
       } catch (error) {
         console.error("Lỗi khi tải thông tin người dùng:", error);
       } finally {
@@ -204,13 +215,19 @@ export default function PublicProfileScreen() {
         {/* Tabs */}
         <View className="mt-2">
           <View className="flex-row border-b border-[#dde4e3] px-6 ]">
-            <TouchableOpacity className="flex-1 border-b-2 border-primary py-4">
-              <Text className="text-center text-sm font-bold tracking-tight text-[#121716]">
+            <TouchableOpacity 
+              className={`flex-1 py-4 ${activeTab === "recipes" ? "border-b-2 border-primary" : ""}`}
+              onPress={() => setActiveTab("recipes")}
+            >
+              <Text className={`text-center text-sm tracking-tight ${activeTab === "recipes" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
                 Công thức
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity className="flex-1 py-4">
-              <Text className="text-center text-sm font-medium tracking-tight text-[#67837f] ]">
+            <TouchableOpacity 
+              className={`flex-1 py-4 ${activeTab === "saved" ? "border-b-2 border-primary" : ""}`}
+              onPress={() => setActiveTab("saved")}
+            >
+              <Text className={`text-center text-sm tracking-tight ${activeTab === "saved" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
                 Bộ sưu tập
               </Text>
             </TouchableOpacity>
@@ -218,21 +235,30 @@ export default function PublicProfileScreen() {
 
           {/* Grid Content */}
           <View className="mt-1 flex-row flex-wrap bg-white">
-            {recipes.map((item: any) => (
-              <TouchableOpacity
-                key={item.id}
-                className="relative aspect-square w-1/3 p-[1px]"
-                onPress={() => router.push(`/recipe/${item.id}`)}
-              >
-                <Image source={{ uri: item.image_url || "https://placehold.co/150x150/png" }} className="w-full h-full" />
-                <View className="absolute bottom-1 right-1 z-10 flex-row items-center gap-1">
-                  <MaterialIcons name="favorite" size={12} color="white" />
-                  <Text className="text-[10px] font-bold text-white">
-                    {item.likes_count || 0}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+            {(activeTab === "recipes" ? recipes : savedRecipes).length === 0 ? (
+              <View className="w-full items-center justify-center py-16">
+                <MaterialIcons name={activeTab === "recipes" ? "restaurant-menu" : "bookmark-border"} size={48} color="#cbd5e1" />
+                <Text className="mt-4 text-sm font-medium text-gray-500">
+                  {activeTab === "recipes" ? "Chưa có công thức nào" : "Chưa lưu công thức nào"}
+                </Text>
+              </View>
+            ) : (
+              (activeTab === "recipes" ? recipes : savedRecipes).map((item: any) => (
+                <TouchableOpacity
+                  key={item.id}
+                  className="relative aspect-square w-1/3 p-[1px]"
+                  onPress={() => router.push(`/recipe/${item.id}`)}
+                >
+                  <Image source={{ uri: item.image_url || "https://placehold.co/150x150/png" }} className="w-full h-full" />
+                  <View className="absolute bottom-1 right-1 z-10 flex-row items-center gap-1">
+                    <MaterialIcons name="favorite" size={12} color="white" />
+                    <Text className="text-[10px] font-bold text-white">
+                      {item.likes_count || 0}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
           </View>
         </View>
         <View className="h-24" />

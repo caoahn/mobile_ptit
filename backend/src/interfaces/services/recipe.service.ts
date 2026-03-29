@@ -18,6 +18,8 @@ export interface IRecipeService {
     limit: number,
     category?: string,
     userId?: number,
+    time?: string,
+    sort?: string
   ): Promise<GetFeedResponse>;
   getFollowingFeed(
     userId: number,

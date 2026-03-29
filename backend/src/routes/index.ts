@@ -7,6 +7,7 @@ import uploadRoute from "./upload.route";
 import notificationRoute from "./notification.route";
 import otpRoute from "./otp.routes";
 import updateRecipeRoute from "./recipe-update.router";
+import recommendationRoute from "./recommendation.route";
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use("/upload", uploadRoute);
 router.use("/notifications", notificationRoute);
 router.use("/", utilRoute);
 router.use("/recipes", updateRecipeRoute);
+router.use("/recommendations", recommendationRoute);
 
 export default router;

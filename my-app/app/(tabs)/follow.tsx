@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Link, useFocusEffect } from "expo-router";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   FlatList,
   StatusBar,
@@ -23,6 +23,7 @@ export default function FollowScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasInitiallyLoaded = useRef(false);
 
   const loadRecipes = async (
     pageNum: number,
@@ -56,15 +57,15 @@ export default function FollowScreen() {
 
   useEffect(() => {
     loadRecipes(1, true, false, true);
+    hasInitiallyLoaded.current = true;
   }, []);
 
-  // Refresh feed when tab is focused
   useFocusEffect(
     useCallback(() => {
-      if (recipes.length > 0) {
+      if (hasInitiallyLoaded.current) {
         loadRecipes(1, true, false, true);
       }
-    }, [recipes.length])
+    }, [])
   );
 
   const handleLoadMore = () => {
