@@ -48,6 +48,9 @@ docker-compose up -d
 
 # Development (hot reload)
 docker-compose -f docker-compose.dev.yml up -d
+
+# Worker only (run API with uvicorn on host)
+docker-compose -f docker-compose.worker.yml up -d
 ```
 
 API sẵn sàng tại **http://localhost:8000** — Swagger docs tại **/docs**.
@@ -59,6 +62,11 @@ API sẵn sàng tại **http://localhost:8000** — Swagger docs tại **/docs**
 ```bash
 # Cài dependencies
 pip install -r requirements.txt
+
+# Hoặc cài riêng theo vai trò
+pip install -r requirements-api.txt
+# hoặc
+pip install -r requirements-worker.txt
 
 # Tạo file .env (xem phần Configuration)
 cp .env.example .env
@@ -191,8 +199,16 @@ python test-api.py --url https://example.com/image.jpg
 
 | File | Mục đích |
 |------|----------|
-| `docker-compose.yml` | **Production** — 2 worker replicas, Redis persistent, healthcheck, auto restart |
-| `docker-compose.dev.yml` | **Development** — hot reload, DEBUG log, mount source code, HuggingFace cache volume |
+| `docker-compose.yml` | **Production** — API + Worker + Redis, persistent volume, healthcheck, auto restart |
+| `docker-compose.dev.yml` | **Development (Worker-only)** — Redis + Worker trong Docker, API chạy trên host |
+| `docker-compose.worker.yml` | **Worker-only explicit** — dùng khi chỉ muốn chạy queue stack bằng Docker |
+
+### Requirements split
+
+- `requirements-common.txt`: thư viện dùng chung giữa API và Worker
+- `requirements-api.txt`: API server (`fastapi`, `uvicorn`, upload/db deps)
+- `requirements-worker.txt`: Worker-only (không kéo web-server deps)
+- `requirements.txt`: alias mặc định trỏ tới `requirements-api.txt` để tương thích lệnh cũ
 
 Chi tiết xem [DOCKER.md](DOCKER.md).
 - Verify Redis is accessible from your network

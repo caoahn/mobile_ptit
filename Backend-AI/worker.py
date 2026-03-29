@@ -12,9 +12,10 @@ import socket
 import time
 from pathlib import Path
 from redis import Redis
-from rq.worker import Worker
+from rq.worker import Worker, SimpleWorker
 from rq.queue import Queue
 from rq.worker_registration import clean_worker_registry
+from rq.timeouts import TimerDeathPenalty
 from core.config import Config
 from core.log import logger
 
@@ -75,12 +76,22 @@ def main():
         pid = os.getpid()
         worker_name = f"yolo-worker-{hostname}-{pid}-{int(time.time())}"
 
+        # Windows has no os.fork() and no SIGALRM, so use Windows-safe worker/timeouts.
+        worker_cls = SimpleWorker if os.name == "nt" else Worker
+        if worker_cls is SimpleWorker:
+            logger.warning("Windows detected: using SimpleWorker (no fork)")
+            logger.warning("Windows detected: using TimerDeathPenalty (no SIGALRM)")
+
         # Create worker
-        worker = Worker(
+        worker = worker_cls(
             [detection_queue, embedding_queue],
             connection=redis_conn,
             name=worker_name
         )
+
+        if worker_cls is SimpleWorker:
+            # RQ 1.x may not accept death_penalty_class in constructor.
+            worker.death_penalty_class = TimerDeathPenalty
         logger.info(f"Starting RQ worker: {worker.name}")
         logger.info(f"Max workers: {config.MAX_WORKERS}")
         logger.info(f"Job timeout: {config.REDIS_JOB_TIMEOUT}s")

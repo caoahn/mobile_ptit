@@ -1,9 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from rq.queue import Queue
 from redis.exceptions import ConnectionError as RedisConnectionError
-from typing import List
-import torch
-import numpy as np
 
 from core.config import Config
 from core.log import logger
@@ -12,68 +9,14 @@ from core.schemas import (
     JobSubmitResponse,
     EmbeddingRequest
 )
-from services.VLM_service import get_embedding_model
 from services.redis_service import get_embedding_queue
-from services.image_service import download_image_from_url, cleanup_temp_file, InvalidImageException
+from services.tasks import process_image_embedding
 
 # Load configuration
 config = Config()
 
 # Create router
 router = APIRouter(prefix="/embedding", tags=["embedding"])
-
-# ==================== WORKER FUNCTION ====================
-
-def process_image_embedding(image_url: str, text_list: List[str] = None) -> List[float]:
-    """
-    Worker function to process image embedding (runs in RQ worker).
-
-    Args:
-        image_url: URL of the image to process
-        text_list: Optional list of text descriptions for the image
-
-    Returns:
-        List[float]: normalized embedding vector (length 512)
-    """
-    temp_file_path = None
-
-    try:
-        logger.info(f"[Worker] Starting embedding for: {image_url}")
-
-        # 1. Download image
-        temp_file_path = download_image_from_url(image_url)
-
-        # 2. Load embedding model (singleton)
-        embedding_model = get_embedding_model()
-
-        # 3. Extract features
-        with torch.no_grad():
-            logger.debug(f"Extracting features for image: {image_url} with text_list: {text_list}")
-            features = embedding_model.extract_features(temp_file_path, text_list)
-
-        # 5. Convert to numpy float32
-        embedding = (
-            features
-            .detach()
-            .cpu()
-            .numpy()
-            .astype(np.float32)[0]   # shape (512,)
-        )
-
-        logger.info(f"[Worker] Embedding completed for: {image_url}")
-
-        return embedding.tolist()
-
-    except InvalidImageException as e:
-        logger.error(f"[Worker] Invalid image: {e}")
-        raise
-    except Exception as e:
-        logger.exception(f"[Worker] Embedding failed for {image_url}: {e}")
-        raise
-    finally:
-        # Cleanup temp file
-        if temp_file_path:
-            cleanup_temp_file(temp_file_path)
 
 # ==================== ENDPOINTS ====================
 

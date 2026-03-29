@@ -1,6 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from rq.queue import Queue
-from typing import List
 
 from core.config import Config
 from core.log import logger
@@ -12,80 +11,19 @@ from core.schemas import (
 )
 from services.image_service import (
     save_upload_file,
-    download_image_from_url,
     cleanup_temp_file,
     InvalidImageException,
     FileUploadException
 )
 from services.yolo_service import get_detector
-from services.redis_service import get_detection_queue, get_redis_connection
+from services.redis_service import get_detection_queue
+from services.tasks import process_detection
 
 # Load configuration
 config = Config()
 
 # Create router
 router = APIRouter(prefix="/detect", tags=["Detection"])
-
-# ==================== WORKER FUNCTION ====================
-
-def process_detection(image_url: str) -> List[dict]:
-    """
-    Worker function to process detection (runs in RQ worker).
-    This function will be executed by RQ worker in background.
-
-    Args:
-        image_url (str): URL of the image to process
-    Returns:
-        List[dict]: List of detection results as dictionaries
-    """
-    logger.info(f"[Worker] Processing detection for URL: {image_url}")
-    temp_file_path = None
-    try:
-        logger.info(f"[Worker] Starting detection for: {image_url}")
-
-        # Download image
-        temp_file_path = download_image_from_url(image_url)
-
-        # Get detector instance
-        detector = get_detector()
-
-        # Run detection (using local file path)
-        detection_results = detector.detect(str(temp_file_path))
-
-        # Convert DetectionResult objects to dictionaries
-        results_dict = [
-            {
-                "class_name": result.class_name,
-                "confidence": result.confidence,
-                "bounding_box": {
-                    "x": result.bounding_box.x,
-                    "y": result.bounding_box.y,
-                    "width": result.bounding_box.width,
-                    "height": result.bounding_box.height
-                }
-            }
-            for result in detection_results
-        ]
-
-        logger.info(f"[Worker] Detection completed. Found {len(results_dict)} objects")
-        return {"success": True, "results": results_dict}
-
-    except InvalidImageException as e:
-        error_msg = f"Image error: {str(e)}"
-        logger.error(f"[Worker] {error_msg}")
-        return {"success": False, "error": error_msg}
-    except FileUploadException as e:
-        error_msg = f"Upload error: {str(e)}"
-        logger.error(f"[Worker] {error_msg}")
-        return {"success": False, "error": error_msg}
-    except Exception as e:
-        error_msg = f"Detection failed unexpectedly"
-        logger.exception(f"[Worker] {error_msg}: {e}")
-        return {"success": False, "error": error_msg}
-    finally:
-        # Cleanup temporary file
-        if temp_file_path:
-            cleanup_temp_file(temp_file_path)
 
 # ==================== ENDPOINTS ====================
 

@@ -1,14 +1,14 @@
-# Development docker-compose: run Redis + Worker in Docker.
-# API should run on host machine with uvicorn.
+# Worker-only docker-compose for local development
+# Use this when API is run directly on host machine.
 services:
   redis:
     image: redis:7-alpine
-    container_name: yolo-redis-dev
+    container_name: yolo-redis-worker
     command: redis-server --appendonly yes
     ports:
       - "6379:6379"
     volumes:
-      - redis-data-dev:/data
+      - redis-data-worker:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
@@ -24,23 +24,28 @@ services:
       dockerfile: Dockerfile
       args:
         REQUIREMENTS_FILE: requirements-worker.txt
-    container_name: yolo-worker-dev
+    container_name: yolo-worker-only
     dns:
       - 8.8.8.8
       - 8.8.4.4
     environment:
-      - REDIS_URL=redis://redis:6379/0
-      - MODEL_PATH=/app/models/yolo11n.pt
-      - DEBUG=True
-      - LOG_LEVEL=DEBUG
-      - YOLO_CONFIG_DIR=/tmp/Ultralytics
-      - TRANSFORMERS_CACHE=/cache/hf
+      REDIS_URL: redis://redis:6379/0
+      MODEL_PATH: /app/models/yolo11n.pt
+      CONFIDENCE_THRESHOLD: 0.25
+      IOU_THRESHOLD: 0.45
+      REDIS_JOB_TIMEOUT: 300
+      TEMP_DIR: /app/temp
+      LOGS_DIR: /app/logs
+      LOG_LEVEL: DEBUG
+      DEBUG: true
+      YOLO_CONFIG_DIR: /tmp/Ultralytics
+      TRANSFORMERS_CACHE: /cache/hf
     volumes:
       - .:/app
       - ./models:/app/models:ro
       - ./logs:/app/logs
       - ./temp:/app/temp
-      - hf-cache-dev:/cache/hf
+      - hf-cache-worker:/cache/hf
     depends_on:
       redis:
         condition: service_healthy
@@ -50,9 +55,9 @@ services:
       - yolo-network
 
 volumes:
-  redis-data-dev:
+  redis-data-worker:
     driver: local
-  hf-cache-dev:
+  hf-cache-worker:
     driver: local
 
 networks:
