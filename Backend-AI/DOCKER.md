@@ -1,377 +1,285 @@
-# Docker Deployment Guide
+# Mode A - Chạy Local Full (API + Worker trên máy)
 
-This document explains how to deploy the YOLO Detection API using Docker.
+Hướng dẫn chi tiết chạy trực tiếp trên máy không Docker.
 
-## 📦 Files
+## Yêu cầu
 
-- `Dockerfile` - Container image definition
-- `docker-compose.yml` - Production deployment
-- `docker-compose.dev.yml` - Development with hot reload
-- `.dockerignore` - Files to exclude from image
+- Python 3.10+ (khuyến nghị 3.11)
+- Redis server (local hoặc accessible)
+- Model file: `models/yolo11n.pt`
+- File config: `.env` hoặc set biến môi trường
 
-## 🚀 Quick Start
+## Bước 1: Chuẩn bị Python environment
 
-### Prerequisites
+### Tùy chọn A - Có Conda
 
-- Docker 20.10+
-- Docker Compose V2+
-- YOLO model file in `models/` directory
-
-### 1. Prepare Model
-
-```bash
-# Place your YOLO model in models directory
-mkdir -p models
-# Copy your model file
-cp /path/to/your/model.pt models/best.pt
+```powershell
+conda activate mobile
+pip install -r requirements-api.txt
 ```
 
-### 2. Build and Start Services
+### Tùy chọn B - Không có Conda (Windows PowerShell)
 
-**Production:**
-```bash
-docker-compose up -d
+```powershell
+# 1. Tạo virtual environment
+python -m venv venv
+
+# 2. Kích hoạt
+.\venv\Scripts\Activate.ps1
+
+# 3. Cài dependencies
+pip install --upgrade pip
+pip install -r requirements-api.txt
 ```
 
-**Development (chỉ chạy Redis trong Docker):**
-```bash
-# 1. Khởi động Redis
-docker-compose -f docker-compose.dev.yml up -d
+Nếu gặp lỗi `cannot be loaded because running scripts is disabled`:
 
-# 2. Chạy API trực tiếp (cửa sổ terminal 1)
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+Rồi chạy lại:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+### Tùy chọn C - Không có Conda (Linux/macOS)
+
+```bash
+# 1. Tạo virtual environment
+python3 -m venv venv
+
+# 2. Kích hoạt
+source venv/bin/activate
+
+# 3. Cài dependencies
+pip install --upgrade pip
+pip install -r requirements-api.txt
+```
+
+**Kiểm tra**: Khi activate thành công, dòng lệnh sẽ có prefix `(venv)`.
+
+## Bước 2: Cấu hình biến môi trường
+
+### Option 1 - Tạo file `.env`
+
+Tạo file `.env` trong thư mục gốc dự án:
+
+```
+POSTGRES_URL=postgresql://user:password@localhost:5432/dbname
+REDIS_URL=redis://localhost:6379/0
+MODEL_PATH=models/yolo11n.pt
+LOG_LEVEL=DEBUG
+```
+
+### Option 2 - Set biến môi trường tạm thời (Windows PowerShell)
+
+```powershell
+$env:POSTGRES_URL="postgresql://user:password@localhost:5432/dbname"
+$env:REDIS_URL="redis://localhost:6379/0"
+$env:MODEL_PATH="models/yolo11n.pt"
+$env:LOG_LEVEL="DEBUG"
+```
+
+### Option 3 - Set biến môi trường tạm thời (Linux/macOS)
+
+```bash
+export POSTGRES_URL="postgresql://user:password@localhost:5432/dbname"
+export REDIS_URL="redis://localhost:6379/0"
+export MODEL_PATH="models/yolo11n.pt"
+export LOG_LEVEL="DEBUG"
+```
+
+## Bước 3: Chuẩn bị Redis
+
+### Cách A - Redis local (nếu đã cài sẵn)
+
+Mở terminal riêng, chạy:
+
+```bash
+redis-server
+```
+
+Default sẽ listen tại `localhost:6379`.
+
+### Cách B - Redis qua Docker
+
+Mở terminal riêng:
+
+```bash
+docker run -d -p 6379:6379 redis:7-alpine
+```
+
+Hoặc dùng compose:
+
+```bash
+docker compose -f docker-compose.worker.yml up -d redis
+```
+
+### Cách C - Redis trên server khác
+
+Cập nhật `REDIS_URL` trong `.env` hoặc env var:
+
+```
+REDIS_URL=redis://server-ip:6379/0
+```
+
+## Bước 4: Chạy API (Terminal 1)
+
+Từ thư mục gốc, chạy:
+
+```bash
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+```
 
-# 3. Chạy Worker trực tiếp (cửa sổ terminal 2)
+Log thành công:
+
+```
+INFO:     Uvicorn running on http://0.0.0.0:8000
+INFO:     Started server process [12345]
+```
+
+Kiểm tra health:
+
+```bash
+curl http://localhost:8000/health
+```
+
+Expected response:
+
+```json
+{"status": "healthy", "model_loaded": true, "redis_connected": true}
+```
+
+## Bước 5: Chạy Worker (Terminal 2)
+
+Từ thư mục gốc (trong venv tương ứng):
+
+```bash
 python worker.py
 ```
 
-> **Ưu điểm Development mode:** Không cần rebuild Docker image mỗi lần thay đổi code, chỉ cần lưu file là tự động reload!
+Log thành công:
 
-### 3. Verify Services
+```
+2026-03-29 ... - INFO - Connecting to Redis at: redis://localhost:6379/0
+2026-03-29 ... - INFO - Redis connection established
+2026-03-29 ... - INFO - Pre-loading YOLO model...
+2026-03-29 ... - INFO - Starting RQ worker: yolo-worker-DESKTOP-XXX-12345-1234567890
+```
+
+**Ghi chú Windows**: Worker sẽ tự động dùng `SimpleWorker` + `TimerDeathPenalty` (không lỗi `os.fork` hay `SIGALRM`).
+
+## Bước 6: Test
+
+Mở terminal 3 (hoặc dùng curl/Postman):
 
 ```bash
-# Check all services are running
-docker-compose ps
-
-# Check API health
-curl http://localhost:8000/health
-
-# View logs
-docker-compose logs -f api
-docker-compose logs -f worker
+python test-api.py
 ```
 
-## 🏗️ Architecture
-
-```
-┌─────────────┐
-│   Client    │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐     ┌─────────────┐
-│  API:8000   │────▶│   Redis     │
-└─────────────┘     └──────┬──────┘
-                           │
-                    ┌──────┴──────┐
-                    │             │
-              ┌─────▼─────┐ ┌────▼──────┐
-              │  Worker 1 │ │  Worker 2 │
-              └───────────┘ └───────────┘
-```
-
-## 📝 Services
-
-### API Service
-- **Port:** 8000
-- **Container:** yolo-api
-- **Purpose:** REST API endpoints
-- **Replicas:** 1
-- **Health Check:** `/health` endpoint
-
-### Worker Service
-- **Container:** yolo-worker
-- **Purpose:** Process detection jobs
-- **Replicas:** 2 (configurable)
-- **Queue:** Redis Queue (RQ)
-
-### Redis Service
-- **Port:** 6379
-- **Container:** yolo-redis
-- **Purpose:** Job queue and cache
-- **Persistence:** Volume mounted
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-Edit `docker-compose.yml` to customize:
-
-```yaml
-environment:
-  - MODEL_PATH=/app/models/best.pt
-  - CONFIDENCE_THRESHOLD=0.25
-  - IOU_THRESHOLD=0.45
-  - MAX_WORKERS=2
-  - JOB_TIMEOUT=180
-```
-
-### Volumes
-
-**Persistent Data:**
-- `./models:/app/models:ro` - Model files (read-only)
-- `./logs:/app/logs` - Application logs
-- `./temp:/app/temp` - Temporary files
-- `redis-data` - Redis persistence
-
-### Scaling Workers
+Hoặc test manual:
 
 ```bash
-# Scale to 4 workers
-docker-compose up -d --scale worker=4
-
-# Or edit docker-compose.yml:
-deploy:
-  replicas: 4
-```
-
-## 🧪 Testing
-
-```bash
-# Upload file test
+# Test detection sync (upload file)
 curl -X POST http://localhost:8000/detect/upload \
   -F "file=@test_image.jpg"
 
-# URL detection test
+# Test detection async (URL)
 curl -X POST http://localhost:8000/detect/url \
   -H "Content-Type: application/json" \
-  -d '{"image_url": "https://example.com/image.jpg"}'
+  -d '{"image_url": "https://ultralytics.com/images/bus.jpg"}'
+
+# Kiểm tra job status
+curl http://localhost:8000/job/status_detection/{job_id}
 ```
 
-## 📊 Monitoring
+## Biến môi trường quan trọng
 
-### View Logs
+| Biến | Default | Ghi chú |
+|------|---------|--------|
+| `REDIS_URL` | `redis://localhost:6379/0` | Nơi queue chạy |
+| `MODEL_PATH` | `/models/yolo11n.pt` | Đường dẫn model YOLO |
+| `POSTGRES_URL` | **(bắt buộc)** | Database connection |
+| `LOG_LEVEL` | `INFO` | DEBUG/INFO/WARNING |
+| `REDIS_JOB_TIMEOUT` | `300` | Timeout job (giây) |
 
-```bash
-# All services
-docker-compose logs -f
+Nếu thiếu `POSTGRES_URL` hoặc `REDIS_URL`, API sẽ lỗi ngay khi startup.
 
-# Specific service
-docker-compose logs -f api
-docker-compose logs -f worker
-docker-compose logs -f redis
+## Troubleshooting
 
-# Last 100 lines
-docker-compose logs --tail=100 api
+### API không khởi động
+
+```
+Error: Failed to connect to Redis at: redis://localhost:6379/0
 ```
 
-### Check Resource Usage
+**Giải pháp**:
+- Kiểm tra Redis đang chạy
+- Kiểm tra `REDIS_URL` đúng
 
-```bash
-docker stats
+### Worker crash trên Windows
+
+```
+AttributeError: module 'os' has no attribute 'fork'
 ```
 
-### Redis Queue Status
+**Giải pháp**: Đã fix trong code mới, pull lại `worker.py`.
 
-```bash
-# Connect to Redis
-docker exec -it yolo-redis redis-cli
+### Model không load
 
-# Check queue length
-LLEN yolo_detection_queue
-
-# View queue items
-LRANGE yolo_detection_queue 0 -1
+```
+ModelNotFoundException: Model file not found at: models/yolo11n.pt
 ```
 
-## 🔧 Maintenance
+**Giải pháp**:
+- Xác nhận file tồn tại: `ls models/`
+- Xác nhận `MODEL_PATH` đúng tên file
 
-### Update Application
+### Port 8000 bị chiếm
 
-```bash
-# Rebuild and restart
-docker-compose down
-docker-compose up -d --build
+```
+OSError: [Errno 10048] Only one usage of each socket address...
 ```
 
-### Clean Up
+**Giải pháp**:
 
-```bash
-# Stop services
-docker-compose down
+```powershell
+# Tìm process chiếm port 8000 (Windows)
+netstat -ano | findstr :8000
 
-# Remove volumes (WARNING: deletes data)
-docker-compose down -v
-
-# Remove images
-docker-compose down --rmi all
+# Hoặc chạy trên port khác
+uvicorn app:app --port 8001 --reload
 ```
 
-### Backup Model
+### Job vào queue nhưng không chạy
 
-```bash
-# Backup model file
-docker cp yolo-api:/app/models/best.pt ./backup/
+**Debug**:
 
-# Or use volume
-tar -czf models-backup.tar.gz models/
-```
+1. Kiểm tra worker log có lỗi gì
+2. Kiểm tra Redis còn hoạt động: `redis-cli ping`
+3. Kiểm tra queue name: `redis-cli KEYS "rq:queue:*"`
 
-## 🐛 Troubleshooting
+## Dừng/Restart
 
-### API Not Starting
+Khi cần dừng:
 
-```bash
-# Check logs
-docker-compose logs api
+- **API**: `Ctrl+C` (Terminal 1)
+- **Worker**: `Ctrl+C` (Terminal 2)
+- **Redis** (local): `Ctrl+C`
+- **Redis** (Docker): `docker stop redis-7-alpine` hoặc `docker compose ... down`
 
-# Common issues:
-# 1. Model file not found
-# 2. Redis not connected
-# 3. Port 8000 already in use
-```
+## Workflow phát triển
 
-### Worker Not Processing
+1. Activate venv
+2. Set env var (hoặc `.env`)
+3. Start Redis (terminal riêng)
+4. Start API: `uvicorn app:app --reload`
+5. Start Worker: `python worker.py`
+6. Code + test
+7. Commit + push
 
-```bash
-# Check worker logs
-docker-compose logs worker
+---
 
-# Restart worker
-docker-compose restart worker
-
-# Check Redis connection
-docker-compose exec redis redis-cli ping
-```
-
-### Out of Memory
-
-```bash
-# Add memory limits to docker-compose.yml
-services:
-  api:
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-```
-
-### Slow Performance
-
-```bash
-# Increase workers
-docker-compose up -d --scale worker=4
-
-# Check resource usage
-docker stats
-
-# Optimize model (use smaller YOLO variant)
-```
-
-## 🔒 Production Best Practices
-
-### 1. Use Environment Files
-
-```bash
-# Create .env file
-cp .env.example .env
-
-# Load in docker-compose.yml
-env_file:
-  - .env
-```
-
-### 2. Enable HTTPS
-
-Use a reverse proxy (nginx, traefik):
-
-```yaml
-# Add to docker-compose.yml
-nginx:
-  image: nginx:alpine
-  ports:
-    - "443:443"
-  volumes:
-    - ./nginx.conf:/etc/nginx/nginx.conf
-    - ./ssl:/etc/nginx/ssl
-```
-
-### 3. Resource Limits
-
-```yaml
-deploy:
-  resources:
-    limits:
-      cpus: '2'
-      memory: 4G
-    reservations:
-      cpus: '1'
-      memory: 2G
-```
-
-### 4. Health Checks
-
-```yaml
-healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-  interval: 30s
-  timeout: 10s
-  retries: 3
-  start_period: 40s
-```
-
-### 5. Logging
-
-```yaml
-logging:
-  driver: "json-file"
-  options:
-    max-size: "10m"
-    max-file: "3"
-```
-
-## 📈 Performance Tuning
-
-### Worker Scaling
-
-- CPU-bound: 1-2 workers per CPU core
-- Memory: 1-2GB per worker minimum
-- Model size dependent
-
-### Redis Optimization
-
-```bash
-# In docker-compose.yml
-command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
-```
-
-### API Optimization
-
-- Use gunicorn for production
-- Enable uvicorn workers
-- Configure timeouts
-
-```dockerfile
-CMD ["gunicorn", "app:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000"]
-```
-
-## 🌐 Multi-Host Deployment
-
-For production across multiple servers:
-
-```bash
-# Use Docker Swarm
-docker swarm init
-docker stack deploy -c docker-compose.yml yolo
-
-# Or Kubernetes
-# Convert to k8s with kompose
-kompose convert -f docker-compose.yml
-```
-
-## 📚 Additional Resources
-
-- [Docker Documentation](https://docs.docker.com)
-- [Docker Compose Reference](https://docs.docker.com/compose/compose-file/)
-- [RQ Documentation](https://python-rq.org/)
-- [FastAPI Deployment](https://fastapi.tiangolo.com/deployment/)
+**Ghi chú**: Cách này phù hợp debug logic Python nhanh. Khi sẵn sàng, test lại mode full Docker trước khi deploy.
