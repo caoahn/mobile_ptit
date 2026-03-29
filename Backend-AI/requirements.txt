@@ -2,8 +2,8 @@
 fastapi>=0.110
 uvicorn[standard]>=0.29
 
-# Redis Queue
-rq>=1.15
+# Redis Queue (RQ 2.x can break on Windows due to fork-only scheduler internals)
+rq>=1.15,<2.0
 redis>=5.0
 
 # Image processing (headless = nhỏ hơn)
@@ -24,3 +24,6 @@ requests>=2.31
 aiofiles>=23.2
 python-dotenv>=1.0
 loguru>=0.7
+
+# PostgreSQL
+psycopg2-binary>=2.9

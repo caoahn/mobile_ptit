@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException
 from redis import Redis
-from rq import Queue
+from rq.queue import Queue
 
 from core.log import logger
 from core.config import Config
@@ -33,10 +33,10 @@ def get_redis_connection():
 def create_queue_dependency(queue_name: str):
     """
     Factory function to create a queue dependency for a specific queue.
-    
+
     Args:
         queue_name: Name of the queue to create
-        
+
     Returns:
         Function: Dependency function that returns a Queue instance
     """
@@ -50,7 +50,7 @@ def create_queue_dependency(queue_name: str):
 # Detection queue dependency
 get_detection_queue = create_queue_dependency("detection_jobs")
 
-# Embedding queue dependency  
+# Embedding queue dependency
 get_embedding_queue = create_queue_dependency("embedding_jobs")
 
 # Default queue (for backward compatibility)

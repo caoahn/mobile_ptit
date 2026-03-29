@@ -12,9 +12,9 @@ class Config(BaseSettings):
     APP_NAME: str = Field("Mobile API", env="APP_NAME")
     APP_VERSION: str = Field("1.0.0", env="APP_VERSION")
     DEBUG: bool = Field(False, env="DEBUG")
-    
+
     # YOLO model configuration
-    MODEL_PATH: str = Field(..., env="MODEL_PATH")
+    MODEL_PATH: str = Field("/models/yolo11n.pt", env="MODEL_PATH")
     CONFIDENCE_THRESHOLD: float = Field(0.5, env="CONFIDENCE_THRESHOLD")
     IOU_THRESHOLD: float = Field(0.5, env="IOU_THRESHOLD")
 
@@ -42,4 +42,6 @@ class Config(BaseSettings):
 
     # Logging configuration
     LOG_LEVEL: str = Field("INFO", env="LOG_LEVEL")
-    
+
+    # PostgreSQL configuration
+    POSTGRES_URL: str = Field(..., env="POSTGRES_URL")

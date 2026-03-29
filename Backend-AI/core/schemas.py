@@ -17,7 +17,40 @@ class EmbeddingRequest(BaseModel):
     """
     image_url: str = Field(..., description="URL của ảnh cần embedding")
     text_list: Optional[List[str]] = Field(None, description="Danh sách văn bản để kết hợp embedding (nếu có)")
-    
+
+# ======================================
+# REQUEST RECOMMENDATION SCHEMAS
+# =======================================
+class interactionsRequest(BaseModel):
+    item_id: int = Field(..., description="ID của item")
+    event: str = Field(..., description="Loại sự kiện (share, save, like, dwell_10s, click, skip)")
+
+class UserProfileRequest(BaseModel):
+    user_id: int = Field(..., description="ID của user")
+    interactions: List[interactionsRequest] = Field(..., description="Danh sách tương tác của user với các item")
+class UpdateBatchUser(BaseModel):
+    """
+    Schema cho request cập nhật batch user
+    """
+    users: List[UserProfileRequest] = Field(..., description="Danh sách user và tương tác của họ")
+
+# =======================================
+# RESPONSE RECOMMENDATION SCHEMAS
+# =======================================
+
+class RecommendationItem(BaseModel):
+    item_id: int = Field(..., description="ID của item được đề xuất")
+    score: float = Field(..., description="Điểm số đề xuất (độ liên quan)")
+
+class RecommendationUser(BaseModel):
+    user_id: int = Field(..., description="ID của user")
+    recommendations: List[RecommendationItem] = Field(..., description="Danh sách các item được đề xuất")
+
+class RecommendationResponse(BaseModel):
+    success: bool = Field(..., description="Trạng thái thành công của yêu cầu")
+    recommendations: List[RecommendationUser] = Field(..., description="Danh sách các user và item được đề xuất cho họ")
+    error: Optional[str] = Field(None, description="Thông tin lỗi nếu có")
+
 # =======================================
 # RESPONSE DETECT SCHEMAS
 # =======================================
@@ -78,7 +111,7 @@ class JobSubmitResponse(BaseModel):
     job_id: str = Field(..., description="ID của job để tracking")
     status: str = Field(..., description="Trạng thái hiện tại của job")
     message: str = Field(..., description="Thông báo cho user")
-    
+
 class JobDetectionStatusResponse(BaseModel):
     """
     Response schema cho job status check

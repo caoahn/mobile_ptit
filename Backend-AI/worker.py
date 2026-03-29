@@ -12,7 +12,8 @@ import socket
 import time
 from pathlib import Path
 from redis import Redis
-from rq import Worker, Queue
+from rq.worker import Worker
+from rq.queue import Queue
 from rq.worker_registration import clean_worker_registry
 from core.config import Config
 from core.log import logger
@@ -55,10 +56,10 @@ def main():
         redis_conn = Redis.from_url(config.REDIS_URL)
         redis_conn.ping()
         logger.info("Redis connection established")
-        
+
         # Pre-load YOLO model
         load_model_at_startup()
-        
+
         # Create queues — must match queue names used in redis_service.py
         detection_queue = Queue("detection_jobs", connection=redis_conn)
         embedding_queue = Queue("embedding_jobs", connection=redis_conn)
@@ -83,10 +84,11 @@ def main():
         logger.info(f"Starting RQ worker: {worker.name}")
         logger.info(f"Max workers: {config.MAX_WORKERS}")
         logger.info(f"Job timeout: {config.REDIS_JOB_TIMEOUT}s")
-        
-        # Run worker (blocking call)
-        worker.work(with_scheduler=True)
-            
+
+        # Scheduler mode relies on fork and is not available on Windows.
+        with_scheduler = os.name != "nt"
+        worker.work(with_scheduler=with_scheduler)
+
     except KeyboardInterrupt:
         logger.info("Worker stopped by user")
         sys.exit(0)

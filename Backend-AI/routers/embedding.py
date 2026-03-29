@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from rq import Queue
+from rq.queue import Queue
 from redis.exceptions import ConnectionError as RedisConnectionError
 from typing import List
 import torch
@@ -74,7 +74,7 @@ def process_image_embedding(image_url: str, text_list: List[str] = None) -> List
         # Cleanup temp file
         if temp_file_path:
             cleanup_temp_file(temp_file_path)
-            
+
 # ==================== ENDPOINTS ====================
 
 @router.post("/url", response_model=JobSubmitResponse, status_code=202)
@@ -85,11 +85,11 @@ async def embedding_url_async(
     """
     Submit embedding job asynchronously (non-blocking).
     Returns job_id immediately for status checking.
-    
+
     Args:
         request (EmbeddingRequest): The request containing the image URL and optional text list
         queue: RQ Queue instance (injected)
-    
+
     Returns:
         JobSubmitResponse: Contains job_id for status checking
     """
