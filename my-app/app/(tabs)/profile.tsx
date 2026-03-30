@@ -200,7 +200,7 @@ export default function ProfileScreen() {
         {/* Tabs */}
         <View className="mt-2">
           <View className="flex-row border-b border-[#dde4e3] px-6">
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => setActiveTab("recipes")}
               className={`flex-1 py-4 ${activeTab === "recipes" ? "border-b-2 border-primary" : ""}`}
             >
@@ -209,7 +209,7 @@ export default function ProfileScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => setActiveTab("saved")}
               className={`flex-1 py-4 ${activeTab === "saved" ? "border-b-2 border-primary" : ""}`}
             >
@@ -236,7 +236,7 @@ export default function ProfileScreen() {
                   <TouchableOpacity
                     key={item.id}
                     className="relative aspect-square w-1/3 p-[1px]"
-                    onPress={() => router.push(`/recipe/${item.id}`)}
+                    onPress={() => router.push(`/recipe/${item.id}/comments`)}
                     activeOpacity={0.9}
                   >
                     <Image

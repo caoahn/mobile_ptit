@@ -28,22 +28,37 @@ function getLocalIPAddress() {
 const currentIP = getLocalIPAddress();
 const envPath = path.join(__dirname, '.env');
 const newApiUrl = `EXPO_PUBLIC_API_URL=http://${currentIP}:3000/api`;
+const newAiUrl = `EXPO_PUBLIC_AI_URL=http://${currentIP}:8000`;
 
 let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
 let lines = envContent.split('\n');
-let updated = false;
+let updatedApi = false;
+let updatedAi = false;
 
 // Tìm và cập nhật đúng dòng EXPO_PUBLIC_API_URL
 for (let i = 0; i < lines.length; i++) {
   if (lines[i].trim().startsWith('EXPO_PUBLIC_API_URL=')) {
     lines[i] = newApiUrl;
-    updated = true;
+    updatedApi = true;
     break;
   }
 }
 
-if (!updated) {
+// Tìm và cập nhật đúng dòng EXPO_PUBLIC_AI_URL
+for (let i = 0; i < lines.length; i++) {
+  if (lines[i].trim().startsWith('EXPO_PUBLIC_AI_URL=')) {
+    lines[i] = newAiUrl;
+    updatedAi = true;
+    break;
+  }
+}
+
+if (!updatedApi) {
   lines.push(newApiUrl);
+}
+
+if (!updatedAi) {
+  lines.push(newAiUrl);
 }
 
 

@@ -78,10 +78,10 @@ export class RecipeRepository implements IRecipeRepository {
     limit: number = 10,
     category?: string,
     time?: string,
-    sort?: string
+    sort?: string,
   ): Promise<{ rows: Recipe[]; count: number }> {
     const whereClause: any = {};
-    
+
     if (category) {
       const categoryList = category.split(",");
       whereClause.category = { [Op.in]: categoryList };
@@ -89,8 +89,10 @@ export class RecipeRepository implements IRecipeRepository {
 
     if (time) {
       if (time === "under_15") whereClause.cook_time = { [Op.lt]: 15 };
-      else if (time === "15_to_30") whereClause.cook_time = { [Op.between]: [15, 30] };
-      else if (time === "30_to_60") whereClause.cook_time = { [Op.between]: [30, 60] };
+      else if (time === "15_to_30")
+        whereClause.cook_time = { [Op.between]: [15, 30] };
+      else if (time === "30_to_60")
+        whereClause.cook_time = { [Op.between]: [30, 60] };
       else if (time === "over_60") whereClause.cook_time = { [Op.gt]: 60 };
     }
 
@@ -98,7 +100,14 @@ export class RecipeRepository implements IRecipeRepository {
     if (sort === "oldest") {
       orderClause = [["created_at", "ASC"]];
     } else if (sort === "most_liked") {
-      orderClause = [[sequelize.literal('(SELECT COUNT(*) FROM likes WHERE likes.recipe_id = Recipe.id)'), 'DESC']];
+      orderClause = [
+        [
+          sequelize.literal(
+            "(SELECT COUNT(*) FROM likes WHERE likes.recipe_id = Recipe.id)",
+          ),
+          "DESC",
+        ],
+      ];
     }
 
     return Recipe.findAndCountAll({
@@ -151,54 +160,84 @@ export class RecipeRepository implements IRecipeRepository {
     await Recipe.destroy({ where: { id } });
   }
 
-  async replaceIngredients(recipeId: number, ingredients: any[]): Promise<void> {
-    const existingIngredients = await Ingredient.findAll({ where: { recipe_id: recipeId } });
-    const incomingIngredientIds = ingredients.map(ing => ing.id).filter(id => id !== undefined);
-    
+  async replaceIngredients(
+    recipeId: number,
+    ingredients: any[],
+  ): Promise<void> {
+    const existingIngredients = await Ingredient.findAll({
+      where: { recipe_id: recipeId },
+    });
+    const incomingIngredientIds = ingredients
+      .map((ing) => ing.id)
+      .filter((id) => id !== undefined);
+
     const ingredientIdsToDelete = existingIngredients
-      .map(ing => (ing as any).id)
-      .filter(id => !incomingIngredientIds.includes(id));
+      .map((ing) => (ing as any).id)
+      .filter((id) => !incomingIngredientIds.includes(id));
 
     if (ingredientIdsToDelete.length > 0) {
-      await Ingredient.destroy({ where: { id: ingredientIdsToDelete, recipe_id: recipeId } });
+      await Ingredient.destroy({
+        where: { id: ingredientIdsToDelete, recipe_id: recipeId },
+      });
     }
 
     for (const ing of ingredients) {
       if (ing.id) {
         await Ingredient.update(
           { name: ing.name, amount: ing.amount, unit: ing.unit },
-          { where: { id: ing.id, recipe_id: recipeId } }
+          { where: { id: ing.id, recipe_id: recipeId } },
         );
       } else {
-        await Ingredient.create({ recipe_id: recipeId, name: ing.name, amount: ing.amount, unit: ing.unit } as any);
+        await Ingredient.create({
+          recipe_id: recipeId,
+          name: ing.name,
+          amount: ing.amount,
+          unit: ing.unit,
+        } as any);
       }
     }
   }
 
-  async replaceSteps(
-    recipeId: number,
-    steps: any[],
-  ): Promise<void> {
-    const existingSteps = await RecipeStep.findAll({ where: { recipe_id: recipeId } });
-    const incomingStepIds = steps.map(step => step.id).filter(id => id !== undefined);
-    
+  async replaceSteps(recipeId: number, steps: any[]): Promise<void> {
+    const existingSteps = await RecipeStep.findAll({
+      where: { recipe_id: recipeId },
+    });
+    const incomingStepIds = steps
+      .map((step) => step.id)
+      .filter((id) => id !== undefined);
+
     const stepIdsToDelete = existingSteps
-      .map(step => (step as any).id)
-      .filter(id => !incomingStepIds.includes(id));
+      .map((step) => (step as any).id)
+      .filter((id) => !incomingStepIds.includes(id));
 
     if (stepIdsToDelete.length > 0) {
-      await RecipeStep.destroy({ where: { id: stepIdsToDelete, recipe_id: recipeId } });
+      await RecipeStep.destroy({
+        where: { id: stepIdsToDelete, recipe_id: recipeId },
+      });
     }
 
     for (let i = 0; i < steps.length; i++) {
       const step = steps[i];
       if (step.id) {
         await RecipeStep.update(
-          { step_number: step.order || step.step_number || (i + 1), title: step.title, description: step.description, image_url: step.image_url, duration: step.duration },
-          { where: { id: step.id, recipe_id: recipeId } }
+          {
+            step_number: step.order || step.step_number || i + 1,
+            title: step.title,
+            description: step.description,
+            image_url: step.image_url,
+            duration: step.duration,
+          },
+          { where: { id: step.id, recipe_id: recipeId } },
         );
       } else {
-        await RecipeStep.create({ recipe_id: recipeId, step_number: step.order || step.step_number || (i + 1), title: step.title, description: step.description, image_url: step.image_url, duration: step.duration } as any);
+        await RecipeStep.create({
+          recipe_id: recipeId,
+          step_number: step.order || step.step_number || i + 1,
+          title: step.title,
+          description: step.description,
+          image_url: step.image_url,
+          duration: step.duration,
+        } as any);
       }
     }
   }
@@ -223,31 +262,47 @@ export class RecipeRepository implements IRecipeRepository {
     page: number = 1,
     limit: number = 10,
   ): Promise<{ rows: Recipe[]; count: number }> {
-    const { Op } = require("sequelize");
-    const likeQuery = `%${query}%`;
+    // Split query into individual terms (comma or comma+space separated)
+    const terms = query
+      .split(/[,，]\s*/)
+      .map((t) => t.trim())
+      .filter(Boolean);
 
-    // Tìm các recipe_id có nguyên liệu khớp với query
-    const ingredientMatches = await Ingredient.findAll({
-      where: { name: { [Op.like]: likeQuery } },
-      attributes: ["recipe_id"],
-      group: ["recipe_id"],
-    });
-    const ingredientRecipeIds = ingredientMatches.map(
-      (i: any) => i.recipe_id as number,
-    );
+    // For each term, find matching recipe IDs via ingredients and track match count
+    const ingredientMatchCount = new Map<number, number>();
 
-    // WHERE: tên công thức OR mô tả OR có nguyên liệu khớp
+    for (const term of terms) {
+      const matches = await Ingredient.findAll({
+        where: { name: { [Op.like]: `%${term}%` } },
+        attributes: ["recipe_id"],
+        group: ["recipe_id"],
+      });
+      matches.forEach((i: any) => {
+        const rid = i.recipe_id as number;
+        ingredientMatchCount.set(rid, (ingredientMatchCount.get(rid) ?? 0) + 1);
+      });
+    }
+
+    const ingredientRecipeIds = [...ingredientMatchCount.keys()];
+
+    // WHERE: any term matches title OR description OR ingredient
+    const titleDescConditions = terms.map((term) => ({
+      [Op.or]: [
+        { title: { [Op.like]: `%${term}%` } },
+        { description: { [Op.like]: `%${term}%` } },
+      ],
+    }));
+
     const whereClause: any = {
       [Op.or]: [
-        { title: { [Op.like]: likeQuery } },
-        { description: { [Op.like]: likeQuery } },
+        ...titleDescConditions,
         ...(ingredientRecipeIds.length > 0
           ? [{ id: { [Op.in]: ingredientRecipeIds } }]
           : []),
       ],
     };
 
-    return Recipe.findAndCountAll({
+    const { rows, count } = await Recipe.findAndCountAll({
       where: whereClause,
       limit,
       offset: (page - 1) * limit,
@@ -264,6 +319,15 @@ export class RecipeRepository implements IRecipeRepository {
       order: [["created_at", "DESC"]],
       distinct: true,
     });
+
+    // Sort: recipes matching more ingredients rank higher
+    const sortedRows = [...rows].sort((a, b) => {
+      const scoreA = ingredientMatchCount.get(a.id) ?? 0;
+      const scoreB = ingredientMatchCount.get(b.id) ?? 0;
+      return scoreB - scoreA;
+    });
+
+    return { rows: sortedRows, count };
   }
 
   async findByUserId(userId: number): Promise<Recipe[]> {
