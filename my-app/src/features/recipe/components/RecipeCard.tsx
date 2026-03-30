@@ -279,10 +279,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
             )}
           </View>
           <View>
-            <Text className="text-xs font-bold">
+            <Text className="text-base font-bold">
               {recipe.chef?.username || "Ẩn danh"}
             </Text>
-            <Text className="text-[10px] text-gray-500">{recipe.category}</Text>
+            <Text className="text-sm text-gray-500">{recipe.category}</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity>
@@ -309,7 +309,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           )}
           {recipe.cook_time > 0 && (
             <View className="absolute right-4 top-4 rounded bg-black/40 px-2 py-1 backdrop-blur-md">
-              <Text className="text-[10px] font-bold text-white">
+              <Text className="text-base font-bold text-white">
                 {formatTime(recipe.cook_time)}
               </Text>
             </View>
@@ -350,11 +350,11 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           onPress={handleOpenLikes}
           disabled={likesCount === 0}
         >
-          <Text className={`text-xs font-bold ${likesCount > 0 ? "text-gray-900" : "text-gray-400"}`}>
+          <Text className={`text-base font-bold ${likesCount > 0 ? "text-gray-900" : "text-gray-400"}`}>
             {likesCount.toLocaleString()} lượt thích
           </Text>
         </TouchableOpacity>
-        <Text className="text-sm leading-relaxed">
+        <Text className="text-base leading-relaxed">
           <Text className="mr-2 font-bold">{recipe.title}</Text>{" "}
           <Text numberOfLines={2}>{recipe.description}</Text>
         </Text>
@@ -362,14 +362,14 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           <View className="mt-1 flex-row flex-wrap items-center gap-1 overflow-hidden">
             {recipe.tags.slice(0, 3).map((tag) => (
               <View key={tag.id}>
-                <Text className="text-sm text-blue-600">
+                <Text className="text-base text-blue-600">
                   #{tag.name}
                 </Text>
               </View>
             ))}
             {recipe.tags.length > 3 && (
               <View className="rounded-full bg-gray-100 px-2 py-0.3">
-                <Text className="text-sm font-medium text-gray-600">
+                <Text className="text-base font-medium text-gray-600">
                   +{recipe.tags.length - 3}
                 </Text>
               </View>
@@ -385,7 +385,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
         )}
         <Link href={`/recipe/${recipe.id}`} asChild>
           <TouchableOpacity className="mt-3 w-full rounded-lg border border-gray-100 bg-gray-50 py-2.5">
-            <Text className="text-center text-xs font-bold uppercase tracking-widest text-primary">
+            <Text className="text-center text-base font-bold uppercase tracking-widest text-primary">
               Xem chi tiết
             </Text>
           </TouchableOpacity>
