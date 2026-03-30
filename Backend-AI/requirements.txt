@@ -1,2 +1,30 @@
-# Backward-compatible default install (API stack)
--r requirements-api.txt
+# Shared dependencies for API and Worker
+# Queue
+celery>=5.4
+redis>=5.0
+
+# Image processing + numerical
+pillow>=10.0
+numpy>=1.24,<2
+
+# ML stack
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.2+cpu
+torchvision==0.17.2+cpu
+ultralytics>=8.2
+transformers>=4.40,<4.47
+
+# Utilities
+pydantic-settings>=2.0
+requests>=2.31
+python-dotenv>=1.0
+loguru>=0.7
+
+
+# FastAPI server
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+
+# API DB dependency
+psycopg2-binary>=2.9

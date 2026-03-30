@@ -1,12 +1,12 @@
 # Mobile API — YOLO Detection & VLM Embedding
 
-FastAPI REST API phục vụ **object detection** (YOLO) và **image embedding** (CLIP) với xử lý bất đồng bộ qua Redis Queue.
+FastAPI REST API phục vụ **object detection** (YOLO) và **image embedding** (CLIP) với xử lý bất đồng bộ qua Celery + Redis.
 
 ## Features
 
 - **Object Detection** — upload file hoặc gửi URL ảnh, nhận bounding box + confidence
 - **Image Embedding** — trích xuất vector 512-d từ ảnh (CLIP), hỗ trợ kết hợp text
-- **Async Processing** — job queue qua Redis/RQ, poll kết quả qua job ID
+- **Async Processing** — job queue qua Celery + Redis, poll kết quả qua job ID
 - **Health Check** — kiểm tra trạng thái API, Redis, model
 - **Request Logging** — middleware log mọi request kèm request ID & thời gian xử lý
 
@@ -15,7 +15,7 @@ FastAPI REST API phục vụ **object detection** (YOLO) và **image embedding**
 ```
 mobile/
 ├── app.py                    # FastAPI entry point, middleware, health check
-├── worker.py                 # RQ worker — pre-load model, xử lý job
+├── worker.py                 # Celery worker entrypoint — pre-load model, xử lý job
 ├── core/
 │   ├── config.py             # Pydantic Settings (đọc .env)
 │   ├── log.py                # Logging (loguru)
@@ -28,7 +28,8 @@ mobile/
 │   ├── yolo_service.py       # YOLO model singleton + detect logic
 │   ├── VLM_service.py        # CLIP model singleton + embedding logic
 │   ├── image_service.py      # Download/upload/validate ảnh
-│   └── redis_service.py      # Redis connection + queue factory
+│   ├── redis_service.py      # Redis connection helper
+│   └── celery_app.py         # Celery app config (broker/backend/routes)
 ├── models/
 │   └── best.pt               # YOLO weights
 ├── docker-compose.yml        # Production (2 workers, healthcheck, persistent Redis)
@@ -74,8 +75,11 @@ cp .env.example .env
 # Terminal 1 — API server
 uvicorn app:app --reload --host 0.0.0.0 --port 8000
 
-# Terminal 2 — Worker
-python worker.py
+# Terminal 2 — Celery Worker
+celery -A services.celery_app.celery_app worker --queues=detection_jobs,embedding_jobs --loglevel=info --concurrency=2
+
+# Windows (khuyến nghị)
+celery -A services.celery_app.celery_app worker --queues=detection_jobs,embedding_jobs --loglevel=info --pool=solo
 ```
 
 ## Configuration
@@ -93,7 +97,8 @@ Cấu hình qua biến môi trường hoặc file `.env`:
 | `MAX_FILE_SIZE` | `10485760` (10 MB) | Giới hạn file upload |
 | `ALLOWED_EXTENSIONS` | `.jpg, .jpeg, .png` | Định dạng ảnh hỗ trợ |
 | `LOG_LEVEL` | `INFO` | Mức log (`DEBUG`, `INFO`, `WARNING`...) |
-| `REDIS_JOB_TIMEOUT` | `300` | Timeout job (giây) |
+| `CELERY_TASK_TIME_LIMIT` | `300` | Hard timeout mỗi task (giây) |
+| `CELERY_RESULT_EXPIRES` | `3600` | TTL kết quả task trong Redis (giây) |
 
 ## API Endpoints
 
@@ -214,8 +219,8 @@ Chi tiết xem [DOCKER.md](DOCKER.md).
 - Verify Redis is accessible from your network
 
 ### Worker Not Processing Jobs
-- Check worker is running: `python worker.py`
-- Verify queue name matches in config
+- Check Celery worker is running: `celery -A services.celery_app.celery_app worker --queues=detection_jobs,embedding_jobs --loglevel=info`
+- Verify `REDIS_URL` is correct
 - Check worker logs for errors
 
 ### Detection Timeout
@@ -228,7 +233,7 @@ Chi tiết xem [DOCKER.md](DOCKER.md).
 ### Project Structure
 
 - **app.py**: Main FastAPI application with middleware
-- **worker.py**: RQ worker for processing detection jobs
+- **worker.py**: Celery worker bootstrap for async jobs
 - **routers/**: API endpoint definitions
 - **services/**: Business logic (YOLO, image handling)
 - **core/**: Configuration, schemas, logging

@@ -1,4 +1,4 @@
-# Development docker-compose: run Redis + Worker in Docker.
+# Development docker-compose: run Redis + Celery worker in Docker.
 # API should run on host machine with uvicorn.
 services:
   redis:
@@ -23,14 +23,17 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        REQUIREMENTS_FILE: requirements-worker.txt
+        REQUIREMENTS_FILE: requirements.txt
     container_name: yolo-worker-dev
     dns:
       - 8.8.8.8
       - 8.8.4.4
     environment:
+      - POSTGRES_URL=${POSTGRES_URL}
       - REDIS_URL=redis://redis:6379/0
       - MODEL_PATH=/app/models/yolo11n.pt
+      - CELERY_TASK_TIME_LIMIT=300
+      - CELERY_RESULT_EXPIRES=3600
       - DEBUG=True
       - LOG_LEVEL=DEBUG
       - YOLO_CONFIG_DIR=/tmp/Ultralytics
@@ -44,7 +47,7 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    command: python worker.py
+    command: celery -A services.celery_app.celery_app worker --queues=detection_jobs,embedding_jobs --loglevel=info --concurrency=2
     restart: unless-stopped
     networks:
       - yolo-network

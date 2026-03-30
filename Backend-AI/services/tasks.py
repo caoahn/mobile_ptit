@@ -2,6 +2,7 @@ from typing import List
 
 import numpy as np
 import torch
+from celery import shared_task
 
 from core.log import logger
 from services.VLM_service import get_embedding_model
@@ -14,10 +15,11 @@ from services.image_service import (
 from services.yolo_service import get_detector
 
 
+@shared_task(name="services.tasks.process_detection")
 def process_detection(image_url: str) -> dict:
     """
-    Worker task for object detection.
-    This function is imported by RQ workers and should avoid API-only deps.
+    Celery task for object detection.
+    This function avoids API-only dependencies so it is safe in worker processes.
     """
     logger.info(f"[Worker] Processing detection for URL: {image_url}")
     temp_file_path = None
@@ -62,9 +64,10 @@ def process_detection(image_url: str) -> dict:
             cleanup_temp_file(temp_file_path)
 
 
+@shared_task(name="services.tasks.process_image_embedding")
 def process_image_embedding(image_url: str, text_list: List[str] = None) -> List[float]:
     """
-    Worker task for image embedding.
+    Celery task for image embedding.
     """
     temp_file_path = None
 

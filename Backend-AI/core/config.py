@@ -31,6 +31,10 @@ class Config(BaseSettings):
     REDIS_QUEUE_NAME: str = Field("yolo_jobs", env="REDIS_QUEUE_NAME")
     REDIS_JOB_TIMEOUT: int = Field(300, env="REDIS_JOB_TIMEOUT")  # in seconds
 
+    # Celery configuration
+    CELERY_TASK_TIME_LIMIT: int = Field(300, env="CELERY_TASK_TIME_LIMIT")  # in seconds
+    CELERY_RESULT_EXPIRES: int = Field(3600, env="CELERY_RESULT_EXPIRES")  # in seconds
+
     # Directory configuration
     UPLOAD_DIR: str = Field("uploads", env="UPLOAD_DIR")
     TEMP_DIR: str = Field("temp", env="TEMP_DIR")

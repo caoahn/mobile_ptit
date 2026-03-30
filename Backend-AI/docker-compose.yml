@@ -30,6 +30,7 @@ services:
     ports:
       - "8000:8000"
     environment:
+      POSTGRES_URL: ${POSTGRES_URL}
       REDIS_URL: redis://redis:6379/0
       MODEL_PATH: /app/models/best.pt
       CONFIDENCE_THRESHOLD: 0.25
@@ -62,20 +63,22 @@ services:
       start_period: 40s
 
   # =========================
-  # Worker (RQ)
+  # Worker (Celery)
   # =========================
   worker:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        REQUIREMENTS_FILE: requirements-worker.txt
+        REQUIREMENTS_FILE: requirements.txt
     environment:
+      POSTGRES_URL: ${POSTGRES_URL}
       REDIS_URL: redis://redis:6379/0
       MODEL_PATH: /app/models/best.pt
       CONFIDENCE_THRESHOLD: 0.25
       IOU_THRESHOLD: 0.45
-      REDIS_JOB_TIMEOUT: 300
+      CELERY_TASK_TIME_LIMIT: 300
+      CELERY_RESULT_EXPIRES: 3600
       TEMP_DIR: /app/temp
       LOGS_DIR: /app/logs
       LOG_LEVEL: INFO
@@ -89,7 +92,7 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    command: python worker.py
+    command: celery -A services.celery_app.celery_app worker --queues=detection_jobs,embedding_jobs --loglevel=info --concurrency=2
     restart: unless-stopped
     networks:
       - yolo-network

@@ -39,7 +39,7 @@ def normalize_vector(vec: np.ndarray) -> np.ndarray:
 
 def log_user_interactions(data: UserProfileRequest):
     """
-    Worker function to log user interactions (runs in RQ worker).
+    Worker function to log user interactions (runs in Celery worker).
     Args:
         data (UserProfileRequest): Dữ liệu người dùng và tương tác
     """

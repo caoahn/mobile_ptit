@@ -329,7 +329,7 @@ def test_docs():
 
 def main():
     global BASE_URL
-    
+
     parser = argparse.ArgumentParser(description="Test toàn bộ API")
     parser.add_argument("--url", default=TEST_IMAGE_URL, help="URL ảnh để test")
     parser.add_argument("--skip-embed", action="store_true", help="Bỏ qua test embedding")
@@ -351,7 +351,7 @@ def main():
         print("\n⛔ API chưa sẵn sàng. Kiểm tra lại:")
         print("   - uvicorn đang chạy?  (uvicorn app:app --reload)")
         print("   - Redis đang chạy?    (docker-compose -f docker-compose.dev.yml up -d)")
-        print("   - Worker đang chạy?   (python worker.py / docker worker)")
+        print("   - Worker đang chạy?   (celery -A services.celery_app.celery_app worker ... / docker worker)")
         print("   - Model tồn tại?      (models/best.pt)")
         sys.exit(1)
 

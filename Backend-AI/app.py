@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=config.APP_NAME,
     version=config.APP_VERSION,
-    description="YOLO Object Detection API with Redis Queue",
+    description="YOLO Object Detection API with Celery + Redis",
     lifespan=lifespan
 )
 

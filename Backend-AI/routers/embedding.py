@@ -1,15 +1,14 @@
 from fastapi import APIRouter, HTTPException, Depends
-from rq.queue import Queue
+from celery import Celery
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from core.config import Config
 from core.log import logger
 from core.schemas import (
-    EmbeddingResponse,
     JobSubmitResponse,
     EmbeddingRequest
 )
-from services.redis_service import get_embedding_queue
+from services.redis_service import get_celery_app
 from services.tasks import process_image_embedding
 
 # Load configuration
@@ -23,7 +22,7 @@ router = APIRouter(prefix="/embedding", tags=["embedding"])
 @router.post("/url", response_model=JobSubmitResponse, status_code=202)
 async def embedding_url_async(
     request: EmbeddingRequest,
-    queue: Queue = Depends(get_embedding_queue)
+    celery: Celery = Depends(get_celery_app)
 ):
     """
     Submit embedding job asynchronously (non-blocking).
@@ -31,7 +30,7 @@ async def embedding_url_async(
 
     Args:
         request (EmbeddingRequest): The request containing the image URL and optional text list
-        queue: RQ Queue instance (injected)
+        celery: Celery app instance (injected)
 
     Returns:
         JobSubmitResponse: Contains job_id for status checking
@@ -46,20 +45,21 @@ async def embedding_url_async(
                 detail="image_url is required"
             )
 
-        # Enqueue embedding job to RQ (non-blocking)
-        job = queue.enqueue(
-            process_image_embedding,
-            args=(request.image_url, request.text_list),
-            job_timeout=config.REDIS_JOB_TIMEOUT,
-            result_ttl=3600  # Keep result for 1 hour
+        # Submit Celery task (non-blocking)
+        task = celery.send_task(
+            process_image_embedding.name,
+            args=[request.image_url, request.text_list],
+            queue="embedding_jobs",
+            time_limit=config.CELERY_TASK_TIME_LIMIT,
+            expires=config.CELERY_RESULT_EXPIRES,
         )
 
-        logger.info(f"[Async] Enqueued embedding job: {job.id} for URL: {request.image_url}")
+        logger.info(f"[Async] Submitted embedding job: {task.id} for URL: {request.image_url}")
 
         return JobSubmitResponse(
-            job_id=job.id,
+            job_id=task.id,
             status="queued",
-            message=f"Job submitted successfully. Use GET /job/status_embedding/{job.id} to check progress."
+            message=f"Job submitted successfully. Use GET /job/status_embedding/{task.id} to check progress."
         )
 
     except HTTPException:

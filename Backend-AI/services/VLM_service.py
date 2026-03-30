@@ -4,6 +4,7 @@ from PIL import Image
 from pathlib import Path
 from transformers import CLIPProcessor, CLIPModel
 import torch.nn.functional as F
+from typing import Any
 
 from core.log import logger
 from core.config import Config
@@ -66,24 +67,24 @@ class VLMEmbeddingModel:
         except Exception as e:
             logger.error(f"Failed to load VLM model: {e}")
             raise ModelNotFoundException(f"Failed to load VLM model: {e}")
-        
+
     def extract_image_features(self, image_path: str):
         """
         Extract image features from the given image path.
         """
         try:
-            image = Image.open(image_path)
+            image = Image.open(image_path).convert("RGB")
             inputs = self.processor(images=image, return_tensors="pt")
 
             with torch.no_grad():
                 output = self.model.get_image_features(**inputs)
-                image_features = output.pooler_output
+                image_features = self._resolve_feature_tensor(output)
                 logger.debug(f"Extracted image features: {image_features}")
             return image_features
         except Exception as e:
             logger.error(f"Failed to extract image features: {e}")
             raise InferenceException(f"Failed to extract image features: {e}")
-        
+
     def extract_text_features(self, text_list):
         """
         Extract text features from the given list of texts.
@@ -91,17 +92,17 @@ class VLMEmbeddingModel:
         try:
             if text_list is None:
                 raise ValueError("text_list cannot be None for text feature extraction")
-            
+
             inputs = self.processor(text=text_list, return_tensors="pt", padding=True, truncation=True)
 
             with torch.no_grad():
                 output = self.model.get_text_features(**inputs)
-                text_features = output.pooler_output
+                text_features = self._resolve_feature_tensor(output)
             return text_features
         except Exception as e:
             logger.error(f"Failed to extract text features: {e}")
-            raise InferenceException(f"Failed to extract text features: {e}")    
-        
+            raise InferenceException(f"Failed to extract text features: {e}")
+
     def extract_features(self, image_url, text_list):
         """
         Extract both image and text features from the given image URL and list of texts.
@@ -109,6 +110,10 @@ class VLMEmbeddingModel:
         try:
             image_features = self.extract_image_features(image_url)
             image_features_norm = F.normalize(image_features, dim=-1)
+
+            if not text_list:
+                return image_features_norm
+
             text_features = self.extract_text_features(text_list)
             text_features_norm = F.normalize(text_features, dim=-1)
             final_features = self.alpha * image_features_norm + (1 - self.alpha) * text_features_norm
@@ -116,5 +121,16 @@ class VLMEmbeddingModel:
         except Exception as e:
             logger.error(f"Failed to extract features: {e}")
             raise InferenceException(f"Failed to extract features: {e}")
+
+    @staticmethod
+    def _resolve_feature_tensor(output: Any) -> torch.Tensor:
+        """Normalize CLIP output into a tensor across transformers versions."""
+        if isinstance(output, torch.Tensor):
+            return output
+        if hasattr(output, "pooler_output") and output.pooler_output is not None:
+            return output.pooler_output
+        if hasattr(output, "last_hidden_state") and output.last_hidden_state is not None:
+            return output.last_hidden_state.mean(dim=1)
+        raise InferenceException(f"Unsupported feature output type: {type(output)}")
 
 # ==================== HELPER FUNCTIONS ====================

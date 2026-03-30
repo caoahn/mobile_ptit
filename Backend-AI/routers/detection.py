@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
-from rq.queue import Queue
+from celery import Celery
 
 from core.config import Config
 from core.log import logger
@@ -16,7 +16,7 @@ from services.image_service import (
     FileUploadException
 )
 from services.yolo_service import get_detector
-from services.redis_service import get_detection_queue
+from services.redis_service import get_celery_app
 from services.tasks import process_detection
 
 # Load configuration
@@ -36,7 +36,6 @@ async def detect_upload(
 
     Args:
         file: Uploaded image file (form-data)
-        queue: RQ Queue instance (injected)
 
     Returns:
         DetectionResponse: Detection results with list of detected objects
@@ -111,7 +110,7 @@ async def detect_upload(
 @router.post("/url", response_model=JobSubmitResponse, status_code=202)
 async def detect_url_async(
     request: DetectionRequest,
-    queue: Queue = Depends(get_detection_queue)
+    celery: Celery = Depends(get_celery_app)
 ):
     """
     Submit detection job asynchronously (non-blocking).
@@ -119,7 +118,7 @@ async def detect_url_async(
 
     Args:
         request: DetectionRequest with image_url
-        queue: RQ Queue instance (injected)
+        celery: Celery app instance (injected)
 
     Returns:
         JobSubmitResponse: Job ID and status
@@ -134,20 +133,21 @@ async def detect_url_async(
                 detail="image_url is required"
             )
 
-        # Enqueue detection job to RQ (non-blocking)
-        job = queue.enqueue(
-            process_detection,
-            args=(request.image_url,),
-            job_timeout=config.REDIS_JOB_TIMEOUT,
-            result_ttl=3600  # Keep result for 1 hour
+        # Submit Celery task (non-blocking)
+        task = celery.send_task(
+            process_detection.name,
+            args=[request.image_url],
+            queue="detection_jobs",
+            time_limit=config.CELERY_TASK_TIME_LIMIT,
+            expires=config.CELERY_RESULT_EXPIRES,
         )
 
-        logger.info(f"[Async] Job enqueued with ID: {job.id}")
+        logger.info(f"[Async] Job submitted with ID: {task.id}")
 
         return JobSubmitResponse(
-            job_id=job.id,
+            job_id=task.id,
             status="queued",
-            message=f"Job submitted successfully. Use GET /job/status_detection/{job.id} to check progress."
+            message=f"Job submitted successfully. Use GET /job/status_detection/{task.id} to check progress."
         )
 
     except HTTPException:

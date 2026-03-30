@@ -1,10 +1,9 @@
-import time
-from typing import List
-from fastapi import APIRouter, HTTPException, Depends
-from rq.job import Job, JobStatus
-from redis import Redis
+from datetime import datetime
+from typing import Any, Optional
+from fastapi import APIRouter, HTTPException
+from celery.result import AsyncResult
 
-from services.redis_service import get_redis_connection
+from services.celery_app import celery_app
 from core.schemas import JobDetectionStatusResponse, JobEmbeddingStatusResponse, DetectionResult
 from core.log import logger
 
@@ -17,36 +16,31 @@ router = APIRouter(prefix="/job", tags=["Job Management"])
 @router.get("/status_detection/{job_id}", response_model=JobDetectionStatusResponse)
 async def get_job_status(
     job_id: str,
-    redis_conn: Redis = Depends(get_redis_connection)
 ):
     """
     Check status of a detection job.
-    
+
     Args:
-        job_id: Job ID returned from async endpoint
-        redis_conn: Redis connection (injected)
-    
+        job_id: Celery task ID
+
     Returns:
         JobDetectionStatusResponse: Job status and result if completed
     """
     try:
-        # Fetch job from Redis
-        job = Job.fetch(job_id, connection=redis_conn)
-        
-        # Get job status
-        status = job.get_status()
-        
+        task = AsyncResult(job_id, app=celery_app)
+        status = _map_celery_status(task.status)
+
         response = JobDetectionStatusResponse(
             job_id=job_id,
             status=status,
-            created_at=job.created_at.isoformat() if job.created_at else None,
-            started_at=job.started_at.isoformat() if job.started_at else None,
-            ended_at=job.ended_at.isoformat() if job.ended_at else None
+            created_at=None,
+            started_at=None,
+            ended_at=_normalize_datetime(task.date_done),
         )
-        
-        # If job finished, check if worker returned success or error
-        if status == JobStatus.FINISHED:
-            result_data = job.result
+
+        # If task finished, check if worker returned success/error payload
+        if task.successful():
+            result_data = task.result
             if isinstance(result_data, dict):
                 if result_data.get("success"):
                     results_list = [
@@ -59,16 +53,16 @@ async def get_job_status(
                     ]
                     response.result = results_list
                 else:
-                    # Worker returned an error result
                     response.status = "failed"
                     response.error = result_data.get("error", "Unknown error")
-        
-        # If job failed (exception in worker), include error
-        elif status == JobStatus.FAILED:
-            response.error = job.exc_info if job.exc_info else "Job failed with unknown error"
-        
+            else:
+                response.error = "Unexpected task result format"
+
+        elif task.failed():
+            response.error = _extract_task_error(task)
+
         return response
-        
+
     except Exception as e:
         logger.error(f"Failed to fetch job {job_id}: {e}")
         raise HTTPException(
@@ -79,43 +73,35 @@ async def get_job_status(
 @router.get("/status_embedding/{job_id}", response_model=JobEmbeddingStatusResponse)
 async def get_embedding_job_status(
     job_id: str,
-    redis_conn: Redis = Depends(get_redis_connection)
 ):
     """
     Check status of an embedding job.
-    
+
     Args:
-        job_id: Job ID returned from async endpoint
-        redis_conn: Redis connection (injected)
-    
+        job_id: Celery task ID
+
     Returns:
         JobEmbeddingStatusResponse: Job status and result if completed
     """
     try:
-        # Fetch job from Redis
-        job = Job.fetch(job_id, connection=redis_conn)
-        
-        # Get job status
-        status = job.get_status()
-        
+        task = AsyncResult(job_id, app=celery_app)
+        status = _map_celery_status(task.status)
+
         response = JobEmbeddingStatusResponse(
             job_id=job_id,
             status=status,
-            created_at=job.created_at.isoformat() if job.created_at else None,
-            started_at=job.started_at.isoformat() if job.started_at else None,
-            ended_at=job.ended_at.isoformat() if job.ended_at else None
+            created_at=None,
+            started_at=None,
+            ended_at=_normalize_datetime(task.date_done),
         )
-        
-        # If job finished successfully, include results
-        if status == JobStatus.FINISHED:
-            response.result = job.result
-        
-        # If job failed, include error
-        elif status == JobStatus.FAILED:
-            response.error = job.exc_info if job.exc_info else "Job failed with unknown error"
-        
+
+        if task.successful():
+            response.result = task.result
+        elif task.failed():
+            response.error = _extract_task_error(task)
+
         return response
-        
+
     except Exception as e:
         logger.error(f"Failed to fetch embedding job {job_id}: {e}")
         raise HTTPException(
@@ -126,40 +112,37 @@ async def get_embedding_job_status(
 @router.delete("/job/{job_id}", status_code=200)
 async def cancel_job(
     job_id: str,
-    redis_conn: Redis = Depends(get_redis_connection)
 ):
     """
     Cancel a queued or running job.
-    
+
     Args:
-        job_id: Job ID to cancel
-        redis_conn: Redis connection (injected)
-    
+        job_id: Celery task ID
+
     Returns:
         Success message
     """
     try:
-        job = Job.fetch(job_id, connection=redis_conn)
-        
-        status = job.get_status()
-        if status in [JobStatus.FINISHED, JobStatus.FAILED]:
+        task = AsyncResult(job_id, app=celery_app)
+
+        status = _map_celery_status(task.status)
+        if status in ["finished", "failed"]:
             return {
                 "message": f"Job already {status}, cannot cancel",
                 "job_id": job_id,
                 "status": status
             }
-        
-        # Cancel the job
-        job.cancel()
-        job.delete()
-        
+
+        # Revoke queued/running task.
+        celery_app.control.revoke(job_id, terminate=True)
+
         logger.info(f"Job {job_id} cancelled successfully")
-        
+
         return {
             "message": "Job cancelled successfully",
             "job_id": job_id
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to cancel job {job_id}: {e}")
         raise HTTPException(
@@ -167,57 +150,31 @@ async def cancel_job(
             detail=f"Job not found: {job_id}"
         )
 
-# ==================== HELPER FUNCTION ====================
+def _map_celery_status(status: str) -> str:
+    mapping = {
+        "PENDING": "queued",
+        "RECEIVED": "queued",
+        "RETRY": "queued",
+        "STARTED": "started",
+        "SUCCESS": "finished",
+        "FAILURE": "failed",
+        "REVOKED": "failed",
+    }
+    return mapping.get(status, status.lower())
 
-def wait_for_job_result(job: Job, timeout: int = None) -> List[dict]:
-    """
-    Wait for job to complete and return result.
-    
-    Args:
-        job (Job): RQ Job instance
-        timeout (int): Maximum time to wait in seconds
-    Returns:
-        List[dict]: Job result (detection results)
-    Raises:
-        HTTPException: If job times out or fails
-    """
-    if timeout is None:
-        timeout = config.JOB_TIMEOUT
-    
-    try:
-        logger.info(f"Waiting for job {job.id} to complete (timeout: {timeout}s)")
-        
-        # Wait for job to finish
-        start_time = time.time()
-        while not job.is_finished and not job.is_failed:
-            if time.time() - start_time > timeout:
-                # Cancel the job
-                job.cancel()
-                logger.error(f"Job {job.id} timed out after {timeout}s")
-                raise HTTPException(
-                    status_code=408,
-                    detail=f"Detection timeout after {timeout} seconds"
-                )
-            time.sleep(0.5)  # Poll every 500ms
-        
-        # Check job status
-        if job.is_failed:
-            logger.error(f"Job {job.id} failed: {job.exc_info}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Detection failed: {str(job.exc_info)}"
-            )
-        
-        # Get result
-        result = job.result
-        logger.info(f"Job {job.id} completed successfully")
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error waiting for job result: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get detection result: {str(e)}"
-        )
+
+def _extract_task_error(task: AsyncResult) -> str:
+    result = task.result
+    if isinstance(result, Exception):
+        return str(result)
+    if result is None:
+        return "Job failed with unknown error"
+    return str(result)
+
+
+def _normalize_datetime(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return str(value)

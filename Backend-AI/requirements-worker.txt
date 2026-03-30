@@ -1,2 +1,0 @@
-# Worker-only dependencies
--r requirements-common.txt

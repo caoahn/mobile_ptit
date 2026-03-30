@@ -1,4 +1,4 @@
-# Mode A - Chạy Local Full (API + Worker trên máy)
+# Mode A - Chạy Local Full (API + Celery Worker trên máy)
 
 Hướng dẫn chi tiết chạy trực tiếp trên máy không Docker.
 
@@ -152,24 +152,23 @@ Expected response:
 {"status": "healthy", "model_loaded": true, "redis_connected": true}
 ```
 
-## Bước 5: Chạy Worker (Terminal 2)
+## Bước 5: Chạy Celery Worker (Terminal 2)
 
 Từ thư mục gốc (trong venv tương ứng):
 
 ```bash
-python worker.py
+celery -A services.celery_app.celery_app worker --queues=detection_jobs,embedding_jobs --loglevel=info --concurrency=2
 ```
 
 Log thành công:
 
 ```
-2026-03-29 ... - INFO - Connecting to Redis at: redis://localhost:6379/0
-2026-03-29 ... - INFO - Redis connection established
-2026-03-29 ... - INFO - Pre-loading YOLO model...
-2026-03-29 ... - INFO - Starting RQ worker: yolo-worker-DESKTOP-XXX-12345-1234567890
+[2026-03-29 ...: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2026-03-29 ...: INFO/MainProcess] mingle: searching for neighbors
+[2026-03-29 ...: INFO/MainProcess] celery@DESKTOP ready.
 ```
 
-**Ghi chú Windows**: Worker sẽ tự động dùng `SimpleWorker` + `TimerDeathPenalty` (không lỗi `os.fork` hay `SIGALRM`).
+**Ghi chú Windows**: nếu chạy lỗi pool, thêm `--pool=solo` vào lệnh Celery worker.
 
 ## Bước 6: Test
 
@@ -203,7 +202,8 @@ curl http://localhost:8000/job/status_detection/{job_id}
 | `MODEL_PATH` | `/models/yolo11n.pt` | Đường dẫn model YOLO |
 | `POSTGRES_URL` | **(bắt buộc)** | Database connection |
 | `LOG_LEVEL` | `INFO` | DEBUG/INFO/WARNING |
-| `REDIS_JOB_TIMEOUT` | `300` | Timeout job (giây) |
+| `CELERY_TASK_TIME_LIMIT` | `300` | Hard timeout task (giây) |
+| `CELERY_RESULT_EXPIRES` | `3600` | TTL kết quả task trong Redis (giây) |
 
 Nếu thiếu `POSTGRES_URL` hoặc `REDIS_URL`, API sẽ lỗi ngay khi startup.
 
@@ -222,10 +222,10 @@ Error: Failed to connect to Redis at: redis://localhost:6379/0
 ### Worker crash trên Windows
 
 ```
-AttributeError: module 'os' has no attribute 'fork'
+ValueError: not enough values to unpack / pool error
 ```
 
-**Giải pháp**: Đã fix trong code mới, pull lại `worker.py`.
+**Giải pháp**: chạy worker với `--pool=solo`.
 
 ### Model không load
 
@@ -259,14 +259,14 @@ uvicorn app:app --port 8001 --reload
 
 1. Kiểm tra worker log có lỗi gì
 2. Kiểm tra Redis còn hoạt động: `redis-cli ping`
-3. Kiểm tra queue name: `redis-cli KEYS "rq:queue:*"`
+3. Kiểm tra Celery queue key: `redis-cli KEYS "*detection_jobs*"`
 
 ## Dừng/Restart
 
 Khi cần dừng:
 
 - **API**: `Ctrl+C` (Terminal 1)
-- **Worker**: `Ctrl+C` (Terminal 2)
+- **Celery Worker**: `Ctrl+C` (Terminal 2)
 - **Redis** (local): `Ctrl+C`
 - **Redis** (Docker): `docker stop redis-7-alpine` hoặc `docker compose ... down`
 
@@ -276,7 +276,7 @@ Khi cần dừng:
 2. Set env var (hoặc `.env`)
 3. Start Redis (terminal riêng)
 4. Start API: `uvicorn app:app --reload`
-5. Start Worker: `python worker.py`
+5. Start Celery Worker: `celery -A services.celery_app.celery_app worker --queues=detection_jobs,embedding_jobs --loglevel=info`
 6. Code + test
 7. Commit + push
 
