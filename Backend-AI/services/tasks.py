@@ -13,7 +13,29 @@ from services.image_service import (
     FileUploadException,
 )
 from services.yolo_service import get_detector
+from db.conn import get_db_connection
 
+
+def _upsert_recipe_vector(recipe_id: int, embedding: List[float]) -> None:
+    db_conn = get_db_connection()
+    try:
+        with db_conn.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO recipe_vector (recipe_id, embedding)
+                VALUES (%s, %s)
+                ON CONFLICT (recipe_id)
+                DO UPDATE SET embedding = EXCLUDED.embedding
+                """,
+                (recipe_id, embedding),
+            )
+        db_conn.commit()
+        logger.info(f"[Worker] Upserted recipe_vector for recipe_id={recipe_id}")
+    except Exception:
+        db_conn.rollback()
+        raise
+    finally:
+        db_conn.close()
 
 @shared_task(name="services.tasks.process_detection")
 def process_detection(image_url: str) -> dict:
@@ -85,6 +107,42 @@ def process_image_embedding(image_url: str, text_list: List[str] = None) -> List
 
         logger.info(f"[Worker] Embedding completed for: {image_url}")
         return embedding.tolist()
+
+    except InvalidImageException as e:
+        logger.error(f"[Worker] Invalid image: {e}")
+        raise
+    except Exception as e:
+        logger.exception(f"[Worker] Embedding failed for {image_url}: {e}")
+        raise
+    finally:
+        if temp_file_path:
+            cleanup_temp_file(temp_file_path)
+
+@shared_task(name="services.tasks.process_post_embedding")
+def process_post_embedding(post_id: int, image_url: str, text_list: List[str] = None) -> List[float]:
+    """
+    Celery task for image embedding.
+    """
+    temp_file_path = None
+
+    try:
+        logger.info(f"[Worker] Starting embedding for post {post_id}: {image_url}")
+        temp_file_path = download_image_from_url(image_url)
+
+        embedding_model = get_embedding_model()
+
+        with torch.no_grad():
+            logger.debug(f"Extracting features for image: {image_url} with text_list: {text_list}")
+            features = embedding_model.extract_features(temp_file_path, text_list)
+
+        embedding = features.detach().cpu().numpy().astype(np.float32)[0]
+
+        embedding_list = embedding.tolist()
+        recipe_id = post_id
+        _upsert_recipe_vector(recipe_id=recipe_id, embedding=embedding_list)
+
+        logger.info(f"[Worker] Embedding completed and stored for recipe_id={recipe_id}")
+        return embedding_list
 
     except InvalidImageException as e:
         logger.error(f"[Worker] Invalid image: {e}")

@@ -37,6 +37,20 @@ def normalize_vector(vec: np.ndarray) -> np.ndarray:
         return vec
     return vec / norm
 
+def parse_embedding(embedding):
+    if embedding is None:
+        return None
+    if isinstance(embedding, str):
+        embedding = embedding.strip("[]")
+        if not embedding:
+            return np.zeros(EMBEDDING_DIM, dtype=np.float32)
+        return np.array([float(x) for x in embedding.split(",")], dtype=np.float32)
+    return np.asarray(embedding, dtype=np.float32)
+
+def to_pgvector_text(vec: np.ndarray) -> str:
+    # pgvector accepts string literal format like: [0.1,0.2,...]
+    return "[" + ",".join(map(str, vec.tolist())) + "]"
+
 def log_user_interactions(data: UserProfileRequest):
     """
     Worker function to log user interactions (runs in Celery worker).
@@ -58,7 +72,7 @@ def log_user_interactions(data: UserProfileRequest):
             user_row = cursor.fetchone()
 
             if user_row and user_row[0] is not None:
-                old_embedding = np.asarray(user_row[0], dtype=np.float32)
+                old_embedding = parse_embedding(user_row[0])
             else:
                 old_embedding = None
 
@@ -73,7 +87,7 @@ def log_user_interactions(data: UserProfileRequest):
             )
             recipe_rows = cursor.fetchall()
             recipe_embedding_map = {
-                row[0]: np.asarray(row[1], dtype=np.float32)
+                row[0]: parse_embedding(row[1])
                 for row in recipe_rows
                 if row[1] is not None
             }
@@ -83,6 +97,8 @@ def log_user_interactions(data: UserProfileRequest):
 
             for interaction in interactions:
                 score = float(MACHING_USER_FEED.get(interaction.event, 0.0))
+                if score == 0:
+                    logger.warning(f"Unknown or zero-weight event: {interaction.event} for user_id={user_id}, item_id={interaction.item_id}")
                 recipe_embedding = recipe_embedding_map.get(interaction.item_id)
 
                 logger.debug(
@@ -91,33 +107,38 @@ def log_user_interactions(data: UserProfileRequest):
                 )
 
                 if recipe_embedding is None:
-                    logger.warning(f"Recipe embedding not found for item_id: {interaction.item_id}")
+                    logger.warning(f"Missing recipe embedding for item_id={interaction.item_id} (user_id={user_id})")
                     continue
 
                 weighted_sum += score * recipe_embedding
                 total_score += score
 
+
+            if total_score == 0:
+                logger.warning(f"user {user_id} has no valid interactions (total_score=0), embedding will be zero vector")
             new_embedding = weighted_sum
             if total_score > 0:
                 new_embedding = weighted_sum / total_score
 
             new_embedding = normalize_vector(new_embedding)
+            new_embedding_text = to_pgvector_text(new_embedding)
 
             if old_embedding is None:
                 final_embedding = new_embedding
                 cursor.execute(
-                    "INSERT INTO user_vector (user_id, long_term_embedding, short_term_embedding) VALUES (%s, %s, %s)",
-                    (user_id, [0.0] * EMBEDDING_DIM, final_embedding.tolist())
+                    "INSERT INTO user_vector (user_id, long_term_embedding, short_term_embedding) VALUES (%s, %s::vector, %s::vector)",
+                    (user_id, to_pgvector_text(np.zeros(EMBEDDING_DIM, dtype=np.float32)), new_embedding_text)
                 )
                 logger.info(f"Inserted new embedding for new user_id: {user_id}")
             else:
                 old_embedding = normalize_vector(old_embedding)
                 merged_embedding = MERGE_ALPHA * old_embedding + (1.0 - MERGE_ALPHA) * new_embedding
                 final_embedding = normalize_vector(merged_embedding)
+                final_embedding_text = to_pgvector_text(final_embedding)
 
                 cursor.execute(
-                    "UPDATE user_vector SET short_term_embedding = %s, updated_at = NOW() WHERE user_id = %s",
-                    (final_embedding.tolist(), user_id)
+                    "UPDATE user_vector SET short_term_embedding = %s::vector, updated_at = NOW() WHERE user_id = %s",
+                    (final_embedding_text, user_id)
                 )
                 logger.info(f"Updated embedding for existing user_id: {user_id}")
 
@@ -171,19 +192,29 @@ def get_personalized_top_k_recipe(user_id: int, k: int = 10):
                 logger.warning(f"No embedding found for user_id: {user_id}")
                 return []
 
-            user_embedding = np.asarray(result[0], dtype=np.float32)
+            user_embedding = parse_embedding(result[0])
             user_embedding = normalize_vector(user_embedding)
+            user_embedding_text = to_pgvector_text(user_embedding)
+
+            if np.linalg.norm(user_embedding) == 0:
+                logger.warning(f"user {user_id} has zero embedding, fallback to default recommendations")
+                cursor.execute(
+                    "SELECT recipe_id FROM recipe_vector LIMIT %s",
+                    (k,)
+                )
+                fallback = [(row[0], 0.0) for row in cursor.fetchall()]
+                return fallback
 
             # Vector similarity search using ivfflat index
             # <=> operator: cosine distance (dùng với vector_cosine_ops)
             cursor.execute(
                 """
-                SELECT recipe_id, embedding <=> %s AS distance
+                SELECT recipe_id, embedding <=> %s::vector AS distance
                 FROM recipe_vector
                 ORDER BY distance ASC
                 LIMIT %s
                 """,
-                (user_embedding.tolist(), k)
+                (user_embedding_text, k)
             )
             results = cursor.fetchall()
 
@@ -191,7 +222,8 @@ def get_personalized_top_k_recipe(user_id: int, k: int = 10):
             recommendations = [(row[0], float(1.0 - row[1])) for row in results]
             logger.info(f"Got top {len(recommendations)} recipes for user_id: {user_id}")
             return recommendations
-
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting personalized top k recipes for user {user_id}: {e}")
         return []
@@ -219,6 +251,8 @@ async def log_interactions(request: UpdateBatchUser):
             "success": True,
             "updated_users": len(request.users)
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to update batch user interactions: {e}")
         raise HTTPException(status_code=500, detail="Failed to update user embeddings")
@@ -246,7 +280,7 @@ async def get_top_recipes(k: int = 10):
             logger.warning("No users found in database to get top recipes for")
             return {
                 "success": True,
-                "recipes": [],
+                "result": [],
                 "count": 0
             }
         recommendations = []
@@ -263,6 +297,8 @@ async def get_top_recipes(k: int = 10):
             "result": recommendations,
             "count": len(recommendations)
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to get top recipes: {e}")
         raise HTTPException(status_code=500, detail="Failed to get top recipes")
@@ -297,6 +333,8 @@ async def get_top_recipes_for_user(user_id: int, k: int = 10):
             "result": result,
             "count": len(recommendations)
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to get top recipes for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to get top recipes for user")

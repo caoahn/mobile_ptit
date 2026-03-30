@@ -19,8 +19,21 @@ class EmbeddingRequest(BaseModel):
     text_list: Optional[List[str]] = Field(None, description="Danh sách văn bản để kết hợp embedding (nếu có)")
 
 # ======================================
+# REQUEST POST EMBEDDING SCHEMAS
+# ======================================
+
+class PostRequest(BaseModel):
+    """
+    Schema cho request gửi đến endpoint /recommend
+    """
+    post_id: int = Field(..., description="ID của bài đăng cần đề xuất")
+    image_url: str = Field(..., description="URL của ảnh trong bài đăng")
+    text: Optional[str] = Field(None, description="Nội dung văn bản của bài đăng (nếu có)")
+
+
+# ======================================
 # REQUEST RECOMMENDATION SCHEMAS
-# =======================================
+# ======================================
 class interactionsRequest(BaseModel):
     item_id: int = Field(..., description="ID của item")
     event: str = Field(..., description="Loại sự kiện (share, save, like, dwell_10s, click, skip)")
