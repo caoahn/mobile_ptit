@@ -11,6 +11,7 @@ from routers.detection import router as detection_router
 from routers.embedding import router as embedding_router
 from routers.job import router as job_router
 from routers.user import router as user_router
+from routers.post import router as post_router
 from services.yolo_service import get_detector, ModelNotFoundException
 from services.VLM_service import get_embedding_model
 
@@ -43,6 +44,7 @@ app.include_router(detection_router)
 app.include_router(embedding_router)
 app.include_router(job_router)
 app.include_router(user_router)
+app.include_router(post_router)
 
 # ==================== MIDDLEWARE LOGGING ====================
 @app.middleware("http")

@@ -18,12 +18,6 @@ def _create_vector_tables(conn: PgConnection):
     # Enable vector extension
     enable_vector_sql = "CREATE EXTENSION IF NOT EXISTS vector;"
 
-    # Drop tables if they exist with wrong schema (migration from real[] to vector)
-    drop_tables_sql = """
-    DROP TABLE IF EXISTS recipe_vector CASCADE;
-    DROP TABLE IF EXISTS user_vector CASCADE;
-    """
-
     create_user_vector_sql = """
     CREATE TABLE IF NOT EXISTS user_vector (
         user_id BIGINT PRIMARY KEY,
@@ -82,12 +76,9 @@ def _create_vector_tables(conn: PgConnection):
         cursor.execute(enable_vector_sql)
         logger.info("Vector extension enabled")
 
-        cursor.execute(drop_tables_sql)
-        logger.info("Dropped old tables if existed")
-
         cursor.execute(create_user_vector_sql)
         cursor.execute(create_recipe_vector_sql)
-        logger.info("Created new vector tables")
+        logger.info("Ensured vector tables exist")
 
         cursor.execute(create_indexes_sql)
         logger.info("Created indexes")

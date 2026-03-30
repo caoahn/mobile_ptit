@@ -12,9 +12,16 @@ Cách chạy:
 import requests
 import json
 import numpy as np
+import time
+from core.config import Config
 
-BASE_URL = "http://localhost:8000"
+config = Config()
 
+BASE_URL = "http://127.0.0.1:8000"
+TEST_IMAGE_URL = "https://ultralytics.com/images/bus.jpg"
+POLL_INTERVAL = 2
+MAX_POLL = 30
+POSTGRES_SQL = config.POSTGRES_URL
 # ==================== HELPERS ====================
 
 passed = 0
@@ -39,10 +46,32 @@ def section(title):
     print(f"{'─'*60}")
 
 def api_post(path, **kwargs):
-    return requests.post(f"{BASE_URL}{path}", timeout=30, **kwargs)
+    timeout = kwargs.pop("timeout", 30)
+    return requests.post(f"{BASE_URL}{path}", timeout=timeout, **kwargs)
 
 def api_get(path, **kwargs):
-    return requests.get(f"{BASE_URL}{path}", timeout=10, **kwargs)
+    timeout = kwargs.pop("timeout", 10)
+    return requests.get(f"{BASE_URL}{path}", timeout=timeout, **kwargs)
+
+def to_pgvector(vec):
+    return "[" + ",".join(map(str, vec)) + "]"
+
+def poll_job(status_path, job_id):
+    """Poll job status until finished/failed or timeout."""
+    for attempt in range(1, MAX_POLL + 1):
+        time.sleep(POLL_INTERVAL)
+        resp = api_get(f"{status_path}/{job_id}")
+        resp.raise_for_status()
+
+        data = resp.json()
+        status = data.get("status")
+        info(f"[{attempt}/{MAX_POLL}] status={status}")
+
+        if status in ("finished", "failed"):
+            return data
+
+    fail(f"Job did not finish after {MAX_POLL * POLL_INTERVAL}s")
+    return None
 
 # ==================== SEED TEST DATA ====================
 
@@ -88,10 +117,8 @@ def seed_test_data():
 
         # EDIT CÁI NÀY VỚI POSTGRES CREDENTIALS CỦA BẠN
         conn = psycopg2.connect(
-            host="localhost",
-            database="your_db",
-            user="your_user",
-            password="your_password"
+            POSTGRES_SQL,
+            sslmode='require'  # nếu cần
         )
         cursor = conn.cursor()
 
@@ -105,7 +132,7 @@ def seed_test_data():
         for recipe_id, embedding in test_recipes:
             cursor.execute(
                 "INSERT INTO recipe_vector (recipe_id, embedding) VALUES (%s, %s) ON CONFLICT (recipe_id) DO NOTHING",
-                (recipe_id, embedding)
+                (recipe_id, to_pgvector(embedding))
             )
         conn.commit()
         cursor.close()
@@ -185,9 +212,47 @@ def test_update_user_interactions():
         fail(f"Batch update error: {e}")
         return False
 
+def test_post_embedding_endpoint():
+    """Test POST /post/embedding and verify async job status."""
+    section("3. Post Embedding  POST /post/embedding")
+
+    try:
+        payload = {
+            "post_id": 999001,
+            "image_url": TEST_IMAGE_URL,
+            "text": "street traffic with bus"
+        }
+
+        info(f"Submitting post embedding for post_id={payload['post_id']}...")
+        resp = api_post("/post/embedding", json=payload)
+        resp.raise_for_status()
+
+        data = resp.json()
+        job_id = data.get("job_id")
+        if not job_id:
+            fail(f"Missing job_id in response: {data}")
+            return False
+
+        ok(f"Post embedding job submitted: {job_id}")
+
+        result = poll_job("/job/status_embedding", job_id)
+        if not result:
+            return False
+
+        if result.get("status") == "finished":
+            ok("Post embedding job finished")
+            return True
+
+        fail(f"Post embedding job failed: {result.get('error', 'unknown')}")
+        return False
+
+    except Exception as e:
+        fail(f"Post embedding endpoint error: {e}")
+        return False
+
 def test_get_top_recipes_all_users():
     """Test GET /user/top-recipes (all users)"""
-    section("3. Get Top Recipes for All Users  GET /user/top-recipes")
+    section("4. Get Top Recipes for All Users  GET /user/top-recipes")
 
     try:
         for k in [5, 10]:
@@ -196,6 +261,7 @@ def test_get_top_recipes_all_users():
             resp.raise_for_status()
 
             data = resp.json()
+            info(f"Response: {json.dumps(data, indent=2)}")
             if data["success"]:
                 count = data["count"]
                 ok(f"Got results for {count} users with k={k}")
@@ -218,7 +284,7 @@ def test_get_top_recipes_all_users():
 
 def test_get_top_recipes_single_user():
     """Test GET /user/top-recipes/{user_id} (single user)"""
-    section("4. Get Top Recipes for Single User  GET /user/top-recipes/{user_id}")
+    section("5. Get Top Recipes for Single User  GET /user/top-recipes/{user_id}")
 
     try:
         test_user_ids = [101, 102]
@@ -250,7 +316,7 @@ def test_get_top_recipes_single_user():
 
 def test_invalid_k():
     """Test error handling for invalid k parameter"""
-    section("5. Error Handling - Invalid k Parameter")
+    section("6. Error Handling - Invalid k Parameter")
 
     try:
         # Test k <= 0
@@ -275,7 +341,7 @@ def test_invalid_k():
 
 def test_nonexistent_user():
     """Test with non-existent user"""
-    section("6. Error Handling - Non-existent User")
+    section("7. Error Handling - Non-existent User")
 
     try:
         info("Fetching recommendations for non-existent user (user_id=99999)...")
@@ -310,9 +376,10 @@ def main():
     # Check if server is running
     try:
         resp = api_get("/health", timeout=5)
-    except:
+        resp.raise_for_status()
+    except Exception as e:
+        print("REAL ERROR:", e)
         fail("❌ API server is not running!")
-        print("\n   Start server with: uvicorn app:app --reload")
         return
 
     # Run tests
@@ -320,6 +387,7 @@ def main():
         ("Health Check", test_health),
         ("Seed Data", seed_test_data),
         ("Update User Interactions", test_update_user_interactions),
+        ("Post Embedding Endpoint", test_post_embedding_endpoint),
         ("Get Top Recipes (All Users)", test_get_top_recipes_all_users),
         ("Get Top Recipes (Single User)", test_get_top_recipes_single_user),
         ("Error Handling - Invalid k", test_invalid_k),
