@@ -57,6 +57,7 @@ export default function EditProfileScreen() {
         full_name: fullName,
         username: username,
         bio: bio,
+        email: email,
         avatar_url: image,
       });
 
@@ -66,7 +67,7 @@ export default function EditProfileScreen() {
         text2: "Profile updated successfully",
       });
 
-      setTimeout(() => router.back(), 1200);
+      setTimeout(() => router.replace("/profile"), 1200);
 
     } catch (error) {
       console.log(error);
@@ -136,7 +137,7 @@ export default function EditProfileScreen() {
 
       {/* Header */}
       <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.replace("/profile")}>
           <Text className="text-base font-medium text-gray-500">Hủy</Text>
         </TouchableOpacity>
         <Text className="text-lg font-bold text-gray-900">
