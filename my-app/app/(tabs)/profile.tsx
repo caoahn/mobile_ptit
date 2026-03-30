@@ -30,7 +30,7 @@ export default function ProfileScreen() {
   const [showSettings, setShowSettings] = useState(false);
 
   const DEFAULT_AVATAR =
-    "https://res.cloudinary.com/dkxvnzebp/image/upload/v1773670730/main-sample.png";
+  "https://res.cloudinary.com/dkxvnzebp/image/upload/v1774540103/%E1%BA%A2nh_ch%E1%BB%A5p_m%C3%A0n_h%C3%ACnh_2026-03-26_224804_ouqddw.png";
 
 
   const handleLogout = () => {
@@ -110,7 +110,7 @@ export default function ProfileScreen() {
       {/* Header */}
       <View className="flex-row items-center justify-between border-b border-white/10 bg-background-light/80 px-4 py-3">
         <TouchableOpacity onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back-ios" size={24} color="#67837f" />
+          <MaterialIcons name="arrow-back" size={24} color="#67837f" />
         </TouchableOpacity>
 
         <Text className="text-sm font-bold uppercase text-[#121716]">
@@ -118,9 +118,7 @@ export default function ProfileScreen() {
         </Text>
 
         <View className="flex-row items-center gap-4">
-          <TouchableOpacity>
-            <MaterialIcons name="share" size={24} color="#67837f" />
-          </TouchableOpacity>
+          
           <TouchableOpacity onPress={() => setShowSettings(true)}>
             <MaterialIcons name="settings" size={24} color="#67837f" />
           </TouchableOpacity>
@@ -163,8 +161,8 @@ export default function ProfileScreen() {
         {/* Stats */}
         <View className="flex-row items-center justify-between px-6 py-4">
           <View className="flex-1 items-center">
-            <Text className="text-lg font-bold">{recipes.length}</Text>
-            <Text className="text-[11px] text-[#67837f]">CÔNG THỨC</Text>
+            <Text className="text-xl font-bold">{recipes.length}</Text>
+            <Text className="text-[13px] text-[#67837f]">CÔNG THỨC</Text>
           </View>
 
           <View className="h-8 w-[1px] bg-[#dde4e3]" />
@@ -177,8 +175,8 @@ export default function ProfileScreen() {
               )
             }
           >
-            <Text className="text-lg font-bold">{user?.followers_count || 0}</Text>
-            <Text className="text-[11px] text-[#67837f]">FOLLOWERS</Text>
+            <Text className="text-xl font-bold">{user?.followers_count || 0}</Text>
+            <Text className="text-[13px] text-[#67837f]">FOLLOWERS</Text>
           </TouchableOpacity>
 
           <View className="h-8 w-[1px] bg-[#dde4e3]" />
@@ -191,8 +189,8 @@ export default function ProfileScreen() {
               )
             }
           >
-            <Text className="text-lg font-bold">{user?.following_count || 0}</Text>
-            <Text className="text-[11px] text-[#67837f]">FOLLOWING</Text>
+            <Text className="text-xl font-bold">{user?.following_count || 0}</Text>
+            <Text className="text-[13px] text-[#67837f]">FOLLOWING</Text>
           </TouchableOpacity>
         </View>
 
@@ -204,7 +202,7 @@ export default function ProfileScreen() {
               onPress={() => setActiveTab("recipes")}
               className={`flex-1 py-4 ${activeTab === "recipes" ? "border-b-2 border-primary" : ""}`}
             >
-              <Text className={`text-center text-sm ${activeTab === "recipes" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
+              <Text className={`text-center text-base ${activeTab === "recipes" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
                 Công thức
               </Text>
             </TouchableOpacity>
@@ -213,7 +211,7 @@ export default function ProfileScreen() {
               onPress={() => setActiveTab("saved")}
               className={`flex-1 py-4 ${activeTab === "saved" ? "border-b-2 border-primary" : ""}`}
             >
-              <Text className={`text-center text-sm ${activeTab === "saved" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
+              <Text className={`text-center text-base ${activeTab === "saved" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
                 Bộ sưu tập
               </Text>
             </TouchableOpacity>
@@ -223,7 +221,7 @@ export default function ProfileScreen() {
           {loading ? (
             <LoadingSpinner className="py-20 items-center justify-center" />
           ) : (
-            <View className="flex-row flex-wrap bg-white">
+            <View className="flex-row flex-wrap bg-background-light">
               {(activeTab === "recipes" ? recipes : savedRecipes).length === 0 ? (
                 <View className="w-full items-center justify-center py-16">
                   <MaterialIcons name={activeTab === "recipes" ? "restaurant-menu" : "bookmark-border"} size={48} color="#cbd5e1" />
@@ -241,7 +239,7 @@ export default function ProfileScreen() {
                   >
                     <Image
                       source={{
-                        uri: item.image_url || "https://placehold.co/150x150/png"
+                        uri: item.image_url || "https://res.cloudinary.com/dkxvnzebp/image/upload/v1774540103/%E1%BA%A2nh_ch%E1%BB%A5p_m%C3%A0n_h%C3%ACnh_2026-03-26_224804_ouqddw.png"
                       }}
                       className="h-full w-full"
                     />

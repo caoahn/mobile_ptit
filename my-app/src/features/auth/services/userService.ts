@@ -11,6 +11,7 @@ export const updateProfile = async (data: {
   full_name: string;
   username: string;
   bio: string;
+  email: string;
   avatar_url?: string;
 }) => {
   const res = await apiClient.put("/users/profile", data);
