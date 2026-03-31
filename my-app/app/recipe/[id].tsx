@@ -20,6 +20,7 @@ export default function RecipeDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showIngredients, setShowIngredients] = useState(false);
+  const [showStepsList, setShowStepsList] = useState(false);
   const [cookingMode, setCookingMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
@@ -430,7 +431,7 @@ export default function RecipeDetailScreen() {
               </Text>
 
               <TouchableOpacity
-                onPress={() => setShowIngredients(true)}
+                onPress={() => setShowStepsList(true)}
                 className="h-10 w-10 items-center justify-center rounded-full bg-gray-100"
               >
                 <MaterialIcons name="list-alt" size={24} color="#29a38f" />
@@ -526,6 +527,48 @@ export default function RecipeDetailScreen() {
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+      </Modal>
+
+      {/* Steps List Modal */}
+      <Modal
+        visible={showStepsList}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowStepsList(false)}
+      >
+        <View className="flex-1 bg-white">
+          <View className="flex-row items-center justify-between border-b border-gray-100 p-4">
+            <Text className="text-xl font-bold text-gray-900">
+              Danh sách các bước
+            </Text>
+            <TouchableOpacity onPress={() => setShowStepsList(false)}>
+              <MaterialIcons name="close" size={24} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView className="flex-1 p-4">
+            <View className="pb-8">
+              {recipe?.steps?.map((step, index) => (
+                <TouchableOpacity
+                  key={step.id}
+                  onPress={() => {
+                    setCurrentStep(index);
+                    setShowStepsList(false);
+                  }}
+                  className={`mb-3 flex-row items-center rounded-2xl p-4 ${currentStep === index ? "bg-primary/10 border border-primary/20" : "bg-gray-50"}`}
+                >
+                  <View className={`mr-4 h-8 w-8 items-center justify-center rounded-full ${currentStep === index ? "bg-primary" : "bg-gray-300"}`}>
+                    <Text className={`text-sm font-bold ${currentStep === index ? "text-white" : "text-gray-600"}`}>{index + 1}</Text>
+                  </View>
+                  <View className="flex-1">
+                    <Text className={`text-base font-bold ${currentStep === index ? "text-primary" : "text-gray-900"}`} numberOfLines={1}>Bước {index + 1}</Text>
+                    <Text className="mt-1 text-sm text-gray-500" numberOfLines={1}>{step.description}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
         </View>
       </Modal>
 

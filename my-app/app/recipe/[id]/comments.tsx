@@ -357,7 +357,7 @@ export default function CommentsScreen() {
             style={{ marginRight: 8 }}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <MaterialIcons name="chevron-left" size={28} color="#111" />
+            <MaterialIcons name="arrow-back" size={24} color="#111" />
           </TouchableOpacity>
           <View style={styles.chefAvatar}>
             {recipe.chef?.avatar_url ? (

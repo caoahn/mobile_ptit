@@ -126,7 +126,7 @@ export default function TagScreen() {
         <View className="flex-1 flex-row items-center bg-gray-100 rounded-xl px-3 py-2">
           <Text className="text-base font-bold text-gray-500 mr-1">#</Text>
           <TextInput
-            className="flex-1 text-base text-gray-900"
+            className="flex-1 text-base text-gray-900 py-0"
             placeholder="Tìm thẻ khác..."
             placeholderTextColor="#9ca3af"
             value={searchTag}
