@@ -20,7 +20,7 @@ MACHING_USER_FEED = {
 }
 
 EMBEDDING_DIM = 512
-MERGE_ALPHA = 0.5
+MERGE_ALPHA = 0.2
 
 
 # ==================== WORKER FUNCTION ====================
@@ -70,7 +70,7 @@ def log_user_interactions(data: UserProfileRequest):
                 (user_id,)
             )
             user_row = cursor.fetchone()
-
+            logger.info(f"[Worker] Fetched existing embedding for user_id={user_id}: {'found' if user_row and user_row[0] else 'not found'}")
             if user_row and user_row[0] is not None:
                 old_embedding = parse_embedding(user_row[0])
             else:
@@ -81,6 +81,7 @@ def log_user_interactions(data: UserProfileRequest):
                 return
 
             recipe_ids = list({interaction.item_id for interaction in interactions})
+            logger.info(f"[Worker] Fetching embeddings for {len(recipe_ids)} unique recipe_ids for user_id={user_id}")
             cursor.execute(
                 "SELECT recipe_id, embedding FROM recipe_vector WHERE recipe_id = ANY(%s)",
                 (recipe_ids,)
@@ -101,7 +102,7 @@ def log_user_interactions(data: UserProfileRequest):
                     logger.warning(f"Unknown or zero-weight event: {interaction.event} for user_id={user_id}, item_id={interaction.item_id}")
                 recipe_embedding = recipe_embedding_map.get(interaction.item_id)
 
-                logger.debug(
+                logger.info(
                     f"Processing interaction: user_id={user_id}, item_id={interaction.item_id}, "
                     f"event={interaction.event}, score={score}"
                 )
@@ -195,7 +196,7 @@ def get_personalized_top_k_recipe(user_id: int, k: int = 10):
             user_embedding = parse_embedding(result[0])
             user_embedding = normalize_vector(user_embedding)
             user_embedding_text = to_pgvector_text(user_embedding)
-
+            logger.info(f"User_id: {user_id} - Retrieved and normalized embedding for similarity search")
             if np.linalg.norm(user_embedding) == 0:
                 logger.warning(f"user {user_id} has zero embedding, fallback to default recommendations")
                 cursor.execute(
@@ -209,6 +210,7 @@ def get_personalized_top_k_recipe(user_id: int, k: int = 10):
             # <=> operator: cosine distance (dùng với vector_cosine_ops)
             cursor.execute(
                 """
+                SET ivfflat.probes = 10;
                 SELECT recipe_id, embedding <=> %s::vector AS distance
                 FROM recipe_vector
                 ORDER BY distance ASC
@@ -216,8 +218,9 @@ def get_personalized_top_k_recipe(user_id: int, k: int = 10):
                 """,
                 (user_embedding_text, k)
             )
+            # logger.info(f"User embedding used for similarity search: {user_embedding_text}")
             results = cursor.fetchall()
-
+            logger.info(f"User_id: {user_id} - Retrieved top {len(results)} similar recipes from database")
             # Convert distance to similarity score (1 - distance)
             recommendations = [(row[0], float(1.0 - row[1])) for row in results]
             logger.info(f"Got top {len(recommendations)} recipes for user_id: {user_id}")

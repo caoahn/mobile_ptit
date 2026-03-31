@@ -27,7 +27,7 @@ class PostRequest(BaseModel):
     Schema cho request gửi đến endpoint /recommend
     """
     post_id: int = Field(..., description="ID của bài đăng cần đề xuất")
-    image_url: str = Field(..., description="URL của ảnh trong bài đăng")
+    list_image_url: List[str] = Field(..., description="Danh sách URL của ảnh trong bài đăng")
     text: Optional[str] = Field(None, description="Nội dung văn bản của bài đăng (nếu có)")
 
 

@@ -27,7 +27,7 @@ async def post_embedding_async(
     Returns job_id immediately for status checking.
 
     Args:
-        request (PostRequest): The request containing post_id, image URL, and optional text
+        request (PostRequest): The request containing post_id, list of image URLs, and optional text
         celery: Celery app instance (injected)
 
     Returns:
@@ -37,16 +37,16 @@ async def post_embedding_async(
         logger.info(f"[Async] Received post embedding request for post_id: {request.post_id}")
 
         # Validate input
-        if not request.image_url:
+        if not request.list_image_url:
             raise HTTPException(
                 status_code=400,
-                detail="image_url is required"
+                detail="list_image_url is required"
             )
 
         # Submit Celery task (non-blocking)
         task = celery.send_task(
             process_post_embedding.name,
-            args=[request.post_id, request.image_url, [request.text] if request.text else []],
+            args=[request.post_id, request.list_image_url, [request.text] if request.text else []],
             queue="embedding_jobs",
             time_limit=config.CELERY_TASK_TIME_LIMIT,
             expires=config.CELERY_RESULT_EXPIRES,

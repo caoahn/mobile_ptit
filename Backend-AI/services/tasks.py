@@ -242,36 +242,41 @@ def process_image_embedding(image_url: str, text_list: List[str] = None) -> List
             cleanup_temp_file(temp_file_path)
 
 @shared_task(name="services.tasks.process_post_embedding")
-def process_post_embedding(post_id: int, image_url: str, text_list: List[str] = None) -> List[float]:
+def process_post_embedding(post_id: int, list_image_url: List[str], text_list: List[str] = None) -> List[float]:
     """
     Celery task for image embedding.
     """
     temp_file_path = None
 
     try:
-        logger.info(f"[Worker] Starting embedding for post {post_id}: {image_url}")
-        temp_file_path = download_image_from_url(image_url)
+        logger.info(f"[Worker] Starting embedding for post {post_id}")
+        embedding_list = []
+        for image_url in list_image_url:
+            temp_file_path = download_image_from_url(image_url)
 
-        embedding_model = get_embedding_model()
+            embedding_model = get_embedding_model()
 
-        with torch.no_grad():
-            logger.debug(f"Extracting features for image: {image_url} with text_list: {text_list}")
-            features = embedding_model.extract_features(temp_file_path, text_list)
+            with torch.no_grad():
+                logger.debug(f"Extracting features for image: {image_url} with text_list: {text_list}")
+                features = embedding_model.extract_features(temp_file_path, text_list)
 
-        embedding = features.detach().cpu().numpy().astype(np.float32)[0]
+            embedding = features.detach().cpu().numpy().astype(np.float32)[0]
+            embedding_list.append(embedding)
 
-        embedding_list = embedding.tolist()
+
+        final_embedding = np.mean(embedding_list, axis=0)
+        embedding_final = final_embedding.tolist()
         recipe_id = post_id
-        _upsert_recipe_vector(recipe_id=recipe_id, embedding=embedding_list)
+        _upsert_recipe_vector(recipe_id=recipe_id, embedding=embedding_final)
 
         logger.info(f"[Worker] Embedding completed and stored for recipe_id={recipe_id}")
-        return embedding_list
+        return embedding_final
 
     except InvalidImageException as e:
         logger.error(f"[Worker] Invalid image: {e}")
         raise
     except Exception as e:
-        logger.exception(f"[Worker] Embedding failed for {image_url}: {e}")
+        logger.exception(f"[Worker] Embedding failed for post {post_id}: {e}")
         raise
     finally:
         if temp_file_path:
