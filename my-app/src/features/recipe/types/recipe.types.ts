@@ -4,6 +4,7 @@ export interface Chef {
   id: number;
   username: string;
   avatar_url?: string;
+  full_name?: string;
 }
 
 export interface Tag {

@@ -293,7 +293,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
           </View>
           <View>
             <Text className="text-base font-bold">
-              {recipe.chef?.username || "Ẩn danh"}
+              {recipe.chef?.full_name || recipe.chef?.username || "Ẩn danh"}
             </Text>
             <Text className="text-sm text-gray-500">{recipe.category}</Text>
             {/* <Text className="text-sm text-gray-500">

@@ -73,6 +73,7 @@ export class RecipeService implements IRecipeService {
             id: raw.chef.id,
             username: raw.chef.username,
             avatar_url: raw.chef.avatar_url,
+            full_name: raw.chef.full_name,
           }
         : undefined,
       ingredients: raw.ingredients
@@ -130,6 +131,7 @@ export class RecipeService implements IRecipeService {
             id: raw.chef.id,
             username: raw.chef.username,
             avatar_url: raw.chef.avatar_url,
+            full_name: raw.chef.full_name,
           }
         : undefined,
       tags: raw.tags

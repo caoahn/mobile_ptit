@@ -143,7 +143,7 @@ export class RecipeRepository implements IRecipeRepository {
         {
           model: User,
           as: "chef",
-          attributes: ["id", "username", "avatar_url"],
+          attributes: ["id", "username", "avatar_url", "full_name"],
         },
         { model: Ingredient, as: "ingredients" },
         { model: RecipeStep, as: "steps" },
@@ -160,7 +160,7 @@ export class RecipeRepository implements IRecipeRepository {
         {
           model: User,
           as: "chef",
-          attributes: ["id", "username", "avatar_url"],
+          attributes: ["id", "username", "avatar_url", "full_name"],
         },
         { model: Ingredient, as: "ingredients" },
         { model: RecipeStep, as: "steps" },
@@ -335,7 +335,7 @@ export class RecipeRepository implements IRecipeRepository {
         {
           model: User,
           as: "chef",
-          attributes: ["id", "username", "avatar_url"],
+          attributes: ["id", "username", "avatar_url", "full_name"],
         },
         { model: Ingredient, as: "ingredients" },
         { model: RecipeStep, as: "steps" },
@@ -393,7 +393,7 @@ export class RecipeRepository implements IRecipeRepository {
         {
           model: User,
           as: "chef",
-          attributes: ["id", "username", "avatar_url"],
+          attributes: ["id", "username", "avatar_url", "full_name"],
         },
         { model: Ingredient, as: "ingredients" },
         { model: RecipeStep, as: "steps" },
@@ -447,7 +447,7 @@ export class RecipeRepository implements IRecipeRepository {
             {
               model: User,
               as: "chef",
-              attributes: ["id", "username", "avatar_url"],
+              attributes: ["id", "username", "avatar_url", "full_name"],
             },
             { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
           ],

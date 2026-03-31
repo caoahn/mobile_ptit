@@ -23,6 +23,7 @@ export interface ChefResponse {
   id: number;
   username: string;
   avatar_url?: string;
+  full_name?: string;
 }
 
 export interface RecipeResponse {
