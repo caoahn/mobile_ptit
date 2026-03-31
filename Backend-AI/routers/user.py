@@ -20,7 +20,7 @@ MACHING_USER_FEED = {
 }
 
 EMBEDDING_DIM = 512
-MERGE_ALPHA = 0.5
+MERGE_ALPHA = 0.2
 
 
 # ==================== WORKER FUNCTION ====================
