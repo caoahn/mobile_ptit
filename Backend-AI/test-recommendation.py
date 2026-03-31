@@ -219,7 +219,7 @@ def test_post_embedding_endpoint():
     try:
         payload = {
             "post_id": 999001,
-            "image_url": TEST_IMAGE_URL,
+            "list_image_url": [TEST_IMAGE_URL],
             "text": "street traffic with bus"
         }
 
