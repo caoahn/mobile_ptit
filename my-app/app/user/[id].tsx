@@ -110,7 +110,7 @@ export default function PublicProfileScreen() {
       {/* Header */}
       <View className="flex-row items-center justify-between border-b border-white/10 bg-background-light/80 px-4 py-3 backdrop-blur-md">
         <TouchableOpacity onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back-ios" size={24} color="#67837f" />
+          <MaterialIcons name="arrow-back" size={24} color="#67837f" />
         </TouchableOpacity>
         <Text className="text-sm font-bold tracking-tight text-[#121716]">
           @{profile.username}
@@ -147,7 +147,7 @@ export default function PublicProfileScreen() {
           <Text className="mb-1 text-2xl font-extrabold tracking-tight text-[#121716]">
             {profile.full_name || profile.username}
           </Text>
-          <Text className="mb-1 text-sm font-light text-[#67837f] ]">
+          <Text className="mb-1 text-sm text-[#67837f]">
             {profile.bio || "Chưa có tiểu sử"}
           </Text>
           {profile.is_verified && (
@@ -163,35 +163,35 @@ export default function PublicProfileScreen() {
         {/* Stats */}
         <View className="relative flex-row items-center justify-between px-6 py-4">
           <View className="flex-1 flex-col items-center">
-            <Text className="text-lg font-bold text-[#121716]">
+            <Text className="text-xl font-bold text-[#121716]">
               {profile.recipes_count || recipes.length || 0}
             </Text>
-            <Text className="text-[11px] font-medium uppercase tracking-widest text-[#67837f]">
-              Công thức
+            <Text className="text-[13px] text-[#67837f]">
+              CÔNG THỨC
             </Text>
           </View>
-          <View className="h-8 w-[1px] bg-[#dde4e3] ]" />
+          <View className="h-8 w-[1px] bg-[#dde4e3]" />
           <TouchableOpacity
             className="flex-1 flex-col items-center"
             onPress={() => router.push(`/connection?type=followers&username=${profile.full_name || profile.username}&userId=${id}` as any)}
           >
-            <Text className="text-lg font-bold text-[#121716]">
+            <Text className="text-xl font-bold text-[#121716]">
               {profile.followers_count || 0}
             </Text>
-            <Text className="text-[11px] font-medium uppercase tracking-widest text-[#67837f]">
-              Followers
+            <Text className="text-[13px] text-[#67837f]">
+              FOLLOWERS
             </Text>
           </TouchableOpacity>
-          <View className="h-8 w-[1px] bg-[#dde4e3] ]" />
+          <View className="h-8 w-[1px] bg-[#dde4e3]" />
           <TouchableOpacity
             className="flex-1 flex-col items-center"
             onPress={() => router.push(`/connection?type=following&username=${profile.full_name || profile.username}&userId=${id}` as any)}
           >
-            <Text className="text-lg font-bold text-[#121716]">
+            <Text className="text-xl font-bold text-[#121716]">
               {profile.following_count || 0}
             </Text>
-            <Text className="text-[11px] font-medium uppercase tracking-widest text-[#67837f]">
-              Following
+            <Text className="text-[13px] text-[#67837f]">
+              FOLLOWING
             </Text>
           </TouchableOpacity>
         </View>
@@ -214,12 +214,12 @@ export default function PublicProfileScreen() {
 
         {/* Tabs */}
         <View className="mt-2">
-          <View className="flex-row border-b border-[#dde4e3] px-6 ]">
+          <View className="flex-row border-b border-[#dde4e3] px-6">
             <TouchableOpacity 
               className={`flex-1 py-4 ${activeTab === "recipes" ? "border-b-2 border-primary" : ""}`}
               onPress={() => setActiveTab("recipes")}
             >
-              <Text className={`text-center text-sm tracking-tight ${activeTab === "recipes" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
+              <Text className={`text-center text-base ${activeTab === "recipes" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
                 Công thức
               </Text>
             </TouchableOpacity>
@@ -227,7 +227,7 @@ export default function PublicProfileScreen() {
               className={`flex-1 py-4 ${activeTab === "saved" ? "border-b-2 border-primary" : ""}`}
               onPress={() => setActiveTab("saved")}
             >
-              <Text className={`text-center text-sm tracking-tight ${activeTab === "saved" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
+              <Text className={`text-center text-base ${activeTab === "saved" ? "font-bold text-[#121716]" : "font-medium text-[#67837f]"}`}>
                 Bộ sưu tập
               </Text>
             </TouchableOpacity>

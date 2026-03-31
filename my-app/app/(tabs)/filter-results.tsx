@@ -77,7 +77,7 @@ export default function FilterResultsScreen() {
       <StatusBar barStyle="dark-content" />
       {/* Header */}
       <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.push("/filter" as Href)}>
           <MaterialIcons name="arrow-back" size={24} color="#121716" />
         </TouchableOpacity>
         <Text className="text-lg font-bold text-gray-900">
