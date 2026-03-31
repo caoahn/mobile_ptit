@@ -79,6 +79,7 @@ export class RecipeRepository implements IRecipeRepository {
     category?: string,
     time?: string,
     sort?: string,
+    tag?: string
   ): Promise<{ rows: Recipe[]; count: number }> {
     const whereClause: any = {};
 
@@ -110,6 +111,30 @@ export class RecipeRepository implements IRecipeRepository {
       ];
     }
 
+    let tagsInclude: any = {
+      model: Tag,
+      as: "tags",
+      attributes: ["id", "name", "slug"],
+    };
+
+    if (tag) {
+      const matchingRecipes = await Recipe.findAll({
+        attributes: ["id"],
+        include: [
+          {
+            model: Tag,
+            as: "tags",
+            attributes: [],
+            where: {
+              [Op.or]: [{ slug: tag }, { name: tag }],
+            },
+          },
+        ],
+      });
+      const recipeIds = matchingRecipes.map((r) => r.id);
+      whereClause.id = { [Op.in]: recipeIds };
+    }
+
     return Recipe.findAndCountAll({
       where: whereClause,
       limit,
@@ -122,7 +147,7 @@ export class RecipeRepository implements IRecipeRepository {
         },
         { model: Ingredient, as: "ingredients" },
         { model: RecipeStep, as: "steps" },
-        { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
+        tagsInclude,
       ],
       order: orderClause,
       distinct: true,

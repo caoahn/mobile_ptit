@@ -172,14 +172,16 @@ export class RecipeService implements IRecipeService {
     category?: string,
     userId?: number,
     time?: string,
-    sort?: string
+    sort?: string,
+    tag?: string
   ): Promise<GetFeedResponse> {
     const { rows, count } = await this.recipeRepository.findAll(
       page,
       limit,
       category,
       time,
-      sort
+      sort,
+      tag
     );
 
     const recipes = await Promise.all(

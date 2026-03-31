@@ -25,6 +25,7 @@ export class RecipeController {
       const category = req.query.category as string;
       const time = req.query.time as string;
       const sort = req.query.sort as string;
+      const tag = req.query.tag as string;
       const userId = (req as any).user?.id; // Optional auth
 
       const result = await this.recipeService.getFeed(
@@ -33,7 +34,8 @@ export class RecipeController {
         category,
         userId,
         time,
-        sort
+        sort,
+        tag
       );
       res.json(result);
     } catch (error) {

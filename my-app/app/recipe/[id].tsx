@@ -227,11 +227,15 @@ export default function RecipeDetailScreen() {
             {recipe.tags && recipe.tags.length > 0 && (
               <View className="flex-row flex-wrap px-4 pb-4">
                 {recipe.tags.map((tag) => (
-                  <View key={tag.id} className="mb-2 mr-2 rounded-full bg-blue-50 px-3 py-1">
+                  <TouchableOpacity 
+                    key={tag.id} 
+                    className="mb-2 mr-2 rounded-full bg-blue-50 px-3 py-1"
+                    onPress={() => router.push(`/tag/${tag.slug || tag.name}` as any)}
+                  >
                     <Text className="text-xs font-medium text-blue-600">
                       #{tag.name}
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             )}

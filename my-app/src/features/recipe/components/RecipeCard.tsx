@@ -25,6 +25,18 @@ interface RecipeCardProps {
   onUpdate?: () => void;
 }
 
+const formatTimeAgo = (dateString: string): string => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return "vừa xong";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} phút`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} giờ`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} ngày`;
+  return `${Math.floor(seconds / 604800)} tuần`;
+};
+
 export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   const router = useRouter();
   const { user: currentUser } = useAuthStore();
@@ -37,6 +49,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   const [likedUsers, setLikedUsers] = useState<RecipeLikeUser[]>([]);
   const [loadingLikes, setLoadingLikes] = useState(false);
   const [followLoadingUserId, setFollowLoadingUserId] = useState<number | null>(null);
+  const [isTagsExpanded, setIsTagsExpanded] = useState(false);
   const backdropOpacity = React.useRef(new Animated.Value(0)).current;
   const sheetTranslateY = React.useRef(new Animated.Value(36)).current;
   const sheetOpacity = React.useRef(new Animated.Value(0)).current;
@@ -283,6 +296,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
               {recipe.chef?.username || "Ẩn danh"}
             </Text>
             <Text className="text-sm text-gray-500">{recipe.category}</Text>
+            {/* <Text className="text-sm text-gray-500">
+              {recipe.category ? `${recipe.category} • ` : ""}
+              {formatTimeAgo(recipe.created_at)}
+            </Text> */}
           </View>
         </TouchableOpacity>
         <TouchableOpacity>
@@ -360,19 +377,21 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
         </Text>
         {recipe.tags && recipe.tags.length > 0 && (
           <View className="mt-1 flex-row flex-wrap items-center gap-1 overflow-hidden">
-            {recipe.tags.slice(0, 3).map((tag) => (
-              <View key={tag.id}>
-                <Text className="text-base text-blue-600">
-                  #{tag.name}
-                </Text>
-              </View>
+            {(isTagsExpanded ? recipe.tags : recipe.tags.slice(0, 3)).map((tag) => (
+              <TouchableOpacity 
+                key={tag.id}
+                onPress={() => router.push(`/tag/${tag.slug || tag.name}` as any)}
+              >
+                <Text className="text-base text-blue-600">#{tag.name}</Text>
+              </TouchableOpacity>
             ))}
-            {recipe.tags.length > 3 && (
-              <View className="rounded-full bg-gray-100 px-2 py-0.3">
-                <Text className="text-base font-medium text-gray-600">
-                  +{recipe.tags.length - 3}
-                </Text>
-              </View>
+            {!isTagsExpanded && recipe.tags.length > 3 && (
+              <TouchableOpacity 
+                className="rounded-full bg-gray-100 px-2 py-0.3"
+                onPress={() => setIsTagsExpanded(true)}
+              >
+                <Text className="text-base font-medium text-gray-600">+{recipe.tags.length - 3}</Text>
+              </TouchableOpacity>
             )}
           </View>
         )}

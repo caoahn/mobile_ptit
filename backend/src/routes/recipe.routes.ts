@@ -17,6 +17,11 @@ const updateController = container.resolve<UpdateRecipeController>(
  *   get:
  *     summary: Get recipe feed
  *     tags: [Recipes]
+ *     parameters:
+ *       - in: query
+ *         name: tag
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: List of recipes
@@ -29,6 +34,11 @@ recipeRouter.get("/", authMiddleware, recipeController.getFeed);
  *   get:
  *     summary: Get recipe feed
  *     tags: [Recipes]
+ *     parameters:
+ *       - in: query
+ *         name: tag
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: List of recipes

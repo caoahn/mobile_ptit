@@ -19,7 +19,8 @@ export interface IRecipeService {
     category?: string,
     userId?: number,
     time?: string,
-    sort?: string
+    sort?: string,
+    tag?: string
   ): Promise<GetFeedResponse>;
   getFollowingFeed(
     userId: number,

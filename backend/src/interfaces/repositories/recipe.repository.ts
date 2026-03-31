@@ -18,7 +18,8 @@ export interface IRecipeRepository {
     limit: number,
     category?: string,
     time?: string,
-    sort?: string
+    sort?: string,
+    tag?: string
   ): Promise<{ rows: Recipe[]; count: number }>;
   findById(id: number): Promise<Recipe | null>;
   update(id: number, data: Partial<RecipeAttributes>): Promise<Recipe | null>;
