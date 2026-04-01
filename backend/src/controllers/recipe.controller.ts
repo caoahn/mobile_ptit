@@ -35,7 +35,32 @@ export class RecipeController {
         userId,
         time,
         sort,
-        tag
+        tag,
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getRecommendedFeed = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const userId = (req as any).user.id as number;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+      const seenIds = ((req.query.seen as string) || "")
+        .split(",")
+        .map(Number)
+        .filter((n) => !isNaN(n) && n > 0);
+      const result = await this.recipeService.getRecommendedFeed(
+        userId,
+        page,
+        limit,
+        seenIds,
       );
       res.json(result);
     } catch (error) {
@@ -72,10 +97,7 @@ export class RecipeController {
       }
 
       const userId = (req as any).user?.id; // Optional auth
-      const result = await this.recipeService.getRecipeDetail(
-        recipeId,
-        userId,
-      );
+      const result = await this.recipeService.getRecipeDetail(recipeId, userId);
       if (!result) {
         return res.status(404).json({ message: "Recipe not found" });
       }

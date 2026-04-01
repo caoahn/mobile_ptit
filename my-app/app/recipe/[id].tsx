@@ -13,6 +13,7 @@ import {
 import { getRecipeById, toggleSave } from "@/src/features/recipe/services/recipeService";
 import { LoadingSpinner } from "@/src/shared/components";
 import { RecipeDetail } from "@/src/features/recipe/types/recipe.types";
+import { useRecommendationStore } from "@/src/features/recommendation/store/recommendationStore";
 
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -25,6 +26,8 @@ export default function RecipeDetailScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const { trackInteraction } = useRecommendationStore();
+  const viewStartRef = React.useRef<number>(Date.now());
 
   const loadRecipe = useCallback(async () => {
     try {
@@ -45,6 +48,17 @@ export default function RecipeDetailScreen() {
       loadRecipe();
     }
   }, [id, loadRecipe]);
+
+  // Track view duration when leaving the screen
+  useEffect(() => {
+    viewStartRef.current = Date.now();
+    return () => {
+      const duration_s = Math.round((Date.now() - viewStartRef.current) / 1000);
+      if (duration_s > 0) {
+        trackInteraction({ recipe_id: Number(id), event: "view", duration_s });
+      }
+    };
+  }, [id]);
 
   useEffect(() => {
     if (recipe) {
@@ -228,8 +242,8 @@ export default function RecipeDetailScreen() {
             {recipe.tags && recipe.tags.length > 0 && (
               <View className="flex-row flex-wrap px-4 pb-4">
                 {recipe.tags.map((tag) => (
-                  <TouchableOpacity 
-                    key={tag.id} 
+                  <TouchableOpacity
+                    key={tag.id}
                     className="mb-2 mr-2 rounded-full bg-blue-50 px-3 py-1"
                     onPress={() => router.push(`/tag/${tag.slug || tag.name}` as any)}
                   >

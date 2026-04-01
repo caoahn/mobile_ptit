@@ -18,6 +18,7 @@ import { Recipe, RecipeLikeUser } from "../types/recipe.types";
 import { followUser, unfollowUser } from "../../auth/services/userService";
 import { getRecipeLikes, toggleLike, toggleSave } from "../services/recipeService";
 import { useAuthStore } from "../../auth/store/authStore";
+import { useRecommendationStore } from "../../recommendation/store/recommendationStore";
 import { LoadingSpinner } from "@/src/shared/components";
 
 interface RecipeCardProps {
@@ -40,6 +41,7 @@ const formatTimeAgo = (dateString: string): string => {
 export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   const router = useRouter();
   const { user: currentUser } = useAuthStore();
+  const { trackInteraction } = useRecommendationStore();
   const [isLiked, setIsLiked] = useState(recipe.is_liked || false);
   const [isSaved, setIsSaved] = useState(recipe.is_saved || false);
   const [likesCount, setLikesCount] = useState(recipe.likes_count);
@@ -115,9 +117,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
       setLoadingLikes(true);
       const response = await getRecipeLikes(recipe.id);
       const sortedUsers = [...response.users].sort((a, b) => {
-        if (a.is_current_user) return -1; 
-        if (b.is_current_user) return 1;  
-        return 0; 
+        if (a.is_current_user) return -1;
+        if (b.is_current_user) return 1;
+        return 0;
       });
 
       setLikedUsers(sortedUsers);
@@ -138,6 +140,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
       const result = await toggleLike(recipe.id);
       setIsLiked(result.liked);
       setLikesCount((prev) => (result.liked ? prev + 1 : prev - 1));
+      if (result.liked) {
+        trackInteraction({ recipe_id: recipe.id, event: "like" });
+      }
       if (likesModalVisible) {
         await loadRecipeLikes();
       }
@@ -150,6 +155,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
     try {
       const result = await toggleSave(recipe.id);
       setIsSaved(result.saved);
+      if (result.saved) {
+        trackInteraction({ recipe_id: recipe.id, event: "save" });
+      }
     } catch (error) {
       console.error("Failed to toggle save:", error);
     }
@@ -378,7 +386,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
         {recipe.tags && recipe.tags.length > 0 && (
           <View className="mt-1 flex-row flex-wrap items-center gap-1 overflow-hidden">
             {(isTagsExpanded ? recipe.tags : recipe.tags.slice(0, 3)).map((tag) => (
-              <TouchableOpacity 
+              <TouchableOpacity
                 key={tag.id}
                 onPress={() => router.push(`/tag/${tag.slug || tag.name}` as any)}
               >
@@ -386,7 +394,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
               </TouchableOpacity>
             ))}
             {!isTagsExpanded && recipe.tags.length > 3 && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 className="rounded-full bg-gray-100 px-2 py-0.3"
                 onPress={() => setIsTagsExpanded(true)}
               >

@@ -16,6 +16,8 @@ import {
   RecipeLikeUserResponse,
 } from "../dto/recipe/likes.response";
 import { INotificationService } from "../interfaces/services/notification.service";
+import { IRecommendationService } from "../interfaces/services/recommendation.service";
+import { RecommendedFeedResponse } from "../interfaces/services/recipe.service";
 
 export class RecipeService implements IRecipeService {
   constructor(
@@ -23,6 +25,7 @@ export class RecipeService implements IRecipeService {
     private readonly notificationService: INotificationService,
     private readonly commentRepository: ICommentRepository,
     private readonly likeRepository: ILikeRepository,
+    private readonly recommendationService: IRecommendationService,
   ) {}
 
   private async getRecipeCounts(
@@ -165,6 +168,14 @@ export class RecipeService implements IRecipeService {
       steps,
       tags,
     );
+
+    // Fire-and-forget: send embedding to AI service (do not block response)
+    this.recommendationService.sendPostEmbedding(
+      created.id,
+      data.image_url ?? "",
+      data.title,
+    );
+
     return this.toDTO(created, userId);
   }
 
@@ -175,7 +186,7 @@ export class RecipeService implements IRecipeService {
     userId?: number,
     time?: string,
     sort?: string,
-    tag?: string
+    tag?: string,
   ): Promise<GetFeedResponse> {
     const { rows, count } = await this.recipeRepository.findAll(
       page,
@@ -183,7 +194,7 @@ export class RecipeService implements IRecipeService {
       category,
       time,
       sort,
-      tag
+      tag,
     );
 
     const recipes = await Promise.all(
@@ -197,6 +208,55 @@ export class RecipeService implements IRecipeService {
       limit,
       hasMore: page * limit < count,
     };
+  }
+
+  async getRecommendedFeed(
+    userId: number,
+    page: number = 1,
+    limit: number = 10,
+    seenIds: number[] = [],
+  ): Promise<RecommendedFeedResponse> {
+    try {
+      // Request pool large enough to still have 'limit' items after filtering seen
+      const poolSize = page * limit + seenIds.length + 1;
+      const recResult = await this.recommendationService.getRecommendations(
+        userId,
+        poolSize,
+      );
+      console.log("result from recommendation service:", recResult);
+      if (recResult.count > 0) {
+        // Deduplicate AI results, then remove already-seen IDs
+        const deduped = new Set<number>();
+        const seenSet = new Set<number>(seenIds);
+        const freshIds = recResult.recommendations
+          .map((r) => r.recipe_id)
+          .filter((id) => {
+            if (deduped.has(id) || seenSet.has(id)) return false;
+            deduped.add(id);
+            return true;
+          });
+        const hasNextPage = freshIds.length > limit;
+        const pageIds = freshIds.slice(0, limit);
+        const rows = await this.recipeRepository.findByIds(pageIds);
+        const recipes = await Promise.all(
+          rows.map((r) => this.toFeedItemDTO(r, userId)),
+        );
+        return {
+          source: "rec",
+          recipes,
+          total: recResult.count,
+          page,
+          limit,
+          hasMore: hasNextPage,
+        };
+      }
+    } catch {
+      // AI service unavailable — fall through to regular feed
+    }
+
+    // Fallback: regular feed
+    const feedResult = await this.getFeed(page, limit, undefined, userId);
+    return { ...feedResult, source: "feed" };
   }
 
   async getRecipeDetail(

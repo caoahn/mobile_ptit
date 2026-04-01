@@ -10,4 +10,9 @@ export interface IRecommendationService {
     userId: number,
     k?: number,
   ): Promise<RecommendationResponse>;
+  sendPostEmbedding(
+    recipeId: number,
+    imageUrl: string,
+    text: string,
+  ): Promise<void>;
 }

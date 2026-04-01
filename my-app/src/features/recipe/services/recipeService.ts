@@ -5,10 +5,29 @@ import {
   RecipeDetail,
   CreateRecipeRequest,
   FeedResponse,
+  RecommendedFeedResponse,
   Comment,
   CommentsResponse,
   RecipeLikesResponse,
 } from "../types/recipe.types";
+
+export const getRecommendedFeed = async (
+  page: number = 1,
+  limit: number = 10,
+  seenIds: number[] = [],
+): Promise<RecommendedFeedResponse> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  if (seenIds.length > 0) {
+    params.set("seen", seenIds.join(","));
+  }
+  const response = await apiClient.get<RecommendedFeedResponse>(
+    `/recipes/recommended?${params.toString()}`,
+  );
+  return response.data;
+};
 
 export const getFeed = async (
   page: number = 1,
@@ -28,10 +47,14 @@ export const getFeed = async (
 };
 
 export const getSavedRecipes = async (): Promise<Recipe[]> => {
-  const response = await apiClient.get('/users/me/saved');
+  const response = await apiClient.get("/users/me/saved");
   const payload = response.data?.data;
-  const savedData = Array.isArray(payload) ? payload : (payload?.recipes || response.data?.recipes || response.data || []);
-  const mappedSaved = Array.isArray(savedData) ? savedData.map((item: any) => item.recipe ? item.recipe : item) : [];
+  const savedData = Array.isArray(payload)
+    ? payload
+    : payload?.recipes || response.data?.recipes || response.data || [];
+  const mappedSaved = Array.isArray(savedData)
+    ? savedData.map((item: any) => (item.recipe ? item.recipe : item))
+    : [];
   return mappedSaved as Recipe[];
 };
 

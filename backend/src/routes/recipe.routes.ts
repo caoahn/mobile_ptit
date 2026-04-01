@@ -47,6 +47,31 @@ recipeRouter.get("/feed", authMiddleware, recipeController.getFeed);
 
 /**
  * @swagger
+ * /recipes/recommended:
+ *   get:
+ *     summary: Get personalized feed - AI recommendations or regular feed fallback
+ *     tags: [Recipes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: k
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Max number of AI recommendations to return
+ *     responses:
+ *       200:
+ *         description: Feed with source field indicating rec or feed mode
+ */
+recipeRouter.get(
+  "/recommended",
+  authMiddleware,
+  recipeController.getRecommendedFeed,
+);
+
+/**
+ * @swagger
  * /recipes/search:
  *   get:
  *     summary: Search recipes by name or ingredient

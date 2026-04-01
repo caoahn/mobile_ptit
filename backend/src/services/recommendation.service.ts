@@ -63,4 +63,28 @@ export class RecommendationService implements IRecommendationService {
       count: raw.length,
     };
   }
+
+  async sendPostEmbedding(
+    recipeId: number,
+    imageUrl: string,
+    text: string,
+  ): Promise<void> {
+    try {
+      await axios.post(
+        `${this.aiBaseUrl}/post/embedding`,
+        {
+          post_id: recipeId,
+          list_image_url: imageUrl ? [imageUrl] : [],
+          text: text || undefined,
+        },
+        { headers: this.headers, timeout: 15_000 },
+      );
+    } catch (err) {
+      // Fire-and-forget: log but do not fail recipe creation
+      console.error(
+        `[RecommendationService] sendPostEmbedding failed for recipe ${recipeId}:`,
+        (err as any)?.message,
+      );
+    }
+  }
 }

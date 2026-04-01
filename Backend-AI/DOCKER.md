@@ -149,7 +149,7 @@ curl http://localhost:8000/health
 Expected response:
 
 ```json
-{"status": "healthy", "model_loaded": true, "redis_connected": true}
+{ "status": "healthy", "model_loaded": true, "redis_connected": true }
 ```
 
 ## Bước 5: Chạy Celery Worker (Terminal 2)
@@ -196,14 +196,14 @@ curl http://localhost:8000/job/status_detection/{job_id}
 
 ## Biến môi trường quan trọng
 
-| Biến | Default | Ghi chú |
-|------|---------|--------|
-| `REDIS_URL` | `redis://localhost:6379/0` | Nơi queue chạy |
-| `MODEL_PATH` | `/models/yolo11n.pt` | Đường dẫn model YOLO |
-| `POSTGRES_URL` | **(bắt buộc)** | Database connection |
-| `LOG_LEVEL` | `INFO` | DEBUG/INFO/WARNING |
-| `CELERY_TASK_TIME_LIMIT` | `300` | Hard timeout task (giây) |
-| `CELERY_RESULT_EXPIRES` | `3600` | TTL kết quả task trong Redis (giây) |
+| Biến                     | Default                    | Ghi chú                             |
+| ------------------------ | -------------------------- | ----------------------------------- |
+| `REDIS_URL`              | `redis://localhost:6379/0` | Nơi queue chạy                      |
+| `MODEL_PATH`             | `/models/yolo11n.pt`       | Đường dẫn model YOLO                |
+| `POSTGRES_URL`           | **(bắt buộc)**             | Database connection                 |
+| `LOG_LEVEL`              | `INFO`                     | DEBUG/INFO/WARNING                  |
+| `CELERY_TASK_TIME_LIMIT` | `300`                      | Hard timeout task (giây)            |
+| `CELERY_RESULT_EXPIRES`  | `3600`                     | TTL kết quả task trong Redis (giây) |
 
 Nếu thiếu `POSTGRES_URL` hoặc `REDIS_URL`, API sẽ lỗi ngay khi startup.
 
@@ -216,6 +216,7 @@ Error: Failed to connect to Redis at: redis://localhost:6379/0
 ```
 
 **Giải pháp**:
+
 - Kiểm tra Redis đang chạy
 - Kiểm tra `REDIS_URL` đúng
 
@@ -234,6 +235,7 @@ ModelNotFoundException: Model file not found at: models/yolo11n.pt
 ```
 
 **Giải pháp**:
+
 - Xác nhận file tồn tại: `ls models/`
 - Xác nhận `MODEL_PATH` đúng tên file
 

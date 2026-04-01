@@ -60,6 +60,10 @@ export interface FeedResponse {
   hasMore: boolean;
 }
 
+export interface RecommendedFeedResponse extends FeedResponse {
+  source: "rec" | "feed";
+}
+
 export interface Comment {
   id: number;
   content: string;

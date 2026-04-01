@@ -79,7 +79,7 @@ export class RecipeRepository implements IRecipeRepository {
     category?: string,
     time?: string,
     sort?: string,
-    tag?: string
+    tag?: string,
   ): Promise<{ rows: Recipe[]; count: number }> {
     const whereClause: any = {};
 
@@ -167,6 +167,26 @@ export class RecipeRepository implements IRecipeRepository {
         { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
       ],
     });
+  }
+
+  async findByIds(ids: number[]): Promise<Recipe[]> {
+    if (ids.length === 0) return [];
+    const rows = await Recipe.findAll({
+      where: { id: { [Op.in]: ids } },
+      include: [
+        {
+          model: User,
+          as: "chef",
+          attributes: ["id", "username", "avatar_url", "full_name"],
+        },
+        { model: Ingredient, as: "ingredients" },
+        { model: RecipeStep, as: "steps" },
+        { model: Tag, as: "tags", attributes: ["id", "name", "slug"] },
+      ],
+    });
+    // Preserve ranked order from AI
+    const map = new Map(rows.map((r) => [r.id, r]));
+    return ids.map((id) => map.get(id)).filter(Boolean) as Recipe[];
   }
 
   async update(

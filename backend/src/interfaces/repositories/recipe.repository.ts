@@ -19,7 +19,7 @@ export interface IRecipeRepository {
     category?: string,
     time?: string,
     sort?: string,
-    tag?: string
+    tag?: string,
   ): Promise<{ rows: Recipe[]; count: number }>;
   findById(id: number): Promise<Recipe | null>;
   update(id: number, data: Partial<RecipeAttributes>): Promise<Recipe | null>;
@@ -41,10 +41,8 @@ export interface IRecipeRepository {
   saveRecipe(userId: number, recipeId: number): Promise<void>;
   unsaveRecipe(userId: number, recipeId: number): Promise<void>;
   getSavedRecipes(userId: number): Promise<Recipe[]>;
-  replaceSteps(
-    recipeId: number,
-    steps: any[],
-  ): Promise<void>;
+  findByIds(ids: number[]): Promise<Recipe[]>;
+  replaceSteps(recipeId: number, steps: any[]): Promise<void>;
   replaceIngredients(recipeId: number, ingredients: any[]): Promise<void>;
   replaceTags(recipeId: number, tags: string[]): Promise<void>;
 }

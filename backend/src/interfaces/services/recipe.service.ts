@@ -8,6 +8,10 @@ import { GetFeedResponse } from "../../dto/recipe/feed.response";
 import { GetCommentsResponse } from "../../dto/recipe/comments.response";
 import { GetRecipeLikesResponse } from "../../dto/recipe/likes.response";
 
+export interface RecommendedFeedResponse extends GetFeedResponse {
+  source: "rec" | "feed";
+}
+
 export interface IRecipeService {
   createRecipe(
     userId: number,
@@ -20,8 +24,14 @@ export interface IRecipeService {
     userId?: number,
     time?: string,
     sort?: string,
-    tag?: string
+    tag?: string,
   ): Promise<GetFeedResponse>;
+  getRecommendedFeed(
+    userId: number,
+    page?: number,
+    limit?: number,
+    seenIds?: number[],
+  ): Promise<RecommendedFeedResponse>;
   getFollowingFeed(
     userId: number,
     page: number,
