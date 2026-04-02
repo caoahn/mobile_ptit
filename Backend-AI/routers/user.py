@@ -13,10 +13,10 @@ router = APIRouter(prefix="/user", tags=["User"])
 MACHING_USER_FEED = {
     "share": 10,
     "save": 8,
-    "like": 5,
-    "dwell_10s": 3,
-    "click": 2,
-    "skip": -5
+    "like": 6,
+    "dwell_10s": 2,
+    "click": 1,
+    "skip": -3
 }
 
 EMBEDDING_DIM = 512

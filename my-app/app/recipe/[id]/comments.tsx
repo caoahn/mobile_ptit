@@ -20,6 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Comment, RecipeDetail } from "@/src/features/recipe/types/recipe.types";
 import { LoadingSpinner } from "@/src/shared/components";
 import { useAuthStore } from "@/src/features/auth/store/authStore";
+import { useRecommendationStore } from "@/src/features/recommendation/store/recommendationStore";
 import {
   getRecipeComments,
   createComment,
@@ -47,6 +48,7 @@ export default function CommentsScreen() {
   const { id, commentId } = useLocalSearchParams<{ id: string; commentId?: string }>();
   const router = useRouter();
   const { user: currentUser } = useAuthStore();
+  const { trackInteraction } = useRecommendationStore();
   const recipeId = parseInt(id);
   const targetCommentId = commentId ? parseInt(commentId) : null;
 
@@ -75,6 +77,7 @@ export default function CommentsScreen() {
 
   useEffect(() => {
     loadData();
+    trackInteraction({ recipe_id: recipeId, event: "click" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipeId]);
 

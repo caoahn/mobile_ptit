@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -43,6 +43,21 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onUpdate }) => {
   const { user: currentUser } = useAuthStore();
   const { trackInteraction } = useRecommendationStore();
   const [isLiked, setIsLiked] = useState(recipe.is_liked || false);
+
+  // Track dwell time in feed: send dwell_10s if card is visible for >= 10s
+  const trackInteractionRef = React.useRef(trackInteraction);
+  React.useEffect(() => { trackInteractionRef.current = trackInteraction; }, [trackInteraction]);
+  useEffect(() => {
+    const recipeId = recipe.id;
+    const startTime = Date.now();
+    return () => {
+      const duration_s = Math.round((Date.now() - startTime) / 1000);
+      if (duration_s >= 10) {
+        trackInteractionRef.current({ recipe_id: recipeId, event: "dwell_10s", duration_s });
+      }
+    };
+  }, [recipe.id]);
+
   const [isSaved, setIsSaved] = useState(recipe.is_saved || false);
   const [likesCount, setLikesCount] = useState(recipe.likes_count);
   const [previewImage, setPreviewImage] = useState<string | null>(null);

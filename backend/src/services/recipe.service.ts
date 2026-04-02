@@ -170,10 +170,12 @@ export class RecipeService implements IRecipeService {
     );
 
     // Fire-and-forget: send embedding to AI service (do not block response)
+    const tagText =
+      tags && tags.length > 0 ? "" + tags.map((t) => `#${t}`).join("") : "";
     this.recommendationService.sendPostEmbedding(
       created.id,
       data.image_url ?? "",
-      data.title,
+      data.title + tagText,
     );
 
     return this.toDTO(created, userId);

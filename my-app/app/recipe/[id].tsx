@@ -13,12 +13,31 @@ import {
 import { getRecipeById, toggleSave } from "@/src/features/recipe/services/recipeService";
 import { LoadingSpinner } from "@/src/shared/components";
 import { RecipeDetail } from "@/src/features/recipe/types/recipe.types";
+import { useRecommendationStore } from "@/src/features/recommendation/store/recommendationStore";
 
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams();
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { trackInteraction } = useRecommendationStore();
+  const trackInteractionRef = React.useRef(trackInteraction);
+  React.useEffect(() => { trackInteractionRef.current = trackInteraction; }, [trackInteraction]);
+
+  // Track view + dwell time on recipe detail page
+  useEffect(() => {
+    if (!id) return;
+    const recipeId = Number(id);
+    const startTime = Date.now();
+    trackInteractionRef.current({ recipe_id: recipeId, event: "click" });
+    return () => {
+      const duration_s = Math.round((Date.now() - startTime) / 1000);
+      if (duration_s >= 10) {
+        trackInteractionRef.current({ recipe_id: recipeId, event: "dwell_10s", duration_s });
+      }
+    };
+  }, [id]);
+
   const [showIngredients, setShowIngredients] = useState(false);
   const [showStepsList, setShowStepsList] = useState(false);
   const [cookingMode, setCookingMode] = useState(false);
@@ -265,8 +284,8 @@ export default function RecipeDetailScreen() {
             {recipe.tags && recipe.tags.length > 0 && (
               <View className="flex-row flex-wrap px-4 pb-4">
                 {recipe.tags.map((tag) => (
-                  <TouchableOpacity 
-                    key={tag.id} 
+                  <TouchableOpacity
+                    key={tag.id}
                     className="mb-2 mr-2 rounded-full bg-blue-50 px-3 py-1"
                     onPress={() => router.push(`/tag/${tag.slug || tag.name}` as any)}
                   >
