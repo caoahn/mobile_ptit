@@ -123,6 +123,43 @@ export default function RecipeDetailScreen() {
     );
   }
 
+  const renderImagePreviewModal = () => (
+    <Modal
+      visible={previewImage !== null}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={() => setPreviewImage(null)}
+    >
+      <View className="flex-1 bg-black">
+        <StatusBar barStyle="light-content" />
+
+        {/* Header */}
+        <View className="absolute top-0 left-0 right-0 z-10 flex-row items-center justify-between px-4 pt-12 pb-4">
+          <View className="absolute inset-0 bg-black/80" />
+          <Text className="text-lg font-bold text-white z-10">Xem ảnh</Text>
+          <TouchableOpacity
+            onPress={() => setPreviewImage(null)}
+            className="bg-white/20 p-2 rounded-full z-10"
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="close" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Image */}
+        <View className="flex-1 items-center justify-center">
+          {previewImage && (
+            <Image
+              source={{ uri: previewImage }}
+              className="w-full h-full"
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
     <>
       {/* Main Recipe Overview */}
@@ -527,86 +564,55 @@ export default function RecipeDetailScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </Modal>
 
-      {/* Steps List Modal */}
-      <Modal
-        visible={showStepsList}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowStepsList(false)}
-      >
-        <View className="flex-1 bg-white">
-          <View className="flex-row items-center justify-between border-b border-gray-100 p-4">
-            <Text className="text-xl font-bold text-gray-900">
-              Danh sách các bước
-            </Text>
-            <TouchableOpacity onPress={() => setShowStepsList(false)}>
-              <MaterialIcons name="close" size={24} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView className="flex-1 p-4">
-            <View className="pb-8">
-              {recipe?.steps?.map((step, index) => (
-                <TouchableOpacity
-                  key={step.id}
-                  onPress={() => {
-                    setCurrentStep(index);
-                    setShowStepsList(false);
-                  }}
-                  className={`mb-3 flex-row items-center rounded-2xl p-4 ${currentStep === index ? "bg-primary/10 border border-primary/20" : "bg-gray-50"}`}
-                >
-                  <View className={`mr-4 h-8 w-8 items-center justify-center rounded-full ${currentStep === index ? "bg-primary" : "bg-gray-300"}`}>
-                    <Text className={`text-sm font-bold ${currentStep === index ? "text-white" : "text-gray-600"}`}>{index + 1}</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className={`text-base font-bold ${currentStep === index ? "text-primary" : "text-gray-900"}`} numberOfLines={1}>Bước {index + 1}</Text>
-                    <Text className="mt-1 text-sm text-gray-500" numberOfLines={1}>{step.description}</Text>
-                  </View>
+          {/* Steps List Modal (Nested for iOS compatibility) */}
+          <Modal
+            visible={showStepsList}
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={() => setShowStepsList(false)}
+          >
+            <View className="flex-1 bg-white">
+              <View className="flex-row items-center justify-between border-b border-gray-100 p-4">
+                <Text className="text-xl font-bold text-gray-900">
+                  Danh sách các bước
+                </Text>
+                <TouchableOpacity onPress={() => setShowStepsList(false)}>
+                  <MaterialIcons name="close" size={24} color="#6B7280" />
                 </TouchableOpacity>
-              ))}
+              </View>
+
+              <ScrollView className="flex-1 p-4">
+                <View className="pb-8">
+                  {recipe?.steps?.map((step, index) => (
+                    <TouchableOpacity
+                      key={step.id}
+                      onPress={() => {
+                        setCurrentStep(index);
+                        setShowStepsList(false);
+                      }}
+                      className={`mb-3 flex-row items-center rounded-2xl p-4 ${currentStep === index ? "bg-primary/10 border border-primary/20" : "bg-gray-50"}`}
+                    >
+                      <View className={`mr-4 h-8 w-8 items-center justify-center rounded-full ${currentStep === index ? "bg-primary" : "bg-gray-300"}`}>
+                        <Text className={`text-sm font-bold ${currentStep === index ? "text-white" : "text-gray-600"}`}>{index + 1}</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className={`text-base font-bold ${currentStep === index ? "text-primary" : "text-gray-900"}`} numberOfLines={1}>Bước {index + 1}</Text>
+                        <Text className="mt-1 text-sm text-gray-500" numberOfLines={1}>{step.description}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
             </View>
-          </ScrollView>
+          </Modal>
+
+          {/* Image Preview Modal (Nested for iOS compatibility) */}
+          {renderImagePreviewModal()}
         </View>
       </Modal>
 
-      {/* Image Preview Modal */}
-      <Modal
-        visible={previewImage !== null}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setPreviewImage(null)}
-      >
-        <View className="flex-1 bg-black">
-          <StatusBar barStyle="light-content" />
-
-          {/* Header */}
-          <View className="absolute top-0 left-0 right-0 z-10 flex-row items-center justify-between px-4 pt-12 pb-4">
-            <View className="absolute inset-0 bg-black/80" />
-            <Text className="text-lg font-bold text-white z-10">Xem ảnh</Text>
-            <TouchableOpacity
-              onPress={() => setPreviewImage(null)}
-              className="bg-white/20 p-2 rounded-full z-10"
-              activeOpacity={0.7}
-            >
-              <MaterialIcons name="close" size={24} color="white" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Image */}
-          <View className="flex-1 items-center justify-center">
-            {previewImage && (
-              <Image
-                source={{ uri: previewImage }}
-                className="w-full h-full"
-                resizeMode="contain"
-              />
-            )}
-          </View>
-        </View>
-      </Modal>
+      {!cookingMode && renderImagePreviewModal()}
     </>
   );
 }
