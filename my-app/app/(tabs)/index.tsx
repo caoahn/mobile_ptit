@@ -17,6 +17,8 @@ import { getRecommendedFeed } from "@/src/features/recipe/services/recipeService
 import { Recipe } from "@/src/features/recipe/types/recipe.types";
 import { useNotificationStore } from "@/src/features/notification/store/notificationStore";
 
+import { useNavigation } from "@react-navigation/native";
+
 // Re-probe AI at most every 5 minutes to avoid latency on every tab switch
 const PROBE_INTERVAL_MS = 5 * 60 * 1000;
 const LIMIT = 10;
@@ -42,6 +44,9 @@ export default function HomeScreen() {
     setHasMore(val);
     hasMoreRef.current = val;
   };
+
+  const flatListRef = useRef<FlatList>(null);
+  const navigation = useNavigation<any>();
 
   /**
    * Load page 1 — always probes backend to determine feed mode (rec vs feed).
@@ -112,21 +117,34 @@ export default function HomeScreen() {
   }, []);
 
   useFocusEffect(
-    useCallback(() => {
-      if (!hasInitiallyLoaded.current) return;
+  useCallback(() => {
+    if (!hasInitiallyLoaded.current) return;
 
-      // In rec mode: avoid re-probing AI on every tab switch (expensive).
-      // Only re-probe after TTL expires.
-      if (
-        feedSourceRef.current === "rec" &&
-        Date.now() - lastProbeTimeRef.current < PROBE_INTERVAL_MS
-      ) {
-        return;
-      }
+    // Scroll lên đầu
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
 
-      loadInitial();
-    }, []),
-  );
+    // Reload data
+    setPage(1);
+    seenIdsRef.current.clear();
+    loadInitial();
+    fetchUnreadCount();
+  }, []),
+);
+
+useEffect(() => {
+  const unsubscribe = navigation.addListener("tabPress", () => {
+    // Scroll lên đầu
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+
+    // Reload data
+    setPage(1);
+    seenIdsRef.current.clear();
+    loadInitial();
+    fetchUnreadCount();
+  });
+
+  return unsubscribe;
+}, [navigation]);
 
   const handleLoadMore = () => {
     if (!isLoadingRef.current && hasMoreRef.current) {
@@ -214,6 +232,7 @@ export default function HomeScreen() {
 
       {/* Feed */}
       <FlatList
+        ref={flatListRef}
         data={recipes}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         renderItem={({ item }) => <RecipeCard recipe={item} />}
