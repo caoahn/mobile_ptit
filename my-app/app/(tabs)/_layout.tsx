@@ -100,6 +100,7 @@ export default function TabLayout() {
       <Tabs.Screen name={"filter"} options={{ href: null }} />
       <Tabs.Screen name={"filter-results"} options={{ href: null }} />
       <Tabs.Screen name="discover" options={{ href: null }} />
+      <Tabs.Screen name="tag/[slug]" options={{ href: null }} />
     </Tabs>
   );
 }
