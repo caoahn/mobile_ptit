@@ -6,7 +6,7 @@ import Constants from "expo-constants";
 const BASE_URL =
   Constants.expoConfig?.extra?.apiUrl ||
   process.env.EXPO_PUBLIC_API_URL ||
-  "http://172.17.48.130:3000/api";
+  "http://172.11.65.248:3000/api";
 
 const SOCKET_URL = BASE_URL.replace(/\/api$/, "");
 

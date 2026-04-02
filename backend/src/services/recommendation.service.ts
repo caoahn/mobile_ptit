@@ -43,7 +43,7 @@ export class RecommendationService implements IRecommendationService {
       },
       { headers: this.headers, timeout: 10_000 },
     );
-    return response.data;
+    return response.data as any;
   }
 
   async getRecommendations(
@@ -54,10 +54,10 @@ export class RecommendationService implements IRecommendationService {
       `${this.aiBaseUrl}/user/top-recipes/${userId}?k=${k}`,
       { headers: this.headers, timeout: 10_000 },
     );
-    const data = response.data;
+    const data = response.data as any;
     const raw: [number, number][] = data.result?.recommendations ?? [];
     return {
-      success: data.success,
+      success: data.success ,
       user_id: userId,
       recommendations: raw.map(([recipe_id, score]) => ({ recipe_id, score })),
       count: raw.length,

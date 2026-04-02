@@ -6,7 +6,7 @@ import { authEvents, AUTH_EVENTS } from "./authEvents";
 const API_URL =
   Constants.expoConfig?.extra?.apiUrl ||
   process.env.EXPO_PUBLIC_API_URL ||
-  "http://172.17.48.130:3000/api";
+  "http://172.11.65.248:3000/api";
 
 const apiClient = axios.create({
   baseURL: API_URL,
