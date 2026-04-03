@@ -117,34 +117,34 @@ export default function HomeScreen() {
   }, []);
 
   useFocusEffect(
-  useCallback(() => {
-    if (!hasInitiallyLoaded.current) return;
+    useCallback(() => {
+      if (!hasInitiallyLoaded.current) return;
 
-    // Scroll lên đầu
-    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+      // Scroll lên đầu
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
 
-    // Reload data
-    setPage(1);
-    seenIdsRef.current.clear();
-    loadInitial();
-    fetchUnreadCount();
-  }, []),
-);
+      // Reload data
+      setPage(1);
+      seenIdsRef.current.clear();
+      loadInitial();
+      fetchUnreadCount();
+    }, []),
+  );
 
-useEffect(() => {
-  const unsubscribe = navigation.addListener("tabPress", () => {
-    // Scroll lên đầu
-    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("tabPress", () => {
+      // Scroll lên đầu
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
 
-    // Reload data
-    setPage(1);
-    seenIdsRef.current.clear();
-    loadInitial();
-    fetchUnreadCount();
-  });
+      // Reload data
+      setPage(1);
+      seenIdsRef.current.clear();
+      loadInitial();
+      fetchUnreadCount();
+    });
 
-  return unsubscribe;
-}, [navigation]);
+    return unsubscribe;
+  }, [navigation]);
 
   const handleLoadMore = () => {
     if (!isLoadingRef.current && hasMoreRef.current) {

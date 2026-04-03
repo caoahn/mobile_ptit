@@ -88,9 +88,9 @@ en_to_vi = {
     "Ice": "Đá lạnh",
     "Jack Fruit": "Mít",
     "Ketchup": "Tương cà",
-    "Lapsi -Nepali Hog Plum-": "Sấu Nepal",
-    "Lemon -Nimbu-": "Chanh vàng",
-    "Lime -Kagati-": "Chanh xanh",
+    "Lapsi -Nepali Hog Plum-": "Sấu",
+    "Lemon -Nimbu-": "Chanh",
+    "Lime -Kagati-": "Chanh",
     "Long Beans -Bodi-": "Đậu đũa",
     "Masyaura": "Viên đậu nành lên men phơi khô",
     "Milk": "Sữa",
@@ -105,7 +105,7 @@ en_to_vi = {
     "Onion Leaves": "Hành lá",
     "Orange": "Cam",
     "Palak -Indian Spinach-": "Cải bó xôi",
-    "Palungo -Nepali Spinach-": "Rau chân vịt Nepal",
+    "Palungo -Nepali Spinach-": "Rau chân vịt",
     "Paneer": "Phô mai kiểu Ấn",
     "Papaya": "Đu đủ",
     "Pea": "Đậu hạt",
@@ -146,7 +146,20 @@ en_to_vi = {
     "kimchi": "Kimchi",
     "mayonnaise": "Xốt Mayonnaise",
     "noodle": "Mì",
-    "seaweed": "Rong biển"
+    "Bean sprouts": "Giá đỗ",
+    "seaweed": "Rong biển",
+    "Black pepper" : "Tiêu", 
+    "Cherry" : "Quả anh đào", 
+    "Coconut" : "Dừa", 
+    "Dried pasta" : "Mì pasta", 
+    "Grape" : "Nho", 
+    "Lettuce" : "Xà lách", 
+    "Mango" : "Xoài", 
+    "Peeled shrimp" : "Tôm bóc vỏ", 
+    "Pineapple" : "Dứa", 
+    "Rosemary" : "Hương thảo", 
+    "Star anise" : "Hồi", 
+    "Turmeric powder" : "Bột nghệ"
 }
 # ==================== ENDPOINTS ====================
 
